@@ -275,19 +275,96 @@ def _disable(args) -> None:
     print("Restart Claude Code to apply.")
 
 
+def _pid_alive(pid: int) -> bool:
+    try:
+        import psutil
+        return psutil.pid_exists(pid)
+    except ImportError:
+        pass
+    import platform, subprocess
+    if platform.system() == "Windows":
+        result = subprocess.run(
+            ["tasklist", "/FI", f"PID eq {pid}", "/NH"],
+            capture_output=True, text=True,
+        )
+        return str(pid) in result.stdout
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
+
+
 def _proxy(args) -> None:
     proxy_dir = MEWVAULT_DIR / "proxy"
-    if not proxy_dir.exists():
-        print("Proxy config not installed. Run 'mew harness install' first.", file=sys.stderr)
+    config_file = proxy_dir / "litellm-config.yaml"
+    pid_file = proxy_dir / ".proxy.pid"
+
+    if not proxy_dir.exists() or not config_file.exists():
+        print("Error: proxy/litellm-config.yaml not found. Run 'mew harness install' first.", file=sys.stderr)
         sys.exit(1)
 
-    import platform
-    if platform.system() == "Windows":
-        script = proxy_dir / "start-proxy.ps1"
-        print(f"Run in PowerShell: & '{script}'")
-    else:
-        script = proxy_dir / "start-proxy.sh"
-        print(f"Run in terminal: bash '{script}'")
+    if getattr(args, "stop", False):
+        _proxy_stop(pid_file)
+        return
+
+    # Check if already running
+    if pid_file.exists():
+        try:
+            pid = int(pid_file.read_text().strip())
+            if _pid_alive(pid):
+                print(f"Proxy already running (PID {pid}) on http://localhost:4000")
+                print("Use 'mew harness proxy --stop' to stop it.")
+                return
+        except Exception:
+            pass
+        pid_file.unlink(missing_ok=True)
+
+    if not shutil.which("litellm"):
+        print("Error: litellm not found. Run: pip install 'litellm[proxy]'", file=sys.stderr)
+        sys.exit(1)
+
+    import subprocess
+    print(f"Starting MewVault LiteLLM proxy on http://localhost:4000 ...")
+    print(f"Config: {config_file}\n")
+
+    proc = subprocess.Popen(
+        ["litellm", "--config", str(config_file)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+    pid_file.write_text(str(proc.pid))
+
+    print(f"Proxy started (PID {proc.pid})")
+    print(f"PID saved: {pid_file}\n")
+    print("To route Claude Code through the proxy, set ANTHROPIC_BASE_URL:")
+    print(f"  PowerShell:  $env:ANTHROPIC_BASE_URL = 'http://localhost:4000'")
+    print(f"  bash/zsh:    export ANTHROPIC_BASE_URL='http://localhost:4000'\n")
+    print("To stop:  mew harness proxy --stop")
+
+
+def _proxy_stop(pid_file) -> None:
+    if not pid_file.exists():
+        print("No running proxy found (no PID file).")
+        return
+    try:
+        pid = int(pid_file.read_text().strip())
+        import signal, platform
+        if platform.system() == "Windows":
+            import subprocess
+            subprocess.run(["taskkill", "/PID", str(pid), "/F"],
+                           capture_output=True)
+        else:
+            os.kill(pid, signal.SIGTERM)
+        pid_file.unlink(missing_ok=True)
+        print(f"Proxy stopped (PID {pid}).")
+    except ProcessLookupError:
+        pid_file.unlink(missing_ok=True)
+        print("Proxy was not running (stale PID file removed).")
+    except Exception as e:
+        print(f"Error stopping proxy: {e}", file=sys.stderr)
 
 
 def _resolve_workspace(args) -> Path:

@@ -25,17 +25,16 @@ model_list:
       model: anthropic/claude-haiku-4-5-20251001
       api_key: os.environ/ANTHROPIC_API_KEY
 
-  # MiMo-V2-Pro — code and game work (~5x cheaper than Sonnet)
-  # Configure via OpenRouter or local Ollama
+  # Code and game work — swap back to MiMo-V2-Pro when OPENROUTER_API_KEY is available
   - model_name: mew-coder
     litellm_params:
-      model: openrouter/mimo-v2-pro
-      api_key: os.environ/OPENROUTER_API_KEY
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
 
   - model_name: mew-gamedev
     litellm_params:
-      model: openrouter/mimo-v2-pro
-      api_key: os.environ/OPENROUTER_API_KEY
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
 
 litellm_settings:
   drop_params: true
@@ -47,5 +46,7 @@ router_settings:
   timeout: 60
 
 general_settings:
+  # master_key secures the proxy endpoints. Set MEW_PROXY_KEY to enable auth,
+  # or remove this line for unauthenticated local-only use.
   master_key: os.environ/MEW_PROXY_KEY
   port: 4000

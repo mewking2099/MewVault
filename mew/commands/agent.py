@@ -9,8 +9,8 @@ AGENTS_DIR = MEWVAULT_DIR / "templates" / "agents"
 AGENT_REGISTRY = [
     {"name": "mew-planner",   "model": "claude-opus-4-7",   "silo": "global",  "role": "Architecture and MewKing planning"},
     {"name": "mew-designer",  "model": "claude-sonnet-4-6", "silo": "design",  "role": "UX, Figma review, component specs"},
-    {"name": "mew-coder",     "model": "mimo-v2-pro",       "silo": "code",    "role": "Implementation, refactoring, test generation"},
-    {"name": "mew-gamedev",   "model": "mimo-v2-pro",       "silo": "game",    "role": "GDScript, game mechanics, Godot patterns"},
+    {"name": "mew-coder",     "model": "claude-sonnet-4-6", "silo": "code",    "role": "Implementation, refactoring, test generation"},
+    {"name": "mew-gamedev",   "model": "claude-sonnet-4-6", "silo": "game",    "role": "GDScript, game mechanics, Godot patterns"},
     {"name": "mew-learner",   "model": "claude-sonnet-4-6", "silo": "wiki",    "role": "Concept distillation, Karpathy ingest"},
     {"name": "mew-archivist", "model": "claude-haiku-4-5",  "silo": "global",  "role": "Session wrap, log writes, git messages"},
     {"name": "mew-chief",     "model": "claude-sonnet-4-6", "silo": "global",  "role": "Cross-silo orchestration, triage, routing"},
@@ -33,10 +33,10 @@ def _list_agents() -> None:
     print("-" * 75)
     for a in AGENT_REGISTRY:
         template_path = AGENTS_DIR / f"{a['name']}.md"
-        installed = "✓" if template_path.exists() else "○"
+        installed = "ok" if template_path.exists() else " -"
         print(f"  {installed} {a['name']:<16} {a['model']:<24} {a['silo']:<10} {a['role']}")
     print()
-    print("Legend: ✓ template installed  ○ template not yet created")
+    print("Legend: ok = template installed   - = template not yet created")
     proxy_cfg = MEWVAULT_DIR / "proxy" / "litellm-config.yaml"
     if proxy_cfg.exists():
         print("LiteLLM proxy: configured (run 'mew harness proxy' to start)")

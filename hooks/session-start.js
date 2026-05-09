@@ -44,6 +44,18 @@ function loadRules(workspaceRoot, silo) {
   return parts.join('\n\n');
 }
 
+const AGENT_MAP = {
+  code:   { name: 'mew-coder',    model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
+  game:   { name: 'mew-gamedev',  model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
+  design: { name: 'mew-designer', model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
+  wiki:   { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
+};
+const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-4-6', role: 'Cross-silo orchestration, triage, routing' };
+
+function getAgent(silo) {
+  return AGENT_MAP[silo] || DEFAULT_AGENT;
+}
+
 const WHITELIST = {
   code:   ['current_phase', 'stack', 'open_threads', 'tier', 'plan_approved'],
   design: ['current_phase', 'figma_file_key', 'greenlit', 'tier'],
@@ -113,24 +125,31 @@ function main() {
   const silo = detectSilo(cwd, workspaceRoot);
 
   const sections = [];
+  const agent = getAgent(silo);
 
   // 1+2: Static rules (cache-eligible — always first)
   const rules = loadRules(workspaceRoot, silo);
   if (rules) sections.push('## Vault Rules\n\n' + rules);
 
-  // 3: Project status (dynamic, whitelisted)
+  // 3: Active agent persona
+  sections.push(
+    `## Active Agent: ${agent.name} (${agent.model})\n\n` +
+    `Silo: ${silo || 'global'} | Role: ${agent.role}`
+  );
+
+  // 4: Project status (dynamic, whitelisted)
   const status = loadProjectStatus(cwd, workspaceRoot, silo);
   if (status) sections.push('## Current Project\n\n```yaml\n' + status + '\n```');
 
-  // 4: Recovery detection
+  // 5: Recovery detection
   const unwrapped = findUnwrapped(workspaceRoot);
   if (unwrapped.length) {
-    sections.push('## ⚠ Unwrapped Sessions\n\n' +
+    sections.push('## Unwrapped Sessions\n\n' +
       'These projects have no auto-wrap on their last log entry. Address before new work:\n' +
       unwrapped.map(p => `- ${p}`).join('\n'));
   }
 
-  // 5: Promoted instincts
+  // 6: Promoted instincts
   const instincts = loadInstincts(silo);
   if (instincts.length) {
     sections.push('## Active Vault Instincts\n\n' +

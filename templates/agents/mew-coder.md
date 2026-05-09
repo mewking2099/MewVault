@@ -1,6 +1,6 @@
 ---
 name: mew-coder
-model: mimo-v2-pro
+model: claude-sonnet-4-6
 silo: code
 role: Implementation, refactoring, test generation
 ---

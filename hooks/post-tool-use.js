@@ -43,7 +43,15 @@ function getProjectHash(cwd) {
   }
 }
 
-function accumulateActivity(workspaceRoot, filePath) {
+const AGENT_MAP = {
+  code:   'mew-coder',
+  game:   'mew-gamedev',
+  design: 'mew-designer',
+  wiki:   'mew-learner',
+  global: 'mew-chief',
+};
+
+function accumulateActivity(workspaceRoot, filePath, silo) {
   const actFile = path.join(workspaceRoot, '.claude', 'session-activity.json');
   let activity = { files_modified: [], tool_calls: 0 };
   if (fs.existsSync(actFile)) {
@@ -53,6 +61,7 @@ function accumulateActivity(workspaceRoot, filePath) {
     activity.files_modified.push(filePath);
   }
   activity.tool_calls = (activity.tool_calls || 0) + 1;
+  activity.active_agent = AGENT_MAP[silo] || 'mew-chief';
   activity.last_updated = new Date().toISOString();
   try {
     fs.mkdirSync(path.dirname(actFile), { recursive: true });
@@ -112,7 +121,8 @@ function main() {
 
   try {
     const workspaceRoot = findWorkspaceRoot(cwd);
-    accumulateActivity(workspaceRoot, filePath);
+    const silo = detectSilo(cwd, workspaceRoot);
+    accumulateActivity(workspaceRoot, filePath, silo);
     checkCorrectionSignal(workspaceRoot, filePath, cwd);
   } catch {}
 

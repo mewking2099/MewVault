@@ -102,9 +102,10 @@ def main() -> None:
     p_harness.add_argument(
         "action",
         choices=["install", "status", "config", "disable", "proxy"],
-        help="install: register hooks; status: show state; config: show env vars; disable: remove hooks; proxy: start LiteLLM proxy",
+        help="install: register hooks; status: show state; config: show env vars; disable: remove hooks; proxy: manage LiteLLM proxy",
     )
     p_harness.add_argument("--path", type=Path, help="Workspace root override")
+    p_harness.add_argument("--stop", action="store_true", help="Stop the running proxy (proxy action only)")
     p_harness.add_argument("key", nargs="?", help="Config key (for config action)")
     p_harness.add_argument("value", nargs="?", help="Config value (for config action)")
 

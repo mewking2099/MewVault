@@ -1,6 +1,6 @@
 ---
 name: mew-gamedev
-model: mimo-v2-pro
+model: claude-sonnet-4-6
 silo: game
 role: GDScript, game mechanics, Godot patterns
 ---
