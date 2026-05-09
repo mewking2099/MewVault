@@ -59,7 +59,7 @@ def _show_status(repos: list[Path]) -> None:
         )
         label = repo.relative_to(repo.parent.parent) if repo.parent != repo.parent.parent else repo.name
         has_changes = result.stdout.strip()
-        marker = "●" if has_changes else "✓"
+        marker = "*" if has_changes else "ok"
         print(f"  {marker} {label}")
         if has_changes:
             for line in result.stdout.strip().splitlines():
@@ -93,7 +93,7 @@ def _interactive_commit(repos: list[Path], message: str, push: bool) -> None:
             capture_output=True, text=True,
         )
         if result.returncode == 0:
-            print(f"  Committed. ✓")
+            print(f"  Committed. ok")
             committed.append(repo)
         else:
             print(f"  Commit failed: {result.stderr.strip()}")
@@ -104,7 +104,7 @@ def _interactive_commit(repos: list[Path], message: str, push: bool) -> None:
                 capture_output=True, text=True,
             )
             if push_result.returncode == 0:
-                print(f"  Pushed. ✓")
+                print(f"  Pushed. ok")
             else:
                 print(f"  Push failed: {push_result.stderr.strip()}")
         print()

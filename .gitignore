@@ -24,3 +24,6 @@ instincts/pending/*.json
 
 # LiteLLM proxy key (if ever written to disk)
 proxy/.proxy-key
+
+# Obsidian — managed by Obsidian, not tracked
+.obsidian/

@@ -88,14 +88,20 @@ def _install(args) -> None:
         # Preserve existing hooks for this event, append if not already registered
         event_hooks = hooks.setdefault(event, [])
         already = any(
-            (isinstance(h, dict) and h.get("command", "") == cmd) or h == cmd
+            (isinstance(h, dict) and h.get("command", "") == cmd)
+            or h == cmd
+            or (
+                isinstance(h, dict)
+                and isinstance(h.get("hooks"), list)
+                and any(isinstance(hh, dict) and hh.get("command", "") == cmd for hh in h["hooks"])
+            )
             for h in event_hooks
         )
         if not already:
-            event_hooks.append({"command": cmd, "timeout": 15000})
-            print(f"  Registered: {event} → {hook_def['script']}")
+            event_hooks.append({"matcher": "", "hooks": [{"type": "command", "command": cmd, "timeout": 15000}]})
+            print(f"  Registered: {event} -> {hook_def['script']}")
         else:
-            print(f"  Already registered: {event} → {hook_def['script']}")
+            print(f"  Already registered: {event} -> {hook_def['script']}")
 
     settings_file.write_text(json.dumps(settings, indent=2), encoding="utf-8")
     print(f"\n  Written: {settings_file}")
@@ -116,7 +122,7 @@ def _install(args) -> None:
     # Validate node is available
     node_ok = shutil.which("node") is not None
     if not node_ok:
-        print("\n  ⚠ Warning: 'node' not found in PATH. Hooks require Node.js.")
+        print("\n  Warning: 'node' not found in PATH. Hooks require Node.js.")
     else:
         print(f"\n  Node.js: OK ({shutil.which('node')})")
 
@@ -177,7 +183,13 @@ def _status(args) -> None:
         cmd = f"node \"{script_path}\""
         event_hooks = hooks.get(event, [])
         registered = any(
-            (isinstance(h, dict) and h.get("command", "") == cmd) or h == cmd
+            (isinstance(h, dict) and h.get("command", "") == cmd)
+            or h == cmd
+            or (
+                isinstance(h, dict)
+                and isinstance(h.get("hooks"), list)
+                and any(isinstance(hh, dict) and hh.get("command", "") == cmd for hh in h["hooks"])
+            )
             for h in event_hooks
         )
         script_exists = (HOOKS_DIR / script).exists()
@@ -244,7 +256,15 @@ def _disable(args) -> None:
             before = len(hooks[event])
             hooks[event] = [
                 h for h in hooks[event]
-                if not ((isinstance(h, dict) and h.get("command", "") == cmd) or h == cmd)
+                if not (
+                    (isinstance(h, dict) and h.get("command", "") == cmd)
+                    or h == cmd
+                    or (
+                        isinstance(h, dict)
+                        and isinstance(h.get("hooks"), list)
+                        and any(isinstance(hh, dict) and hh.get("command", "") == cmd for hh in h["hooks"])
+                    )
+                )
             ]
             removed += before - len(hooks[event])
             if not hooks[event]:
