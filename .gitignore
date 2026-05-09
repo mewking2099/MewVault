@@ -1,0 +1,26 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+dist/
+build/
+*.egg-info/
+.venv/
+venv/
+env/
+secrets/
+.env
+.env.*
+
+# MewHarness session artifacts (not committed — machine-local)
+.claude/session-activity.json
+.claude/gateguard-session.json
+.claude/correction-signals.json
+
+# Instincts — pending is ephemeral, promoted is user-controlled
+instincts/pending/*.json
+# instincts/promoted/*.json intentionally tracked
+
+# LiteLLM proxy key (if ever written to disk)
+proxy/.proxy-key

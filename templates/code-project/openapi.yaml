@@ -1,0 +1,9 @@
+openapi: "3.0.3"
+info:
+  title: "{{name}}"
+  version: "0.1.0"
+  description: "API for {{name}}. Update at MewKing Finalize stage."
+paths: {}
+components:
+  schemas: {}
+  securitySchemes: {}

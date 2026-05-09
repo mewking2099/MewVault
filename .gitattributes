@@ -1,0 +1,22 @@
+# Normalize line endings — all text files use LF in the repo
+* text=auto eol=lf
+
+# Explicitly LF for scripts
+*.sh text eol=lf
+*.py text eol=lf
+*.js text eol=lf
+*.md text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.json text eol=lf
+
+# PowerShell stays CRLF on checkout (Windows)
+*.ps1 text eol=crlf
+
+# Binaries — no conversion
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
