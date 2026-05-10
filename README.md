@@ -132,6 +132,7 @@ mew harness install
 | `mew status --blocked` | Projects with unresolved blocking threads |
 | `mew validate` | Check all Project_Status.md files against schema |
 | `mew validate --fix` | Offer to repair fixable issues |
+| `mew validate --slim` | Scan CLAUDE.md files for verbose sentences and suggest tighter rewrites |
 
 ### Projects
 
@@ -162,6 +163,7 @@ mew harness install
 | `mew sync` | Show git status across all silo repos |
 | `mew sync --commit "message"` | Interactively commit each repo with changes |
 | `mew sync --commit "message" --push` | Commit and push |
+| `mew sync --pr` | Create a GitHub PR from last-session-message.txt (requires `gh` CLI) |
 
 ### Secrets
 
@@ -179,7 +181,7 @@ Secrets are stored outside git. Never commit them.
 | Command | Description |
 |---|---|
 | `mew dump <project>` | Token-budgeted context snapshot for a project |
-| `mew dump <project> --budget 8000` | Custom character budget |
+| `mew dump <project> --budget 8000` | Custom character budget (default: 16,000) |
 | `mew compact` | Generate a semantic context map for the workspace |
 | `mew compact --project <name>` | Scope to a single project |
 
@@ -190,6 +192,14 @@ Secrets are stored outside git. Never commit them.
 | `mew process-inbox` | List `wiki/_inbox/` and propose routing |
 | `mew package <ux-project>` | Assemble a client deliverable package |
 | `mew package <ux-project> --push-drive` | Print Drive MCP push instructions |
+
+### Agents
+
+| Command | Description |
+|---|---|
+| `mew agent list` | List all available specialist agents |
+| `mew agent invoke <name>` | Invoke an agent by name |
+| `mew agent invoke <name> --task "..."` | Invoke an agent with a task description |
 
 ### Instincts
 
@@ -209,7 +219,9 @@ The instinct pipeline captures learned behaviours from correction signals detect
 |---|---|
 | `mew harness install` | Register hooks and install rule templates |
 | `mew harness status` | Show hook registration and instinct counts |
+| `mew harness status --verbose` | Show per-silo Project_Status.md field whitelist |
 | `mew harness config` | Show harness env var configuration |
+| `mew harness config --active-mcps` | Interactively select MCP servers per silo |
 | `mew harness disable` | Remove all MewHarness hooks from settings.json |
 | `mew harness proxy` | Print LiteLLM proxy start instructions |
 
@@ -260,6 +272,29 @@ Five Claude Code lifecycle hooks run automatically:
 | `PostToolUse` | `post-tool-use.js` | Accumulates session activity, detects correction signals for the instinct pipeline |
 | `PreCompact` | `pre-compact.js` | Runs semantic compact, writes context snapshots, preserves latest snapshot post-compaction |
 
+Hooks are fully automatic — no slash commands required. Run `mew harness install` once to activate.
+
+---
+
+## Agent Array
+
+MewVault ships seven specialist agents routed through a LiteLLM proxy. Start the proxy first with `mew harness proxy`, then route work to the right agent:
+
+| Agent | Model | Role |
+|---|---|---|
+| `mew-planner` | claude-opus-4-7 | Architecture, MewKing plans |
+| `mew-designer` | claude-sonnet-4-6 | UX, Figma review, component specs |
+| `mew-coder` | mimo-v2-pro | Implementation, tests |
+| `mew-gamedev` | mimo-v2-pro | GDScript, game mechanics, Godot patterns |
+| `mew-learner` | claude-sonnet-4-6 | Concept distillation, learning tracks |
+| `mew-archivist` | claude-haiku-4-5 | Session wrap, log writes, git messages |
+| `mew-chief` | claude-sonnet-4-6 | Cross-silo orchestration, triage, routing |
+
+```bash
+mew agent list
+mew agent invoke mew-planner --task "Design the auth flow for acme-web"
+```
+
 ---
 
 ## Tier Gates
@@ -283,16 +318,22 @@ The `pre-tool-use.js` hook enforces this at the OS level (exit code 2). After tw
 
 ---
 
-## Slash Commands
+## Conversational Triggers
 
-Four commands are understood by Claude inside a MewVault session:
+Just say these phrases to Claude — no slash commands needed:
 
-| Command | Description |
+| Trigger | What happens |
 |---|---|
-| `/start [silo] [project]` | Open vault overview, optionally drill into a silo or project |
-| `/wrap` | End the session, update log.md, return to vault overview |
-| `/plan <feature>` | Propose a tier and begin the planning flow |
-| `/teach [topic]` | Enter pedagogical mode for a learning track |
+| `"process the inbox"` | Wiki ingestion pipeline for `wiki/_inbox/` |
+| `"sync figma"` | Pull Figma snapshot for the current UX project |
+| `"refresh figma in <project>"` | Update design tokens in code project CLAUDE.md |
+| `"record this as a decision"` | Draft an ADR in `decisions/` |
+| `"advance the phase"` / `"phase complete"` | Phase transition in UX project |
+| `"inject findings into <project>"` | UX audit → code project backlog |
+| `"package for the client"` | Assemble a client deliverable package |
+| `"promote this to a code project"` | UX → code promotion |
+| `"promote this experiment"` | `game-lab/_experiments/` → full game project |
+| `"archive this project"` | Archive with retro or status update |
 
 ---
 
@@ -328,7 +369,7 @@ Each project follows a standard structure:
 
 ## Session Discipline
 
-- Every session ends with `/wrap`. `log.md` is updated before closing.
+- Every session ends with a wrap. `log.md` is updated before closing.
 - Every new wiki note needs at least one inbound link before the session ends.
 - Every factual claim cites its source: `(source: raw/file.ext)`.
 - Commits are never auto-created. Use `mew sync --commit` when ready.
