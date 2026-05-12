@@ -40,6 +40,12 @@ function findProjectStatus(cwd, workspaceRoot) {
   return null;
 }
 
+function getMewWikiPath(workspaceRoot) {
+  const pointer = path.join(workspaceRoot, 'mewvault', '.mewwiki');
+  if (!fs.existsSync(pointer)) return null;
+  try { return fs.readFileSync(pointer, 'utf8').trim() || null; } catch { return null; }
+}
+
 const SECRET_PATTERNS = [
   /sk-[a-zA-Z0-9]{20,}/,
   /ghp_[a-zA-Z0-9]{36}/,
@@ -72,6 +78,22 @@ function main() {
   }
   if (filePath.includes('/.obsidian/') || filePath.includes('\\.obsidian\\')) {
     block('⛔ MewVault: .obsidian/ is off-limits. Use Obsidian to change settings.');
+  }
+
+  // Sub-logic F: mewwiki direct write guard
+  if (filePath && ['Write', 'Edit', 'MultiEdit'].includes(toolName)) {
+    const workspaceRoot = findWorkspaceRoot(cwd);
+    const wikiPath = getMewWikiPath(workspaceRoot);
+    if (wikiPath) {
+      const norm = (p) => p.replace(/\\/g, '/').replace(/\/$/, '');
+      if (norm(filePath).startsWith(norm(wikiPath) + '/')) {
+        block(
+          '⛔ MewVault: Do not write to mewwiki/ directly.\n' +
+          'Sync from silos:  mew wiki sync\n' +
+          'Route a note:     /dump <content>'
+        );
+      }
+    }
   }
 
   // Sub-logic C: Secrets guardian

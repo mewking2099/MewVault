@@ -83,6 +83,37 @@ function loadActiveMcps(workspaceRoot) {
   } catch { return {}; }
 }
 
+function getMewWikiPath(workspaceRoot) {
+  const pointer = path.join(workspaceRoot, 'mewvault', '.mewwiki');
+  if (!fs.existsSync(pointer)) return null;
+  const p = fs.readFileSync(pointer, 'utf8').trim();
+  return (p && fs.existsSync(p)) ? p : null;
+}
+
+function runWikiSync(workspaceRoot) {
+  const wikiPath = getMewWikiPath(workspaceRoot);
+  if (!wikiPath) return;
+  const mewPy = path.join(workspaceRoot, 'mewvault', 'mew.py');
+  if (!fs.existsSync(mewPy)) return;
+  try {
+    const { spawnSync } = require('child_process');
+    spawnSync('python', [mewPy, 'wiki', 'sync'], {
+      cwd: path.join(workspaceRoot, 'mewvault'),
+      timeout: 20000,
+      stdio: 'pipe',
+    });
+  } catch {}
+}
+
+function writeMemorySummary(wikiPath, projectSlug, summary, fileCount) {
+  if (fileCount < 3) return;
+  const memoriesPath = path.join(wikiPath, 'Brain', 'Memories.md');
+  if (!fs.existsSync(memoriesPath)) return;
+  const date = new Date().toISOString().split('T')[0];
+  const entry = `\n- **${date}** · ${projectSlug}: ${summary} (${fileCount} files)`;
+  try { fs.appendFileSync(memoriesPath, entry, 'utf8'); } catch {}
+}
+
 function writePendingVectorIndex(workspaceRoot, silo, summary, filesModified) {
   try {
     const f = path.join(workspaceRoot, '.claude', 'pending-vector-index.json');
@@ -141,6 +172,14 @@ function main() {
       const msg = `chore: session wrap ${ts().split(' ')[0]}\n\n- ${summary}`;
       fs.writeFileSync(path.join(claudeDir, 'last-session-message.txt'), msg, 'utf8');
     }
+
+    // MewWiki: auto-sync on session end + write Memories entry if substantial
+    try {
+      const filesModified = (activity && activity.files_modified) ? activity.files_modified : [];
+      runWikiSync(workspaceRoot);
+      const wikiPath = getMewWikiPath(workspaceRoot);
+      if (wikiPath) writeMemorySummary(wikiPath, path.basename(projectDir), summary, filesModified.length);
+    } catch {}
 
     // Phase 4: vector store indexing (fire-and-forget, never throws)
     try {

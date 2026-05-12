@@ -221,6 +221,65 @@ async function loadGithubIssues(silo, workspaceRoot, currentPhase) {
   } catch { return null; }
 }
 
+function getMewWikiPath(workspaceRoot) {
+  const pointer = path.join(workspaceRoot, 'mewvault', '.mewwiki');
+  if (!fs.existsSync(pointer)) return null;
+  const p = fs.readFileSync(pointer, 'utf8').trim();
+  return (p && fs.existsSync(p)) ? p : null;
+}
+
+function loadMewWikiBrief(workspaceRoot) {
+  const wikiPath = getMewWikiPath(workspaceRoot);
+  if (!wikiPath) return null;
+
+  const parts = [];
+
+  // Active focus + project list from Brain/North Star.md
+  const northStar = path.join(wikiPath, 'Brain', 'North Star.md');
+  if (fs.existsSync(northStar)) {
+    const text = fs.readFileSync(northStar, 'utf8');
+    const focusM = text.match(/## Active Focus\n([\s\S]*?)(?=\n##|$)/);
+    const focus = focusM ? focusM[1].replace(/<!--[\s\S]*?-->/g, '').trim() : '';
+    if (focus) parts.push(`Focus: ${focus.substring(0, 200)}`);
+
+    const projM = text.match(/## Active Projects\n([\s\S]*?)(?=\n##|$)/);
+    const proj = projM ? projM[1].replace(/<!--[\s\S]*?-->/g, '').trim() : '';
+    if (proj) parts.push(`Projects:\n${proj.substring(0, 400)}`);
+  }
+
+  // _inbox/ count
+  const inboxDir = path.join(wikiPath, '_inbox');
+  if (fs.existsSync(inboxDir)) {
+    try {
+      const count = fs.readdirSync(inboxDir).filter(f => f.endsWith('.md')).length;
+      if (count > 0) parts.push(`Inbox: ${count} item(s) pending review (mewwiki/_inbox/)`);
+    } catch {}
+  }
+
+  // Stale projects: last_session > 14 days
+  const projDir = path.join(wikiPath, 'Projects');
+  if (fs.existsSync(projDir)) {
+    const stale = [];
+    const cutoff = Date.now() - 14 * 86400000;
+    try {
+      for (const slug of fs.readdirSync(projDir)) {
+        if (slug === '_archive') continue;
+        const idx = path.join(projDir, slug, 'index.md');
+        if (!fs.existsSync(idx)) continue;
+        const m = fs.readFileSync(idx, 'utf8').match(/^last_session:\s*(\S+)/m);
+        if (!m) continue;
+        const t = new Date(m[1]).getTime();
+        if (!isNaN(t) && t < cutoff) {
+          stale.push(`${slug} (idle ${Math.floor((Date.now() - t) / 86400000)}d)`);
+        }
+      }
+    } catch {}
+    if (stale.length) parts.push(`Stale (>14d idle): ${stale.join(', ')}`);
+  }
+
+  return parts.length ? parts.join('\n') : null;
+}
+
 async function loadSemanticContext(silo, workspaceRoot) {
   try {
     const mcps = loadActiveMcps(workspaceRoot);
@@ -294,6 +353,10 @@ async function main() {
   // 8: Open GitHub issues (Phase 6 — only when GITHUB_MCP_ENABLED=1 and github MCP configured)
   const githubIssues = await loadGithubIssues(silo, workspaceRoot, currentPhase);
   if (githubIssues) sections.push('## Open GitHub Issues (blocking current phase)\n\n' + githubIssues);
+
+  // 9: MewWiki Brain brief (focus, inbox count, stale alerts)
+  const wikibrief = loadMewWikiBrief(workspaceRoot);
+  if (wikibrief) sections.push('## MewWiki\n\n' + wikibrief);
 
   let brief = sections.join('\n\n---\n\n');
   if (brief.length > MAX_CHARS) {
