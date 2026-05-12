@@ -816,12 +816,7 @@ type: gotcha
 # Obsidian Bases JSON format. Open in Obsidian to adjust columns/filters.
 
 _BASE_ACTIVE_PROJECTS = json.dumps({
-    "filters": {
-        "conjunction": "and",
-        "conditions": [
-            {"id": "1", "field": "status", "operator": "is", "value": "active"}
-        ]
-    },
+    "filters": {"and": [{"field": "status", "operator": "is", "value": "active"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 220},
         {"id": "silo", "field": "silo", "width": 120},
@@ -834,12 +829,7 @@ _BASE_ACTIVE_PROJECTS = json.dumps({
 }, indent=2)
 
 _BASE_STALE_PROJECTS = json.dumps({
-    "filters": {
-        "conjunction": "and",
-        "conditions": [
-            {"id": "1", "field": "status", "operator": "is", "value": "active"}
-        ]
-    },
+    "filters": {"and": [{"field": "status", "operator": "is", "value": "active"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 220},
         {"id": "silo", "field": "silo", "width": 120},
@@ -851,12 +841,7 @@ _BASE_STALE_PROJECTS = json.dumps({
 }, indent=2)
 
 _BASE_DECISIONS = json.dumps({
-    "filters": {
-        "conjunction": "and",
-        "conditions": [
-            {"id": "1", "field": "type", "operator": "is", "value": "decision"}
-        ]
-    },
+    "filters": {"and": [{"field": "type", "operator": "is", "value": "decision"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 260},
         {"id": "project", "field": "project", "width": 160},
@@ -868,12 +853,7 @@ _BASE_DECISIONS = json.dumps({
 }, indent=2)
 
 _BASE_IDEAS = json.dumps({
-    "filters": {
-        "conjunction": "and",
-        "conditions": [
-            {"id": "1", "field": "type", "operator": "is", "value": "idea"}
-        ]
-    },
+    "filters": {"and": [{"field": "type", "operator": "is", "value": "idea"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 260},
         {"id": "project", "field": "project", "width": 160},
@@ -885,9 +865,7 @@ _BASE_IDEAS = json.dumps({
 }, indent=2)
 
 _BASE_KNOWLEDGE = json.dumps({
-    "filters": {"conjunction": "and", "conditions": [
-        {"id": "1", "field": "type", "operator": "is", "value": "concept"}
-    ]},
+    "filters": {"and": [{"field": "type", "operator": "is", "value": "concept"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 260},
         {"id": "source", "field": "source", "width": 200},
@@ -898,9 +876,7 @@ _BASE_KNOWLEDGE = json.dumps({
 }, indent=2)
 
 _BASE_PEOPLE = json.dumps({
-    "filters": {"conjunction": "and", "conditions": [
-        {"id": "1", "field": "type", "operator": "is", "value": "person"}
-    ]},
+    "filters": {"and": [{"field": "type", "operator": "is", "value": "person"}]},
     "columns": [
         {"id": "file-name", "field": "file-name", "width": 200},
         {"id": "role", "field": "role", "width": 180},
