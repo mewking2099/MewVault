@@ -304,6 +304,292 @@ async function loadSemanticContext(silo, workspaceRoot) {
   return null;
 }
 
+// ---------------------------------------------------------------------------
+// Conversational triggers — plain English replaces slash commands
+// ---------------------------------------------------------------------------
+
+const TRIGGERS = [
+  {
+    pattern: /^(standup|stand[\s-]?up|morning brief|good morning)\b/i,
+    name: 'standup',
+    instructions: `## Workflow: Standup
+
+Morning brief. Run these steps in parallel, then format the output.
+
+**1. North Star** — read \`mewwiki/Brain/North Star.md\` (path from \`mewvault/.mewwiki\`). Extract active focus and project list.
+
+**2. Active projects** — read \`Project_Status.md\` for each active project across silos (software-projects/, design-studio/, game-lab/). For each: slug, status, current_phase, next_action, blockers.
+
+**3. Inbox** — count files in \`mewwiki/_inbox/\`. List names if ≤5, else just count.
+
+**4. Open PRs** — run \`gh pr list --state open --json number,title,headRefName,isDraft\` for each silo that has a GitHub remote. Skip silos with no remote.
+
+**5. Google Calendar** (skip gracefully if not connected) — if a Google Calendar MCP is available, call it for today's events.
+
+Output format:
+\`\`\`
+## Standup — <date>
+
+### Focus
+<north star active focus>
+
+### Active Projects
+| Project | Phase | Next action | Blockers |
+|---------|-------|-------------|----------|
+...
+
+### Today
+<calendar events or omit>
+
+### Open PRs
+<list or "none">
+
+### Inbox
+<count> item(s) in mewwiki/_inbox/ waiting for review.
+\`\`\`
+
+Keep it scannable. No prose paragraphs. One terminal screen.`,
+  },
+  {
+    pattern: /^(wrap[\s-]?up|end session|done for (the )?day|finishing up|session end)\b/i,
+    name: 'wrap-up',
+    instructions: `## Workflow: Wrap Up
+
+End the session cleanly.
+
+**1. Detect active project** — use cwd to determine the silo project. If ambiguous, ask.
+
+**2. Gather summary** — ask: "What happened this session? (one sentence to a few bullet points)"
+
+**3. Write log entry** — append to the project's \`log.md\` under \`## Entries\` (newest on top):
+\`- **<today YYYY-MM-DD>** — <summary> [auto-wrap]\`
+Update \`Project_Status.md\`: \`last_session\`, \`last_wrap\` = today; \`next_action\` = ask if not obvious.
+
+**4. Check orphaned notes** — scan \`mewwiki/_inbox/\` for files older than today. List any unrouted items.
+
+**5. Run wiki sync** — \`python mew.py wiki sync\`. Report what synced.
+
+**6. Suggest commit** — based on the summary, suggest a commit message:
+\`<type>: <summary in imperative mood>\`
+Types: feat, fix, refactor, docs, chore, wip.
+Write to \`mewvault/.claude/last-session-message.txt\`.
+
+**7. Print close**:
+\`\`\`
+Session wrapped.
+Log: <project>/log.md ✓
+Wiki sync: <N> project(s) updated ✓
+Commit suggestion: <message>
+\`\`\``,
+  },
+  {
+    pattern: /^dump[\s—–-]/i,
+    name: 'dump',
+    args: (prompt) => prompt.replace(/^dump[\s—–-]+/i, '').trim(),
+    instructions: (args) => `## Workflow: Dump
+
+Content to route: "${args || '(see user message)'}"
+
+**1. Classify** — determine content type:
+
+| Type | Signals | Destination |
+|------|---------|-------------|
+| \`idea\` | "what if", "we should", hypothesis | \`mewwiki/Operations/Ideas/inbox.md\` |
+| \`decision\` | "we decided", "going with X" | \`mewwiki/Operations/Decisions/<project>-<slug>.md\` |
+| \`person\` | observation about a specific person | \`mewwiki/Operations/People/<Name>.md\` |
+| \`meeting\` | meeting notes, conversation summary | \`mewwiki/Operations/Meetings/_inbox/<slug>.md\` |
+| \`api-note\` | API behaviour, endpoint quirk | current silo's \`wiki/<slug>.md\` |
+| \`gotcha\` | something that burned time, non-obvious bug | current silo's \`wiki/<slug>.md\` |
+| \`concept\` | definition, architecture decision | current silo's \`wiki/<slug>.md\` |
+
+**2. Propose routing** — print in one block:
+\`\`\`
+Type:    <type>
+Route:   <destination path>
+Title:   <proposed title>
+Project: <project or —>
+
+Content preview:
+<first 200 chars>
+
+Confirm? [y/n/reclassify]
+\`\`\`
+Wait for confirmation before writing anything.
+
+**3. Write** — after confirmation, write using matching template from \`mewwiki/Templates/\`. Add a \`[[wikilink]]\` back to the source project.
+
+**4. Confirm** — print path written.`,
+  },
+  {
+    pattern: /^new project\b/i,
+    name: 'project-new',
+    args: (prompt) => prompt.replace(/^new project\s*/i, '').trim(),
+    instructions: (args) => `## Workflow: New Project
+
+Slug hint from prompt: "${args || '(ask)'}"
+
+**1. Gather info** (ask anything not provided above, all in one message):
+- Slug (kebab-case)
+- Full name (human-readable)
+- Silo: \`software\`, \`design\`, or \`game\`
+- Stack (if software): \`next\`, \`astro\`, or \`sveltekit\`
+- North star: one sentence — what does "done" look like?
+- Tier: \`pounce\` (small), \`stalk\` (multi-session), \`mewking\` (architecture)
+
+**2. Scaffold** — run the appropriate command:
+- Software: \`python mew.py new code-project <slug> --stack <stack>\`
+- Design: \`python mew.py new ux-project <slug>\`
+- Game: \`python mew.py new game-project <slug>\`
+
+**3. Create mewwiki mirror** — read path from \`mewvault/.mewwiki\`. Create \`Projects/<slug>/index.md\` and \`Projects/<slug>/log.md\` immediately (don't wait for sync). Use today's date for \`last_session\` and \`synced\`.
+
+**4. Update Brain/North Star.md** — append to Active Projects section:
+\`- [[Projects/<slug>/index|<Full name>]] — <north star>\`
+
+**5. Confirm**:
+\`\`\`
+Project created: <slug>
+Silo: <silo path>
+Wiki mirror: mewwiki/Projects/<slug>/
+\`\`\``,
+  },
+  {
+    pattern: /^(meeting[\s-]?prep|prep(are)? for)\b/i,
+    name: 'meeting-prep',
+    args: (prompt) => prompt.replace(/^(meeting[\s-]?prep|prep(are)? for)\s*/i, '').trim(),
+    instructions: (args) => `## Workflow: Meeting Prep
+
+Topic/person: "${args || '(ask)'}"
+
+Read mewwiki path from \`mewvault/.mewwiki\`.
+
+**1. Identify meeting** — if Google Calendar MCP is available, search for upcoming meetings matching the topic. Surface: date, time, attendees. If Calendar unavailable, ask.
+
+**2. Load attendee profiles** — for each attendee, check \`mewwiki/Operations/People/<Name>.md\`. Note any missing profiles.
+
+**3. Find last meeting note** — search \`mewwiki/Operations/Meetings/\` for most recent note matching topic or attendees. Extract: date, decisions, open action items (\`- [ ]\` lines).
+
+**4. Load project context** (if relevant) — read \`Project_Status.md\` from the silo: current_phase, blockers, next_action.
+
+**5. Output brief**:
+\`\`\`
+## Meeting Prep — <topic>
+<date/time if known>
+
+### Attendees
+| Name | Role | Org |
+
+### Last meeting (<date>)
+Decisions: ...
+Open items: ...
+
+### Project context
+Phase: ... | Blockers: ...
+
+### Suggested agenda
+1. <open item>
+2. <current blocker>
+\`\`\``,
+  },
+  {
+    pattern: /^capture (the )?meeting\b/i,
+    name: 'meeting-capture',
+    instructions: `## Workflow: Meeting Capture
+
+Read mewwiki path from \`mewvault/.mewwiki\`.
+
+**1. Gather** (one message, skip anything already provided):
+- Topic / meeting name
+- Date (default: today)
+- Attendees
+- What was discussed / decided
+- Action items
+
+**2. Parse** — extract:
+- Decisions: sentences with "we decided", "going with", "agreed to"
+- Action items: format as \`- [ ] <task> — <owner>\`
+- Person observations: notes about specific people
+
+**3. Write meeting note** — create \`mewwiki/Operations/Meetings/YYYY-MM/<topic-slug>.md\` using Meeting Note template.
+
+**4. File decisions** — for each decision, create \`mewwiki/Operations/Decisions/<project>-<slug>.md\`. Link back to the meeting note.
+
+**5. Update People profiles** — for each person observation, append to \`mewwiki/Operations/People/<Name>.md\`.
+
+**6. Update project wiki** (if applicable) — if meeting has an architectural/API decision, offer to write to the silo's \`wiki/\`.
+
+**7. Confirm**:
+\`\`\`
+Meeting captured.
+Note:      mewwiki/Operations/Meetings/YYYY-MM/<slug>.md
+Decisions: <N> filed
+People:    <names updated>
+\`\`\``,
+  },
+  {
+    pattern: /^ingest\s/i,
+    name: 'ingest',
+    args: (prompt) => prompt.replace(/^ingest\s+/i, '').trim(),
+    instructions: (args) => `## Workflow: Ingest
+
+Source file: "${args || '(list raw/ and ask)'}"
+
+**1. Locate document** — if no path given, list files in current silo's \`raw/\` and ask which to ingest. Read the document (section by section if >500 lines).
+
+**2. Discuss before writing** (mandatory — do NOT write files yet):
+\`\`\`
+I'd extract these concept pages from this document:
+
+1. **<Title>** — <one-line description>
+2. **<Title>** — <one-line description>
+...
+
+Does this breakdown look right? Any to add, remove, or merge?
+\`\`\`
+Wait for approval. Revise if asked.
+
+**3. Write concept pages** (only after approval) — for each, write to current silo's \`wiki/<slug>.md\`:
+\`\`\`markdown
+---
+title: <Title>
+source: raw/<filename>
+date: <today>
+type: concept
+---
+# <Title>
+
+## Summary
+<2-4 sentence distillation>
+
+## Key points
+- ...
+
+## Related
+[[<related concept>]]
+\`\`\`
+
+**4. Update mewwiki Knowledge index** — append to \`mewwiki/Knowledge/index.md\` under \`## Concepts\`:
+\`- [[Knowledge/concepts/<slug>|<Title>]] — <description> · (via <silo>/<project>, <date>)\`
+
+**5. Confirm**: concept pages written, knowledge index updated, next sync info.`,
+  },
+];
+
+function detectTrigger(prompt) {
+  if (!prompt) return null;
+  const trimmed = prompt.trim();
+  for (const t of TRIGGERS) {
+    if (t.pattern.test(trimmed)) {
+      const args = t.args ? t.args(trimmed) : '';
+      const instructions = typeof t.instructions === 'function'
+        ? t.instructions(args)
+        : t.instructions;
+      return { name: t.name, instructions };
+    }
+  }
+  return null;
+}
+
 async function main() {
   // CACHE-OPTIMIZATION: Sections 1-2 must come before any dynamic content.
   // Anthropic caches static prompt prefixes; reordering breaks cache hits.
@@ -357,6 +643,10 @@ async function main() {
   // 9: MewWiki Brain brief (focus, inbox count, stale alerts)
   const wikibrief = loadMewWikiBrief(workspaceRoot);
   if (wikibrief) sections.push('## MewWiki\n\n' + wikibrief);
+
+  // 10: Conversational trigger — inject workflow instructions if prompt matches
+  const trigger = detectTrigger(input.prompt);
+  if (trigger) sections.push(trigger.instructions);
 
   let brief = sections.join('\n\n---\n\n');
   if (brief.length > MAX_CHARS) {
