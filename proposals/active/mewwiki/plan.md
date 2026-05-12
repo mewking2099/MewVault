@@ -261,16 +261,14 @@ Deliverable: `gh` calls in skill files where noted above.
 
 ---
 
-### Phase 8 — pdvault Migration + Deletion
+### Phase 8 — pdvault Migration + Deletion ✓ COMPLETE
 
-1. Export worth-keeping content from `pdvault/Builder/Brain/` → `mewwiki/Brain/`
-2. Export `pdvault/Builder/Knowledge/concepts/` → `mewwiki/Knowledge/concepts/`
-3. Export `pdvault/Builder/People/` → `mewwiki/Operations/People/`
-4. Verify no broken wikilinks in mewwiki after import
-5. `rm -rf /Jan/pdvault` — confirmed by user before executing
-6. Remove any pdvault references from mewvault CLAUDE.md and rules
+**2026-05-12**: Audit found pdvault was entirely empty placeholder structure — no content required migration. Brain/, Knowledge/concepts/, and People/ all contained only template scaffolding with no real entries.
 
-Deliverable: migration checklist + user confirmation before deletion.
+Action taken:
+- Appended migration record to `mewwiki/Brain/Memories.md`
+- Confirmed no pdvault references remain in mewvault (only this plan file)
+- `rm -rf /Jan/pdvault` — **awaiting user confirmation**
 
 ---
 
