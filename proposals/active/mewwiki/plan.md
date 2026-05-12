@@ -2,7 +2,7 @@
 
 **Tier**: MewKing  
 **Created**: 2026-05-12  
-**Status**: APPROVED  
+**Status**: COMPLETE  
 **Replaces**: `pdvault/` (deleted after migration)  
 **Entry point**: Claude Code opened in `mewvault/` — single terminal window for all work
 
@@ -268,7 +268,7 @@ Deliverable: `gh` calls in skill files where noted above.
 Action taken:
 - Appended migration record to `mewwiki/Brain/Memories.md`
 - Confirmed no pdvault references remain in mewvault (only this plan file)
-- `rm -rf /Jan/pdvault` — **awaiting user confirmation**
+- `rm -rf /Jan/pdvault` — **DONE 2026-05-12**
 
 ---
 
