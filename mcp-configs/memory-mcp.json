@@ -1,0 +1,12 @@
+{
+  "description": "Anthropic official memory MCP — lightweight KV store, all silos",
+  "silo_scope": ["wiki", "code", "game", "design"],
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "env": {}
+    }
+  },
+  "install": "npx -y @modelcontextprotocol/server-memory"
+}

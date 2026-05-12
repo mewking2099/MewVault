@@ -8,34 +8,30 @@ from pathlib import Path
 MEWVAULT_DIR = Path(__file__).parent.parent.parent.resolve()
 HOOKS_DIR = MEWVAULT_DIR / "hooks"
 TEMPLATES_RULES_DIR = MEWVAULT_DIR / "templates" / "rules"
+HOOKS_JSON = HOOKS_DIR / "hooks.json"
 
-HOOK_DEFINITIONS = [
-    {
-        "event": "UserPromptSubmit",
-        "script": "session-start.js",
-        "description": "Injects vault rules, project status, and instincts at session start",
-    },
-    {
-        "event": "Stop",
-        "script": "session-end.js",
-        "description": "Writes auto-wrap log entry and suggested commit message",
-    },
-    {
-        "event": "PreToolUse",
-        "script": "pre-tool-use.js",
-        "description": "MewKing gate, secrets guardian, immutable path guard, TDD warning",
-    },
-    {
-        "event": "PostToolUse",
-        "script": "post-tool-use.js",
-        "description": "Accumulates session activity, detects correction signals for instinct pipeline",
-    },
-    {
-        "event": "PreCompact",
-        "script": "pre-compact.js",
-        "description": "Runs semantic compact, writes context snapshots, preserves latest snapshot post-compaction",
-    },
-]
+
+def _load_hook_definitions() -> list:
+    if HOOKS_JSON.exists():
+        try:
+            return json.loads(HOOKS_JSON.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            print(f"Warning: {HOOKS_JSON} is malformed — using built-in defaults.", file=sys.stderr)
+    return [
+        {"event": "UserPromptSubmit", "script": "session-start.js", "matcher": "", "timeout": 15000,
+         "description": "Injects vault rules, project status, and instincts at session start"},
+        {"event": "Stop", "script": "session-end.js", "matcher": "", "timeout": 15000,
+         "description": "Writes auto-wrap log entry and suggested commit message"},
+        {"event": "PreToolUse", "script": "pre-tool-use.js", "matcher": "Bash|Write|Edit|MultiEdit", "timeout": 5000,
+         "description": "MewKing gate, secrets guardian, immutable path guard, TDD warning"},
+        {"event": "PostToolUse", "script": "post-tool-use.js", "matcher": "Write|Edit|MultiEdit", "timeout": 10000,
+         "description": "Accumulates session activity, detects correction signals for instinct pipeline"},
+        {"event": "PreCompact", "script": "pre-compact.js", "matcher": "", "timeout": 15000,
+         "description": "Runs semantic compact, writes context snapshots"},
+    ]
+
+
+HOOK_DEFINITIONS = _load_hook_definitions()
 
 
 def run_harness(args) -> None:
@@ -105,6 +101,19 @@ def _install(args) -> None:
 
     settings_file.write_text(json.dumps(settings, indent=2), encoding="utf-8")
     print(f"\n  Written: {settings_file}")
+
+    # Copy hooks.json (with resolved paths) to .claude/hooks/hooks.json
+    hooks_dst_dir = claude_dir / "hooks"
+    hooks_dst_dir.mkdir(parents=True, exist_ok=True)
+    installed_defs = []
+    for hook_def in HOOK_DEFINITIONS:
+        installed_defs.append({
+            **hook_def,
+            "command": f"node \"{HOOKS_DIR / hook_def['script']}\"",
+        })
+    hooks_dst = hooks_dst_dir / "hooks.json"
+    hooks_dst.write_text(json.dumps(installed_defs, indent=2), encoding="utf-8")
+    print(f"  Written: {hooks_dst}")
 
     # Install rule templates
     _install_rules(workspace_root)
@@ -213,6 +222,18 @@ def _status(args) -> None:
     pending_count = len(list(pending.glob("*.json"))) if pending.exists() else 0
     promoted_count = len(list(promoted.glob("*.json"))) if promoted.exists() else 0
     print(f"Instincts: {pending_count} pending, {promoted_count} promoted")
+
+    if getattr(args, "verbose", False):
+        print()
+        print("Session-start field whitelist (per silo):")
+        whitelist = {
+            "code":   ["current_phase", "stack", "open_threads", "tier", "plan_approved"],
+            "design": ["current_phase", "figma_file_key", "greenlit", "tier"],
+            "game":   ["current_phase", "concepts_count", "mechanics_count", "tier"],
+            "wiki":   ["inbox_count", "orphan_concepts"],
+        }
+        for silo, fields in whitelist.items():
+            print(f"  {silo:<8} → {', '.join(fields)}")
     print()
 
 
@@ -220,22 +241,96 @@ def _config(args) -> None:
     """Show or set a harness config value."""
     workspace_root = _resolve_workspace(args)
     settings_file = workspace_root / ".claude" / "settings.json"
+
+    active_mcps = getattr(args, "active_mcps", False)
+    if active_mcps:
+        _config_active_mcps(workspace_root, settings_file)
+        return
+
     if not settings_file.exists():
         print("No settings.json found. Run 'mew harness install' first.", file=sys.stderr)
         sys.exit(1)
 
     settings = json.loads(settings_file.read_text(encoding="utf-8"))
     key = getattr(args, "key", None)
-    value = getattr(args, "value", None)
 
     if key is None:
-        # Print all harness-related env keys
         print("\nHarness config env vars:")
         print(f"  MEWVAULT_ROOT               = {os.environ.get('MEWVAULT_ROOT', '(not set)')}")
         print(f"  MEW_SESSION_START_MAX_TOKENS = {os.environ.get('MEW_SESSION_START_MAX_TOKENS', '6000 (default)')}")
+        active = list(settings.get("mcpServers", {}).keys())
+        print(f"  Active MCPs                 = {', '.join(active) if active else '(none)'}")
         return
 
     print(f"Use environment variables to configure harness. Key: {key} is not a settings.json field.")
+
+
+def _config_active_mcps(workspace_root: Path, settings_file: Path) -> None:
+    mcp_configs_dir = MEWVAULT_DIR / "mcp-configs"
+    if not mcp_configs_dir.exists():
+        print("Error: mcp-configs/ directory not found in mewvault.", file=sys.stderr)
+        sys.exit(1)
+
+    configs = {}
+    for f in sorted(mcp_configs_dir.glob("*.json")):
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            configs[f.stem] = data
+        except json.JSONDecodeError:
+            print(f"Warning: skipping malformed {f.name}")
+
+    if not configs:
+        print("No MCP config files found in mcp-configs/.")
+        return
+
+    print("\nAvailable MCP servers:\n")
+    names = list(configs.keys())
+    for i, name in enumerate(names, 1):
+        c = configs[name]
+        scopes = ", ".join(c.get("silo_scope", ["all"]))
+        print(f"  [{i}] {name:<18} — {c.get('description', '')} (silos: {scopes})")
+
+    print("\nEnter numbers to activate (comma-separated), or press Enter to keep current:")
+    try:
+        choice = input("> ").strip()
+    except EOFError:
+        print("Non-interactive mode — use 'mew harness config' to view current state.")
+        return
+
+    if not choice:
+        print("No changes made.")
+        return
+
+    selected = []
+    for part in choice.split(","):
+        part = part.strip()
+        if part.isdigit():
+            idx = int(part) - 1
+            if 0 <= idx < len(names):
+                selected.append(names[idx])
+
+    if not selected:
+        print("No valid selections. No changes made.")
+        return
+
+    mcp_file = workspace_root / ".mcp.json"
+    mcp_config = {}
+    if mcp_file.exists():
+        try:
+            mcp_config = json.loads(mcp_file.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+
+    mcp_servers = mcp_config.setdefault("mcpServers", {})
+    for name in selected:
+        servers = configs[name].get("mcpServers", {})
+        for server_name, server_cfg in servers.items():
+            mcp_servers[server_name] = server_cfg
+            print(f"  Added: {server_name}")
+
+    mcp_file.write_text(json.dumps(mcp_config, indent=2), encoding="utf-8")
+    print(f"\nUpdated: {mcp_file}")
+    print("Restart Claude Code to activate the new MCP servers.")
 
 
 def _disable(args) -> None:

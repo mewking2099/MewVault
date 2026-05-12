@@ -1,7 +1,27 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python *)"
+      "Bash(python *)",
+      "Bash(node /Users/Mohabbat/Jan/mewvault/hooks/session-start.js)",
+      "Bash(node /Users/Mohabbat/Jan/mewvault/hooks/session-end.js)",
+      "Bash(git -C /Users/Mohabbat/Jan/mewvault diff --stat HEAD)",
+      "Bash(uvx --version)",
+      "Bash(uv --version)",
+      "Bash(ollama --version)",
+      "Bash(python3 -c \"import chromadb; print\\('chromadb:', chromadb.__version__\\)\")",
+      "Bash(python3 -c \"import mcp_memory_service; print\\('doobidoo: OK'\\)\")",
+      "Bash(pip install *)",
+      "Bash(brew install *)",
+      "Bash(brew services *)",
+      "Bash(ollama pull *)",
+      "Bash(ollama list *)",
+      "Read(//Users/Mohabbat/.claude/**)",
+      "Read(//Users/Mohabbat/Jan/**)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "memory",
+    "doobidoo",
+    "chromadb"
+  ]
 }

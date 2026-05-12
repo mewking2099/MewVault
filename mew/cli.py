@@ -39,6 +39,8 @@ def main() -> None:
     # validate
     p_validate = subparsers.add_parser("validate", help="Check schema compliance")
     p_validate.add_argument("--fix", action="store_true", help="Offer to repair fixable issues")
+    p_validate.add_argument("--slim", action="store_true",
+                            help="Scan CLAUDE.md files for verbose sentences and suggest tighter rewrites")
 
     # secret
     p_secret = subparsers.add_parser("secret", help="Manage secrets")
@@ -96,6 +98,8 @@ def main() -> None:
     p_sync = subparsers.add_parser("sync", help="Git status across all repos")
     p_sync.add_argument("--commit", metavar="MSG", help="Interactively commit each repo")
     p_sync.add_argument("--push", action="store_true", help="Push after committing")
+    p_sync.add_argument("--pr", action="store_true",
+                        help="Create a GitHub PR from last-session-message.txt (requires gh CLI)")
 
     # harness
     p_harness = subparsers.add_parser("harness", help="Manage the MewHarness hook runtime")
@@ -106,6 +110,10 @@ def main() -> None:
     )
     p_harness.add_argument("--path", type=Path, help="Workspace root override")
     p_harness.add_argument("--stop", action="store_true", help="Stop the running proxy (proxy action only)")
+    p_harness.add_argument("--verbose", action="store_true",
+                            help="Show whitelist fields per silo (status action only)")
+    p_harness.add_argument("--active-mcps", action="store_true", dest="active_mcps",
+                           help="Interactively select and activate MCP servers per silo (config action only)")
     p_harness.add_argument("key", nargs="?", help="Config key (for config action)")
     p_harness.add_argument("value", nargs="?", help="Config value (for config action)")
 
@@ -135,6 +143,16 @@ def main() -> None:
     p_compact.add_argument("--semantic", action="store_true", help="Include semantic analysis")
     p_compact.add_argument("--budget", type=int, default=4000, help="Token budget (default: 4000)")
     p_compact.add_argument("--project", metavar="NAME", help="Scope to a specific project")
+
+    # wiki
+    p_wiki = subparsers.add_parser("wiki", help="MewWiki vault management")
+    p_wiki_sub = p_wiki.add_subparsers(dest="wiki_action")
+    p_wiki_init = p_wiki_sub.add_parser("init", help="Bootstrap a new mewwiki vault")
+    p_wiki_init.add_argument("--path", type=Path, help="Vault path (default: workspace/../mewwiki)")
+    p_wiki_sync = p_wiki_sub.add_parser("sync", help="Sync silo content to mewwiki")
+    p_wiki_sync.add_argument("--wiki", type=Path, dest="wiki_path", help="Vault path override")
+    p_wiki_sync.add_argument("--dry-run", action="store_true", dest="dry_run",
+                             help="Show what would sync without writing")
 
     # help
     p_help = subparsers.add_parser("help", help="Show help")
@@ -166,6 +184,7 @@ def main() -> None:
         "agent":          lambda: _run("agent", args),
         "instinct":       lambda: _run("instinct", args),
         "compact":        lambda: _run("compact", args),
+        "wiki":           lambda: _run("wiki", args),
         "help":           lambda: _run("help", args),
     }
 
@@ -232,6 +251,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "compact":
         from mew.commands.compact import run_compact
         run_compact(args)
+    elif command == "wiki":
+        from mew.commands.wiki import run_wiki
+        run_wiki(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))

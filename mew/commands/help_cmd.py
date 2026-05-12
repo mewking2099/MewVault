@@ -1,7 +1,7 @@
 """mew help — command reference."""
 
 MAIN_HELP = """
-mew — MewVault CLI v0.1.0
+mew — MewVault CLI v2.0
 
 Commands:
   init            Bootstrap the workspace (silos, CLAUDE.md files, git repos)
@@ -17,37 +17,18 @@ Commands:
   archive         Move a project to _archive/ with per-silo behavior
   package         Assemble a client deliverable package from a UX project
   process-inbox   List wiki/_inbox/ and propose routing for each file
-  sync            Git status across all repos, with optional commit
+  sync            Git status across all repos, with optional commit or PR
   harness         Install and manage the MewHarness hook runtime
   agent           List or invoke specialist agents
   instinct        Manage the instinct pipeline (promote, prune, export)
   compact         Generate a semantic context map for pre-compaction snapshots
   help            Show this help or detail for a specific command
 
+Hooks are now automatic — SessionStart, SessionEnd, PreToolUse, PostToolUse, and
+PreCompact fire without slash commands. Run 'mew harness install' once to activate.
+
 Run 'mew help <command>' for details on any command.
-Run 'mew help slash' for the four Claude Code slash commands.
 Run 'mew help triggers' for the full conversational triggers reference.
-"""
-
-SLASH_HELP = """
-The Four Slash Commands (use inside Claude Code):
-
-  /start [silo] [project]
-      Open the workspace at vault, silo, or project level.
-      Examples: /start  |  /start design  |  /start software acme-web
-
-  /wrap
-      End the session cleanly. Updates Project_Status.md, suggests a commit,
-      returns to vault overview. In /teach mode: runs lesson-wrap protocol.
-
-  /plan <feature>
-      Plan a code feature. Claude proposes Pounce / Stalk / MewKing based on
-      scope. You confirm or override. The tier's pipeline runs.
-
-  /teach [topic]
-      Enter pedagogical mode for a learning track. Registry-first: Claude checks
-      what you already know before teaching. 5-step cap. Why-before-what.
-      /wrap triggers lesson-wrap (concepts → wiki notes, transactional).
 """
 
 TRIGGERS_HELP = """
@@ -123,14 +104,16 @@ Examples:
   mew new learning-path rust
 """,
     "validate": """
-mew validate [--fix]
+mew validate [--fix] [--slim]
 
 Checks all Project_Status.md files across the workspace:
   - Required fields: project, status, next_action
   - Valid status values: active | greenlit | blocked | archived | abandoned
   - Recommended fields: last_session, last_wrap, started (warnings, not errors)
 
---fix: (not yet implemented) offer to repair fixable issues
+--fix:  (not yet implemented) offer to repair fixable issues
+--slim: scan all CLAUDE.md files for verbose sentences and suggest tighter rewrites.
+        Reports diff-style suggestions and estimated token savings. Never auto-applies.
 
 Exit code 1 if any errors found.
 """,
@@ -265,33 +248,42 @@ via the "process the inbox" conversational trigger.
 PDFs: Docling extraction runs first; original is moved to _inbox/originals/.
 """,
     "sync": """
-mew sync [--commit "<msg>"] [--push]
+mew sync [--commit "<msg>"] [--push] [--pr]
 
 Default (no flags): read-only git status across all silo repos.
 
 --commit "<msg>"  Interactive mode: for each repo with changes, show diff
                   and prompt y/n/skip to commit with the given message.
 --push            After committing, also push to the remote.
+--pr              Create a GitHub PR from .claude/last-session-message.txt.
+                  Uses the current branch name as the PR title. Extracts #N
+                  issue numbers from the body and appends Closes #N links.
+                  Requires the 'gh' CLI to be installed and authenticated.
 
 Examples:
   mew sync
   mew sync --commit "session: design review 2026-05-04"
   mew sync --commit "chore: weekly wrap" --push
+  mew sync --pr
 """,
     "harness": """
-mew harness <action> [--path <workspace>]
+mew harness <action> [--path <workspace>] [--verbose] [--active-mcps]
 
 Manage the MewHarness hook runtime — 5 hooks that power v2.0 automation.
 
 Actions:
   install   Register all 5 hooks in .claude/settings.json, copy rule templates
   status    Show hook registration state, rule dirs, instinct counts
-  config    Print harness env vars (MEWVAULT_ROOT, MEW_SESSION_START_MAX_TOKENS)
+  config    Print harness env vars and active MCPs
   disable   Remove MewHarness hooks from .claude/settings.json
-  proxy     Print startup instructions for the LiteLLM agent proxy
+  proxy     Manage the LiteLLM agent proxy (start / stop)
+
+Flags:
+  --verbose       (status) Also print the Project_Status.md field whitelist per silo
+  --active-mcps   (config) Interactively select MCP servers to activate per silo
 
 Hooks registered:
-  UserPromptSubmit  → session-start.js  (rules + status + instincts at session start)
+  UserPromptSubmit  → session-start.js  (rules + status + instincts + semantic context)
   Stop              → session-end.js    (auto-wrap log entry + commit message)
   PreToolUse        → pre-tool-use.js   (MewKing gate, secrets, raw/ guard, TDD)
   PostToolUse       → post-tool-use.js  (activity accumulation, instinct signals)
@@ -299,7 +291,8 @@ Hooks registered:
 
 Examples:
   mew harness install
-  mew harness status
+  mew harness status --verbose
+  mew harness config --active-mcps
   mew harness disable
 """,
     "agent": """
@@ -366,10 +359,6 @@ Examples:
 def run_help(topic) -> None:
     if topic is None:
         print(MAIN_HELP)
-        return
-
-    if topic == "slash":
-        print(SLASH_HELP)
         return
 
     if topic == "triggers":

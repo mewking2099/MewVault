@@ -1,0 +1,17 @@
+{
+  "description": "mcp-memory-service (doobidoo) — semantic search over wiki notes via ChromaDB + Ollama embeddings",
+  "silo_scope": ["wiki"],
+  "mcpServers": {
+    "doobidoo": {
+      "command": "python",
+      "args": ["-m", "mcp_memory_service"],
+      "env": {
+        "MCP_MEMORY_CHROMA_PATH": "~/.mewvault/chroma-wiki",
+        "MCP_MEMORY_BACKUPS_PATH": "~/.mewvault/chroma-wiki-backups",
+        "MCP_MEMORY_EMBEDDING_MODEL": "nomic-embed-text"
+      }
+    }
+  },
+  "http_endpoint": null,
+  "install": "pip install mcp-memory-service && ollama pull nomic-embed-text"
+}

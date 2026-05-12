@@ -1,0 +1,23 @@
+{
+  "description": "ChromaDB MCP — semantic search over code and game source files",
+  "silo_scope": ["code", "game"],
+  "mcpServers": {
+    "chromadb": {
+      "command": "uvx",
+      "args": [
+        "chroma-mcp",
+        "--client-type", "http",
+        "--host", "localhost",
+        "--port", "8000",
+        "--ssl", "false"
+      ],
+      "env": {}
+    }
+  },
+  "http_endpoint": "http://localhost:8000",
+  "collections": {
+    "code": "mewvault-code",
+    "game": "mewvault-game"
+  },
+  "install": "pip install chromadb && uvx chroma-mcp"
+}

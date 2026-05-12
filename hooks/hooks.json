@@ -1,0 +1,37 @@
+[
+  {
+    "event": "UserPromptSubmit",
+    "script": "session-start.js",
+    "matcher": "",
+    "timeout": 15000,
+    "description": "Injects vault rules, project status, and instincts at session start"
+  },
+  {
+    "event": "Stop",
+    "script": "session-end.js",
+    "matcher": "",
+    "timeout": 15000,
+    "description": "Writes auto-wrap log entry and suggested commit message"
+  },
+  {
+    "event": "PreToolUse",
+    "script": "pre-tool-use.js",
+    "matcher": "Bash|Write|Edit|MultiEdit",
+    "timeout": 5000,
+    "description": "MewKing gate, secrets guardian, immutable path guard, TDD warning"
+  },
+  {
+    "event": "PostToolUse",
+    "script": "post-tool-use.js",
+    "matcher": "Write|Edit|MultiEdit",
+    "timeout": 10000,
+    "description": "Accumulates session activity, detects correction signals for instinct pipeline"
+  },
+  {
+    "event": "PreCompact",
+    "script": "pre-compact.js",
+    "matcher": "",
+    "timeout": 15000,
+    "description": "Runs semantic compact, writes context snapshots"
+  }
+]

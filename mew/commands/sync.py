@@ -1,5 +1,7 @@
 """mew sync — git status across all silo repos, with optional interactive commit."""
+import re
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 from mew.workspace import find_workspace_root, get_silo_paths
@@ -11,6 +13,10 @@ def run_sync(args) -> None:
     if not workspace_root:
         print("Error: not inside a MewVault workspace.", file=sys.stderr)
         sys.exit(1)
+
+    if getattr(args, "pr", False):
+        _create_pr(workspace_root)
+        return
 
     silos = get_silo_paths(workspace_root)
     repos = _find_git_repos(workspace_root, silos)
@@ -24,6 +30,51 @@ def run_sync(args) -> None:
         return
 
     _interactive_commit(repos, args.commit, push=args.push)
+
+
+def _create_pr(workspace_root: Path) -> None:
+    if not shutil.which("gh"):
+        print("Error: 'gh' (GitHub CLI) not found. Install from https://cli.github.com/", file=sys.stderr)
+        sys.exit(1)
+
+    msg_file = workspace_root / ".claude" / "last-session-message.txt"
+    body = msg_file.read_text(encoding="utf-8").strip() if msg_file.exists() else ""
+
+    branch_result = subprocess.run(
+        ["git", "branch", "--show-current"], capture_output=True, text=True
+    )
+    branch = branch_result.stdout.strip()
+    if not branch:
+        print("Error: could not determine current branch.", file=sys.stderr)
+        sys.exit(1)
+
+    if branch in ("main", "master"):
+        print(f"Error: on branch '{branch}' — create a feature branch first.", file=sys.stderr)
+        sys.exit(1)
+
+    issue_nums = re.findall(r"#(\d+)", body)
+    if issue_nums:
+        closes = "\n\n" + "\n".join(f"Closes #{n}" for n in issue_nums)
+        body = body + closes
+
+    title = branch.replace("-", " ").replace("_", " ").strip()
+
+    print(f"\nCreating PR: {title}")
+    print(f"Branch: {branch}")
+    if issue_nums:
+        print(f"Links issues: {', '.join('#' + n for n in issue_nums)}")
+    print()
+
+    result = subprocess.run(
+        ["gh", "pr", "create", "--title", title, "--body", body or "Session wrap."],
+        capture_output=True, text=True,
+    )
+    if result.returncode == 0:
+        pr_url = result.stdout.strip()
+        print(f"PR created: {pr_url}")
+    else:
+        print(f"Error: {result.stderr.strip()}", file=sys.stderr)
+        sys.exit(1)
 
 
 def _find_git_repos(workspace_root: Path, silos: dict) -> list[Path]:

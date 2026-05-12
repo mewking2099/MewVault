@@ -257,8 +257,12 @@ def _append_ux_section(claude_md: Path, ux_name: str, figma_key, copied: list[st
     existing = claude_md.read_text(encoding="utf-8")
     lines = ["\n## Promoted from UX", f"\nSource: design-studio/{ux_name}"]
     if figma_key:
-        lines.append(f"Figma file key: {figma_key}")
+        lines.append(f"Figma file key: `{figma_key}`")
         lines.append(f"Set token: `mew secret set FIGMA_TOKEN --scope {claude_md.parent.name}`")
+        lines.append("")
+        lines.append("Design tokens: if the Figma MCP is available, run `get_variable_defs` with")
+        lines.append(f"the file key above and write the output to `tokens/design-tokens.css`.")
+        lines.append("mew-designer handles this at Phase 4 — do not duplicate the work.")
     if copied:
         lines.append("\nUX artifacts in docs/ux/:")
         for f in copied:
