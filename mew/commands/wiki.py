@@ -502,6 +502,22 @@ def _commit_wiki(wiki_path: Path) -> None:
     )
     print("  Committed changes to mewwiki.")
 
+    # Push if a remote is configured
+    remote_result = subprocess.run(
+        ["git", "-C", str(wiki_path), "remote"],
+        capture_output=True, text=True,
+    )
+    if not remote_result.stdout.strip():
+        return
+    push_result = subprocess.run(
+        ["git", "-C", str(wiki_path), "push"],
+        capture_output=True, text=True,
+    )
+    if push_result.returncode == 0:
+        print("  Pushed mewwiki to remote.")
+    else:
+        print(f"  Push failed: {push_result.stderr.strip()}")
+
 
 def _fmt_list(items: list) -> str:
     if not items:
