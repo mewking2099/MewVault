@@ -10,7 +10,7 @@ TEMPLATES_DIR = Path(__file__).parent.parent.parent / "templates"
 SILOS = [
     {
         "key": "wiki",
-        "dir": "wiki",
+        "dir": "mewwiki",
         "subdirs": [
             "_inbox",
             "_inbox/originals",

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 SILO_DIR_NAMES = {
-    "wiki": "wiki",
+    "wiki": "mewwiki",
     "design": "design-studio",
     "software": "software-projects",
     "games": "game-lab",
@@ -32,7 +32,7 @@ def find_workspace_root(start: Optional[Path] = None) -> Optional[Path]:
 
 def get_silo_paths(root: Path) -> dict[str, Path]:
     return {
-        "wiki": root / "wiki",
+        "wiki": root / "mewwiki",
         "design": root / "design-studio",
         "software": root / "software-projects",
         "games": root / "game-lab",
