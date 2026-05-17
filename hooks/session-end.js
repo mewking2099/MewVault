@@ -145,6 +145,40 @@ function indexToChromaDb(collection, docId, text) {
   req.end();
 }
 
+function getProjectName(projectDir) {
+  return path.basename(projectDir);
+}
+
+function writeSessionTmp(workspaceRoot, projectName, summary, filesModified) {
+  try {
+    const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
+    fs.mkdirSync(sessionsDir, { recursive: true });
+    const date = new Date().toISOString().split('T')[0];
+    const tmpFile = path.join(sessionsDir, `${projectName}-session.tmp`);
+    const content = [
+      `# Session: ${projectName} — ${date}`,
+      '',
+      '## What happened',
+      `- ${summary}`,
+      '',
+      '## Files modified',
+      filesModified.length ? filesModified.map(f => `- ${f}`).join('\n') : '- (none recorded)',
+      '',
+      '## What\'s next',
+      '- (fill in at session end)',
+    ].join('\n');
+    fs.writeFileSync(tmpFile, content, 'utf8');
+    // Keep only last 5 session tmp files per project (rotate by timestamp in name)
+    const allTmps = fs.readdirSync(sessionsDir)
+      .filter(f => f.endsWith('-session.tmp'))
+      .map(f => ({ f, mt: fs.statSync(path.join(sessionsDir, f)).mtimeMs }))
+      .sort((a, b) => b.mt - a.mt);
+    for (const { f } of allTmps.slice(10)) {
+      try { fs.unlinkSync(path.join(sessionsDir, f)); } catch {}
+    }
+  } catch {}
+}
+
 function main() {
   const input = readStdin();
   const cwd = input.cwd || process.cwd();
@@ -165,6 +199,10 @@ function main() {
     const logFile = path.join(projectDir, 'log.md');
     const entry = `- **${ts()}** — auto-wrap: ${summary} [auto-wrap]`;
     prependToLog(logFile, entry);
+
+    // Write session state .tmp for next session to load
+    const filesModified = (activity && activity.files_modified) ? activity.files_modified : [];
+    writeSessionTmp(workspaceRoot, getProjectName(projectDir), summary, filesModified);
 
     // Suggested commit message
     const claudeDir = path.join(workspaceRoot, '.claude');

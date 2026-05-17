@@ -159,6 +159,23 @@ function main() {
     }
   }
 
+  // Sub-logic G: Write size guard
+  if (toolName === 'Write' && content) {
+    const limitsFile = path.join(findWorkspaceRoot(cwd), '.claude', 'limits.json');
+    let warnChars = 40000;
+    let blockChars = 200000;
+    try {
+      const lim = JSON.parse(fs.readFileSync(limitsFile, 'utf8'));
+      if (lim.write_warn_chars) warnChars = lim.write_warn_chars;
+      if (lim.write_block_chars) blockChars = lim.write_block_chars;
+    } catch {}
+    if (content.length > blockChars) {
+      block(`⛔ MewVault: Write too large (${Math.round(content.length / 1000)}k chars ≈ ${Math.round(content.length / 4000)}k tokens).\nBreak this into smaller writes or use Edit for targeted changes.`);
+    } else if (content.length > warnChars) {
+      process.stderr.write(`⚠ MewVault: Large write (${Math.round(content.length / 1000)}k chars ≈ ${Math.round(content.length / 4000)}k tokens). Consider using Edit for targeted changes.\n`);
+    }
+  }
+
   // Sub-logic E: TDD gate (warning only)
   if (filePath && ['Write', 'Edit'].includes(toolName)) {
     const ext = path.extname(filePath);

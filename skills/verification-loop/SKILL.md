@@ -30,3 +30,13 @@ A structured self-check loop to run after any significant code change, before re
 - Never report "done" after step 1 only.
 - If tests cannot run (missing setup, CI only), say so explicitly — do not claim success.
 - Verification loop results belong in the session wrap, not in a separate doc.
+
+## Evidence before claims
+
+Before saying "tests pass", "build succeeds", "bug fixed", or any similar completion claim:
+
+1. Run the verification command **in the current message** — not from memory of a previous run.
+2. Read the full output — check exit code, count failures.
+3. Only then state the claim, quoting the evidence.
+
+Phrases like "should work now", "probably passes", or "I'm confident it's fixed" without fresh output are not verification. If the command can't be run (CI-only, missing setup), say so explicitly instead of asserting success.

@@ -2,6 +2,8 @@
 
 ## Entries
 
+- **2026-05-13** — DSaaS session 4: Phase 2 architecture decision (Radix UI + CSS vars + `tailwindcss-animate`), 17-component plan written and MewKing-approved, `@dsaas/react-ui` package scaffolded (vite lib build, Vitest + RTL, TenantProvider, 9 Radix primitives). Next: Step 2 — Storybook scaffold. [auto-wrap]
+
 - **2026-05-12** — Replaced 7 slash commands with conversational triggers embedded in `session-start.js` `UserPromptSubmit` hook; README expanded with technical internals (token budget, vector DBs, instinct system, agent array), example sessions, and trigger reference; force-pushed to remote. [auto-wrap]
 
 - **2026-05-12** — MewWiki v1.0 shipped (Phases 1–8 complete). `mew wiki init` bootstraps full Obsidian vault; `mew wiki sync` idempotent silo→wiki sync with git diff engine; 7 slash commands in `.claude/commands/` (/standup, /project-new, /dump, /wrap-up, /meeting-prep, /meeting-capture, /ingest); session-start now surfaces Brain/North Star focus + inbox count + stale project alerts; session-end auto-runs wiki sync + writes Brain/Memories entry; pre-tool-use blocks direct mewwiki writes. pdvault audited (empty), decommissioned, and deleted. mewwiki live at /Jan/mewwiki with neustring-copilot fully synced. [auto-wrap]

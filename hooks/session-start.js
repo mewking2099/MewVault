@@ -2,6 +2,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 const MEWVAULT_ROOT = process.env.MEWVAULT_ROOT || path.join(__dirname, '..');
 const MAX_TOKENS = parseInt(process.env.MEW_SESSION_START_MAX_TOKENS || '6000', 10);
@@ -219,6 +220,45 @@ async function loadGithubIssues(silo, workspaceRoot, currentPhase) {
     const issues = await queryGithubApi(repo, labels, token);
     return issues || null;
   } catch { return null; }
+}
+
+function loadPriorSession(cwd, workspaceRoot) {
+  try {
+    // Match by nearest ancestor project name
+    let dir = path.resolve(cwd);
+    while (dir.startsWith(workspaceRoot)) {
+      if (fs.existsSync(path.join(dir, 'Project_Status.md'))) {
+        const projectName = path.basename(dir);
+        const tmpFile = path.join(os.homedir(), '.claude', 'sessions', `${projectName}-session.tmp`);
+        if (!fs.existsSync(tmpFile)) return null;
+        let content = fs.readFileSync(tmpFile, 'utf8');
+        const MAX = 8000;
+        if (content.length > MAX) content = content.substring(0, MAX) + '\n[... truncated]';
+        return content;
+      }
+      const parent = path.dirname(dir);
+      if (parent === dir) break;
+      dir = parent;
+    }
+  } catch {}
+  return null;
+}
+
+function getMcpToolCount(workspaceRoot) {
+  try {
+    const s = JSON.parse(fs.readFileSync(path.join(workspaceRoot, '.claude', 'settings.json'), 'utf8'));
+    return Object.keys(s.mcpServers || {}).length;
+  } catch { return 0; }
+}
+
+function getModelHint(status) {
+  if (!status) return null;
+  const m = status.match(/tier\s*:\s*(\S+)/i);
+  const tier = m ? m[1].toLowerCase() : null;
+  if (tier === 'mewking') return 'Model hint: Opus for architecture decisions · Sonnet for implementation · Haiku for search/exploration';
+  if (tier === 'stalk') return 'Model hint: Sonnet for implementation · Opus for architecture calls';
+  if (tier === 'pounce') return 'Model hint: Haiku for exploration · Sonnet for implementation';
+  return null;
 }
 
 function getMewWikiPath(workspaceRoot) {
@@ -644,7 +684,23 @@ async function main() {
   const wikibrief = loadMewWikiBrief(workspaceRoot);
   if (wikibrief) sections.push('## MewWiki\n\n' + wikibrief);
 
-  // 10: Conversational trigger — inject workflow instructions if prompt matches
+  // 10: Prior session context (.tmp loaded from ~/.claude/sessions/)
+  if (process.env.MEW_SESSION_CONTEXT !== 'off') {
+    const prior = loadPriorSession(cwd, workspaceRoot);
+    if (prior) sections.push('## Prior Session\n\n' + prior);
+  }
+
+  // 11: MCP tool count warning
+  const mcpCount = getMcpToolCount(workspaceRoot);
+  if (mcpCount > 8) {
+    sections.push(`⚠ ${mcpCount} MCP servers active (~${mcpCount * 15} tool slots). Run /context-budget to audit.`);
+  }
+
+  // 12: Model hint based on project tier
+  const modelHint = getModelHint(status);
+  if (modelHint) sections.push(modelHint);
+
+  // 13: Conversational trigger — inject workflow instructions if prompt matches
   const trigger = detectTrigger(input.prompt);
   if (trigger) sections.push(trigger.instructions);
 
