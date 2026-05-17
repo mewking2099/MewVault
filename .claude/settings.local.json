@@ -16,7 +16,16 @@
       "Bash(ollama pull *)",
       "Bash(ollama list *)",
       "Read(//Users/Mohabbat/.claude/**)",
-      "Read(//Users/Mohabbat/Jan/**)"
+      "Read(//Users/Mohabbat/Jan/**)",
+      "mcp__claude_ai_Figma__use_figma",
+      "Bash(sips -c 590 1200 --cropOffset 78 6800 /tmp/figma_btn_hires.png --out /tmp/btn_props.png)",
+      "Bash(sips -c 200 600 --cropOffset 150 210 /tmp/figma_btn_hires.png --out /tmp/btn_single.png)",
+      "Bash(pdftotext *)",
+      "mcp__claude_ai_Figma__get_metadata",
+      "mcp__claude_ai_Figma__search_design_system",
+      "mcp__claude_ai_Figma__get_design_context",
+      "mcp__claude_ai_Figma__get_variable_defs",
+      "Bash(pnpm add *)"
     ]
   },
   "enabledMcpjsonServers": [

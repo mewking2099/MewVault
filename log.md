@@ -2,6 +2,8 @@
 
 ## Entries
 
+- **2026-05-17** — ECC integration complete (3-pillar upgrade). Token optimization: write size guard in pre-tool-use.js (warn >40k chars, block >200k chars, thresholds in `.claude/limits.json`), MAX_INJECT_CHARS cap in session-start, model routing hints, MCP tool count warning. Memory persistence: session-end now writes `~/.claude/sessions/<project>-session.tmp` (bounded summary, rotate last 10); session-start loads prior session context (capped 8k, opt-out via MEW_SESSION_CONTEXT=off). Subagent orchestration: `wiki/subagent-model-routing.md` published, `skills/plan-orchestrate/SKILL.md` bridges MewKing plans to Agent() calls. 25 skills added from ECC/superpowers/anthropics/trailofbits/gsd/shadcn repos and globally symlinked to `~/.claude/skills/`; `mew harness install` updated to auto-run symlinks. Conflict audit: `verification-before-completion` merged into `verification-loop`, duplicate removed. DSaaS docs.tsx rewrite pushed. [auto-wrap]
+
 - **2026-05-13** — DSaaS session 4: Phase 2 architecture decision (Radix UI + CSS vars + `tailwindcss-animate`), 17-component plan written and MewKing-approved, `@dsaas/react-ui` package scaffolded (vite lib build, Vitest + RTL, TenantProvider, 9 Radix primitives). Next: Step 2 — Storybook scaffold. [auto-wrap]
 
 - **2026-05-12** — Replaced 7 slash commands with conversational triggers embedded in `session-start.js` `UserPromptSubmit` hook; README expanded with technical internals (token budget, vector DBs, instinct system, agent array), example sessions, and trigger reference; force-pushed to remote. [auto-wrap]
