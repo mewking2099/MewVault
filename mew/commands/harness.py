@@ -128,6 +128,9 @@ def _install(args) -> None:
         if not gk.exists():
             gk.touch()
 
+    # Install skills — symlink mewvault/skills/* to ~/.claude/skills/
+    _install_skills()
+
     # Validate node is available
     node_ok = shutil.which("node") is not None
     if not node_ok:
@@ -141,6 +144,30 @@ def _install(args) -> None:
     print(f"    bash:       export MEWVAULT_ROOT='{MEWVAULT_DIR}'")
 
     print("\nMewHarness installed. Restart Claude Code to activate hooks.\n")
+
+
+def _install_skills() -> None:
+    """Symlink every skill in mewvault/skills/ into ~/.claude/skills/ for global discovery."""
+    skills_src = MEWVAULT_DIR / "skills"
+    if not skills_src.is_dir():
+        return
+    global_skills = Path.home() / ".claude" / "skills"
+    global_skills.mkdir(parents=True, exist_ok=True)
+    installed = []
+    for skill_dir in sorted(skills_src.iterdir()):
+        if not skill_dir.is_dir():
+            continue
+        target = global_skills / skill_dir.name
+        if target.is_symlink():
+            target.unlink()
+        elif target.exists():
+            continue  # don't overwrite manually installed skills
+        target.symlink_to(skill_dir)
+        installed.append(skill_dir.name)
+    if installed:
+        print(f"  Skills linked to {global_skills}: {', '.join(installed)}")
+    else:
+        print(f"  Skills: already up to date in {global_skills}")
 
 
 def _install_rules(workspace_root: Path) -> None:
