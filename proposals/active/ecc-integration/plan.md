@@ -162,15 +162,20 @@ These are in the post but not in ECC or superpowers (need separate fetches):
 
 ## Implementation Order
 
-**Phase A (hooks — Stalk tier, no gate needed):**
-1. `pre-tool-use.js` write guard (1.1)
-2. `session-start.js` max-chars cap (1.2)
-3. `session-end.js` state file (2.1)
-4. `session-start.js` state loading (2.2)
-5. `pre-compact.js` snapshot (2.3)
+**Phase A (hooks — Stalk tier, no gate needed):** ✅ COMPLETE
+1. `pre-tool-use.js` write guard (1.1) ✅
+2. `session-start.js` max-chars cap (1.2) ✅ (was already present; verified)
+3. `session-end.js` state file (2.1) ✅
+4. `session-start.js` state loading (2.2) ✅
+5. `pre-compact.js` snapshot (2.3) ✅ (was already present)
 
-**Phase B (hooks — enhancement):**
-6. Model selection hint in session-start (1.3)
-7. MCP count warning in session-start (1.4)
+**Phase B (hooks + remaining pillar items):** ✅ COMPLETE
+6. Model selection hint in session-start (1.3) ✅ (done during Phase A)
+7. MCP count warning in session-start (1.4) ✅ (done during Phase A)
+8. `.claude/limits.json` default config ✅
+9. `wiki/subagent-model-routing.md` — model routing table (3.1) ✅
+10. `skills/plan-orchestrate/SKILL.md` — plan → agent orchestration (3.3) ✅
+11. All 11 remaining skills fetched and added ✅
+12. Global skill discovery via `~/.claude/skills/` symlinks ✅ (25 skills)
 
-Each change is isolated to one hook file. No cross-silo changes. Tests: manually verify hook outputs after each change.
+Each change isolated to one hook file. Tests: manually verify hook outputs after each change.
