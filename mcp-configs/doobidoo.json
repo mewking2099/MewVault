@@ -6,9 +6,10 @@
       "command": "python",
       "args": ["-m", "mcp_memory_service"],
       "env": {
-        "MCP_MEMORY_CHROMA_PATH": "~/.mewvault/chroma-wiki",
+        "MCP_MEMORY_SQLITE_PATH": "~/.mewvault/chroma-wiki/memory.db",
         "MCP_MEMORY_BACKUPS_PATH": "~/.mewvault/chroma-wiki-backups",
-        "MCP_MEMORY_EMBEDDING_MODEL": "nomic-embed-text"
+        "MCP_EXTERNAL_EMBEDDING_URL": "http://localhost:11434/v1/embeddings",
+        "MCP_EXTERNAL_EMBEDDING_MODEL": "nomic-embed-text"
       }
     }
   },
