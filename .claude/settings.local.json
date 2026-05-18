@@ -8,7 +8,7 @@
       "Bash(uvx --version)",
       "Bash(uv --version)",
       "Bash(ollama --version)",
-      "Bash(python3 -c \"import chromadb; print\\('chromadb:', chromadb.__version__\\)\")",
+
       "Bash(python3 -c \"import mcp_memory_service; print\\('doobidoo: OK'\\)\")",
       "Bash(pip install *)",
       "Bash(brew install *)",
@@ -30,7 +30,65 @@
   },
   "enabledMcpjsonServers": [
     "memory",
-    "doobidoo",
-    "chromadb"
-  ]
+    "doobidoo"
+  ],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Mohabbat/Jan/mewvault/hooks/session-start.js",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Mohabbat/Jan/mewvault/hooks/session-end.js",
+            "timeout": 15
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Mohabbat/Jan/mewvault/hooks/pre-tool-use.js",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Mohabbat/Jan/mewvault/hooks/post-tool-use.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/Mohabbat/Jan/mewvault/hooks/pre-compact.js",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
 }
