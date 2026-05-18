@@ -237,26 +237,21 @@ When you type `standup` or `wrap up`, the `UserPromptSubmit` hook detects the ph
 
 Trigger patterns live in `hooks/session-start.js` as regex + instruction pairs. Arguments are extracted from the prompt — `dump — <content>` passes the content as the argument to the dump workflow.
 
-### Vector databases
+### Semantic search (doobidoo)
 
-Two semantic search backends run alongside the text-based context injection:
+MewVault ships a persistent semantic search layer called **doobidoo** — an MCP server backed by SQLite-vec and Ollama embeddings.
 
-**ChromaDB** (code + game silos)
-- HTTP server running locally on `localhost:8000`
-- Collections: `mewvault-code`, `mewvault-game`
-- `session-end.js` indexes modified source files after each session (fire-and-forget, never blocks the session)
-- `session-start.js` queries the collection at startup and surfaces the 5 most relevant snippets as a `## Relevant Context (semantic)` section
-- Falls back silently if ChromaDB is not running
+- Runs via MCP stdio transport, auto-started by Claude Code on launch
+- Backend: **SQLite-vec** at `~/.mewvault/chroma-wiki/memory.db`
+- Embeddings: Ollama `nomic-embed-text` running locally
+- Indexes wiki notes and source files; Claude calls it as a tool during any session
+- Re-index after significant changes: `python scripts/ingest_wiki.py` or `scripts/ingest_code.py`
+- Falls back silently if Ollama is not running
 
-**mcp-memory-service / doobidoo** (wiki silo)
-- Runs via MCP stdio transport
-- Uses **ChromaDB + Ollama embeddings** (`nomic-embed-text`) stored at `~/.mewvault/chroma-wiki`
-- Indexes wiki notes; available as an MCP tool Claude can call directly during wiki sessions
-- Pending index jobs written to `.claude/pending-vector-index.json` when the server isn't running — surfaced as a reminder on next startup
-
-**Anthropic memory MCP** (all silos)
-- Lightweight KV store for cross-session entity memory
-- Available in all silos; Claude uses it to persist people, project relationships, recurring patterns
+**memory MCP** (all silos)
+- In-session knowledge graph via `@modelcontextprotocol/server-memory`
+- Claude uses it to build up entity and relation context during long tasks
+- Resets between sessions — not a persistent store
 
 ### Instinct system
 
@@ -319,6 +314,7 @@ The sync is idempotent and git-diff-based — only changed files trigger writes.
 | Git | `brew install git` | `winget install Git.Git` |
 | Claude Code | `npm install -g @anthropic-ai/claude-code` | same |
 | Obsidian | [obsidian.md](https://obsidian.md) | same |
+| Ollama *(optional)* | `brew install ollama` — for semantic search | [ollama.com](https://ollama.com/download) |
 
 ---
 
@@ -414,20 +410,34 @@ Obsidian updates immediately. Each silo's `Project_Status.md` and `log.md` are m
 
 ---
 
-### Step 8 (optional) — Enable vector search
+### Step 8 (optional) — Enable semantic search
 
-**ChromaDB** for code/game silos:
+MewVault uses **doobidoo** for persistent semantic search across wiki notes and source files. It requires Ollama running locally.
+
 ```bash
-pip install chromadb
-uvx chroma-mcp --host localhost --port 8000
-# add chromadb MCP to ~/.claude/settings.json (see mcp-configs/chromadb.json)
+# Install Ollama and pull the embedding model
+brew install ollama          # macOS
+ollama pull nomic-embed-text
+
+# Install the doobidoo MCP server into the venv
+pip install mcp-memory-service
+
+# Add doobidoo to Claude Code's MCP config (see mcp-configs/doobidoo.json)
+# Point it at the workspace root: /Jan/.mcp.json
 ```
 
-**doobidoo** for wiki semantic search:
+Ollama runs as a Homebrew launchd service — it starts at login and stays running. Verify with:
+
 ```bash
-pip install mcp-memory-service
-ollama pull nomic-embed-text
-# add doobidoo MCP to ~/.claude/settings.json (see mcp-configs/doobidoo.json)
+brew services list | grep ollama   # should show: started
+ollama list                         # confirm nomic-embed-text is present
+```
+
+After significant file changes, re-index manually:
+
+```bash
+python scripts/ingest_wiki.py    # wiki notes
+python scripts/ingest_code.py    # source files
 ```
 
 ---
