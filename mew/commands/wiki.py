@@ -397,21 +397,40 @@ def _sync_log(src: Path, dest: Path, since_date: str, dry_run: bool) -> None:
     if not new_entries:
         return
 
+    fmt = _detect_log_format(src_content)
+    separator = "\n\n---\n\n" if fmt == "section" else "\n"
+    insert_block = separator.join(new_entries)
+
     existing = dest.read_text(encoding="utf-8")
-    # Insert new entries after "## Entries" line
     if "## Entries" in existing:
         parts = existing.split("## Entries", 1)
         after = parts[1].lstrip("\n")
-        updated = parts[0] + "## Entries\n\n" + "\n".join(new_entries) + "\n\n" + after
+        updated = parts[0] + "## Entries\n\n" + insert_block + "\n\n---\n\n" + after
     else:
-        updated = existing + "\n\n" + "\n".join(new_entries)
+        updated = existing + "\n\n" + insert_block
 
     if not dry_run:
         dest.write_text(updated, encoding="utf-8")
     print(f"    + {len(new_entries)} new log entry(ies)")
 
 
+def _detect_log_format(content: str) -> str:
+    """Return 'section' if log uses ## YYYY-MM-DD headings, else 'bullet'."""
+    for line in content.splitlines():
+        if re.match(r"^## \d{4}-\d{2}-\d{2}", line):
+            return "section"
+        if re.match(r"- \*\*\d{4}-\d{2}-\d{2}\*\*", line):
+            return "bullet"
+    return "bullet"
+
+
 def _extract_log_entries_after(content: str, since_date: str) -> list[str]:
+    if _detect_log_format(content) == "section":
+        return _extract_section_entries_after(content, since_date)
+    return _extract_bullet_entries_after(content, since_date)
+
+
+def _extract_bullet_entries_after(content: str, since_date: str) -> list[str]:
     in_entries = False
     entries = []
     for line in content.splitlines():
@@ -425,9 +444,34 @@ def _extract_log_entries_after(content: str, since_date: str) -> list[str]:
             if not since_date or m.group(1) > since_date:
                 entries.append(line)
         elif entries and line.startswith("  "):
-            # continuation of last entry
             entries.append(line)
     return entries
+
+
+def _extract_section_entries_after(content: str, since_date: str) -> list[str]:
+    """Extract ## YYYY-MM-DD blocks newer than since_date as complete text blocks."""
+    sections: list[tuple[str, list[str]]] = []
+    current_date: str | None = None
+    current_lines: list[str] = []
+
+    for line in content.splitlines():
+        m = re.match(r"^## (\d{4}-\d{2}-\d{2})", line)
+        if m:
+            if current_date is not None:
+                sections.append((current_date, current_lines))
+            current_date = m.group(1)
+            current_lines = [line]
+        elif current_date is not None:
+            current_lines.append(line)
+
+    if current_date is not None:
+        sections.append((current_date, current_lines))
+
+    return [
+        "\n".join(lines).rstrip()
+        for date, lines in sections
+        if not since_date or date > since_date
+    ]
 
 
 def _sync_status(src: Path, dest: Path, slug: str, silo: str, dry_run: bool) -> None:
