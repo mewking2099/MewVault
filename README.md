@@ -155,6 +155,113 @@ Every project has a `tier` in `Project_Status.md`. This is enforced at the OS le
 
 ---
 
+## Core concepts
+
+MewVault is built on four interconnected systems. Each one solves a specific problem with long-running AI-assisted work.
+
+<br>
+
+### 1 · Token budget management
+
+The biggest friction in any AI workspace is context bloat — every session grows until the model loses track of what matters. MewVault approaches this at three levels:
+
+| Layer | Mechanism | How it helps |
+|---|---|---|
+| **Hard cap** | `MEW_SESSION_START_MAX_TOKENS = 6000` | Injected context can't grow unboundedly regardless of how many projects you have |
+| **Prompt cache** | Static content (rules, agent persona) is injected first | Anthropic caches it — repeated calls to this block are ~10× cheaper and faster |
+| **Per-silo whitelist** | `Project_Status.md` fields are filtered per silo | A game session never receives code-silo fields; a design session never gets game fields |
+| **Semantic search** | doobidoo MCP (SQLite-vec + Ollama) | On-demand retrieval instead of injecting everything upfront |
+
+The context block that fires on every prompt is structured so the cached static section comes before the dynamic one — meaning the cache boundary is at the same position on every call, maximising the cache hit rate.
+
+```
+┌─ cached (static) ──────────────────────────────┐
+│  vault rules · agent persona · silo rules       │  ← paid once, then free
+└─────────────────────────────────────────────────┘
+┌─ live (dynamic) ────────────────────────────────┐
+│  project status · active instincts · wiki brief  │  ← fresh each turn
+│  trigger workflow instructions (if matched)      │
+└─────────────────────────────────────────────────┘
+```
+
+<br>
+
+### 2 · Agent array
+
+Seven specialist agents live behind a **LiteLLM proxy** (`mew harness proxy`). Each has a fixed model, a scoped role, and is auto-selected based on the active silo — you never route manually.
+
+| Agent | Model | Silo | Role |
+|---|---|---|---|
+| `mew-planner` | Claude Opus 4.7 | any | Architecture, MewKing plans, high-stakes decisions |
+| `mew-chief` | Claude Sonnet 4.6 | global | Cross-silo orchestration, triage, routing |
+| `mew-coder` | Claude Sonnet 4.6 | software | Implementation, refactoring, test generation |
+| `mew-designer` | Claude Sonnet 4.6 | design | UX review, Figma MCP reads, component specs |
+| `mew-learner` | Claude Sonnet 4.6 | wiki | Concept distillation, research ingest |
+| `mew-gamedev` | Claude Sonnet 4.6 | game | GDScript, Godot patterns, game mechanics |
+| `mew-archivist` | Claude Haiku 4.5 | any | Session wrap, log writes, git messages |
+
+Model assignment reflects cost/capability tradeoffs: `mew-planner` uses Opus for the work that genuinely needs it; `mew-archivist` uses Haiku for the routine end-of-session writes that don't. Routing happens automatically via the `session-start.js` hook — the silo context determines which agent persona Claude Code adopts.
+
+> The proxy config (`proxy/config.yaml`) is a single source of truth for model assignments. Swap `mew-coder` to a different model by changing one line — no hook changes needed.
+
+<br>
+
+### 3 · Instinct system
+
+Most AI setups treat corrections as ephemeral — you fix something, Claude gets it right, and the next session starts from zero. The instinct system makes corrections permanent.
+
+When `post-tool-use.js` detects the same file was rewritten within 60 seconds (the *rapid-rewrite signal*), it logs a candidate to `instincts/pending/`. You review it, decide if it's worth keeping, and promote the ones that are. Promoted instincts are injected into every future session start as the `## Active Vault Instincts` block.
+
+```
+you correct Claude → same file rewritten within 60s
+                              ↓
+              instincts/pending/<hash>.json
+              { signal, context, suggested_rule, confidence }
+                              ↓
+                  mew instinct status
+                              ↓
+              mew instinct promote <id>
+                              ↓
+              instincts/promoted/<id>.json    ← injected every session
+```
+
+Each instinct carries a **confidence score** (0–1). Instincts decay if they stop being triggered — `mew instinct prune` removes the stale ones so the injected block stays tight.
+
+<br>
+
+### 4 · Semantic command system
+
+MewVault has no slash commands. All workflows are triggered by plain sentences. The `session-start.js` hook runs a regex matcher against every prompt before it reaches Claude — if a trigger fires, the full workflow instructions are appended to the context block in the same turn.
+
+| You say | Trigger pattern | What gets injected |
+|---|---|---|
+| `standup` / `morning brief` | `/^(standup\|stand[\s-]?up\|morning brief)/i` | Full standup workflow: parallel reads of North Star, all Project_Status.md files, open PRs, calendar |
+| `wrap up` / `done for the day` | `/^(wrap[\s-]?up\|done for the day)/i` | Wrap workflow: log write, status update, wiki sync, commit suggestion |
+| `dump — <content>` | `/^dump[\s—–-]/i` | Classification + routing workflow: type detection, destination proposal, confirmation |
+| `new project <name>` | `/^new project\b/i` | Scaffolding workflow: questions → `mew new` → mewwiki mirror |
+| `meeting prep <name>` | `/^(meeting[\s-]?prep\|prepare for)/i` | Loads attendee profiles + last meeting notes + agenda suggestions |
+| `capture the meeting` | `/^capture (the )?meeting/i` | Decision + action item extraction → Operations/ |
+| `ingest <file>` | `/^ingest\s/i` | Concept page proposal → approval → wiki write |
+
+The trigger system is entirely in `hooks/session-start.js` as a `TRIGGERS` array of `{ pattern, name, instructions }` objects — easy to add new commands without touching Claude's config.
+
+<br>
+
+### Stack
+
+| Component | Technology |
+|---|---|
+| CLI | Python 3.11+ · `pathlib` throughout · editable install via `pip install -e .` |
+| Hooks | Node.js · five Claude Code lifecycle hooks · `hooks/*.js` |
+| Agent proxy | LiteLLM · `proxy/config.yaml` · runs on `localhost:4000` |
+| Semantic search | doobidoo (mcp-memory-service) · SQLite-vec · Ollama `nomic-embed-text` (local) |
+| In-session memory | `@modelcontextprotocol/server-memory` · knowledge graph · resets between sessions |
+| Wiki layer | Obsidian · Bases plugin · auto-synced via `mew wiki sync` |
+| Secrets | File-based · `secrets/*.env` · gitignored · `chmod 0600` on Unix · `icacls` on Windows |
+| Models | Anthropic API · Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5 via LiteLLM proxy |
+
+---
+
 <details>
 <summary><strong>Under the hood — hooks, instincts, token budget</strong></summary>
 
