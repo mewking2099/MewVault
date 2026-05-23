@@ -188,21 +188,42 @@ The context block that fires on every prompt is structured so the cached static 
 
 ### 2 · Agent array
 
-Seven specialist agents live behind a **LiteLLM proxy** (`mew harness proxy`). Each has a fixed model, a scoped role, and is auto-selected based on the active silo — you never route manually.
+Seven specialist agents, no proxy required. `mew-chief` acts as a live dispatcher — it reads every prompt, classifies the intent, announces its routing decision, and spawns the right sub-agent as a native Claude Code agent with the correct model already selected. You never route manually.
 
-| Agent | Model | Silo | Role |
-|---|---|---|---|
-| `mew-planner` | Claude Opus 4.7 | any | Architecture, MewKing plans, high-stakes decisions |
-| `mew-chief` | Claude Sonnet 4.6 | global | Cross-silo orchestration, triage, routing |
-| `mew-coder` | Claude Sonnet 4.6 | software | Implementation, refactoring, test generation |
-| `mew-designer` | Claude Sonnet 4.6 | design | UX review, Figma MCP reads, component specs |
-| `mew-learner` | Claude Sonnet 4.6 | wiki | Concept distillation, research ingest |
-| `mew-gamedev` | Claude Sonnet 4.6 | game | GDScript, Godot patterns, game mechanics |
-| `mew-archivist` | Claude Haiku 4.5 | any | Session wrap, log writes, git messages |
+```
+you: "plan the auth refactor"
+              ↓
+        mew-chief (dispatcher)
+              ↓ → Routing to mew-planner (opus)…
+        mew-planner spawned
+              ↓
+        write-mewking-plan skill activated
+              ↓ chains_to →
+        mew-archivist logs the result
+```
 
-Model assignment reflects cost/capability tradeoffs: `mew-planner` uses Opus for the work that genuinely needs it; `mew-archivist` uses Haiku for the routine end-of-session writes that don't. Routing happens automatically via the `session-start.js` hook — the silo context determines which agent persona Claude Code adopts.
+| Agent | Model | Silo | Skills | Role |
+|---|---|---|---|---|
+| `mew-chief` | Sonnet 4.6 | global | dispatcher | Classifies every request, announces routing, spawns sub-agents |
+| `mew-planner` | **Opus 4.7** | any | 3 | Architecture, MewKing plans, risk maps, tier analysis |
+| `mew-coder` | Sonnet 4.6 | software | 3 | TDD workflow, implementation, code review, refactor |
+| `mew-designer` | Sonnet 4.6 | design | 2 | Figma MCP reads, component specs, token audit |
+| `mew-learner` | Sonnet 4.6 | wiki | 2 | Concept distillation, PDF ingest, knowledge routing |
+| `mew-gamedev` | Sonnet 4.6 | game | 2 | GDScript review, mechanic design, Godot patterns |
+| `mew-archivist` | **Haiku 4.5** | any | 3 | Session wrap, log writes, commit message generation |
 
-> The proxy config (`proxy/config.yaml`) is a single source of truth for model assignments. Swap `mew-coder` to a different model by changing one line — no hook changes needed.
+**Skill plugin system** — each agent has a `skills/` directory of plain markdown files. Drop a new `.md` skill file and run `mew agent sync`; the routing index rebuilds and the skill is live from the next session. No code changes needed.
+
+```
+agents/mew-coder/skills/
+  tdd-workflow.md        ← drop new .md here
+  code-review.md         ← mew agent sync → live
+  refactor.md
+```
+
+Skills declare their own triggers in YAML frontmatter (`triggers: [...]`), their inject mode (`always` / `on-trigger` / `manual`), and optional chains (`chains_to: mew-archivist/log-write`). Cycle detection is built in.
+
+> No proxy, no separate API key needed. The agent array runs entirely on your Claude Code subscription via native sub-agent spawning.
 
 <br>
 
@@ -253,12 +274,13 @@ The trigger system is entirely in `hooks/session-start.js` as a `TRIGGERS` array
 |---|---|
 | CLI | Python 3.11+ · `pathlib` throughout · editable install via `pip install -e .` |
 | Hooks | Node.js · five Claude Code lifecycle hooks · `hooks/*.js` |
-| Agent proxy | LiteLLM · `proxy/config.yaml` · runs on `localhost:4000` |
+| Agent routing | `mew-chief` dispatcher · `agents/.routing-index.json` · rebuilt via `mew agent sync` |
+| Agent skills | Markdown plugin files · `agents/<name>/skills/*.md` · auto-discovered |
 | Semantic search | doobidoo (mcp-memory-service) · SQLite-vec · Ollama `nomic-embed-text` (local) |
 | In-session memory | `@modelcontextprotocol/server-memory` · knowledge graph · resets between sessions |
 | Wiki layer | Obsidian · Bases plugin · auto-synced via `mew wiki sync` |
 | Secrets | File-based · `secrets/*.env` · gitignored · `chmod 0600` on Unix · `icacls` on Windows |
-| Models | Anthropic API · Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5 via LiteLLM proxy |
+| Models | Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5 · Claude Code subscription · no proxy |
 
 ---
 
