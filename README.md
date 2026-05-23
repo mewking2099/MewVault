@@ -1,530 +1,364 @@
-# MewVault
+<div align="center">
 
-A federated AI workspace manager built for Claude Code. One terminal window. Everything flows through `mewvault/` — your projects, your knowledge, your daily rhythm.
+<br>
+
+<h1>MewVault</h1>
+
+<p>
+  <strong>A federated AI workspace for Claude Code.</strong><br>
+  Five independent silos. An Obsidian wiki that syncs itself.<br>
+  An instinct system that learns from how you work.
+</p>
+
+<p>
+  <img alt="Python 3.11+" src="https://img.shields.io/badge/Python-3.11%2B-3776AB?style=flat-square&logo=python&logoColor=white">
+  <img alt="Claude Code" src="https://img.shields.io/badge/Claude_Code-required-D97706?style=flat-square">
+  <img alt="Obsidian" src="https://img.shields.io/badge/Obsidian-mewwiki-7C3AED?style=flat-square">
+  <img alt="macOS + Windows" src="https://img.shields.io/badge/platform-macOS%20%7C%20Windows-555?style=flat-square">
+</p>
+
+<br>
+
+</div>
 
 ---
 
-## What it is
+## What makes it different
 
-MewVault organises work into independent git **silos**, enforces planning gates before code is written, and wires Claude Code hooks to inject context automatically at the start of every session.
+There are great patterns out there for working with AI on a codebase — the Karpathy wiki approach, community CLAUDE.md setups, various hook recipes for injecting context. They all solve the same core problem: *how do you give an AI the right context without burning your token budget?*
 
-**MewWiki** is the read layer — an Obsidian vault that stays current with your silos automatically. You browse it. Claude writes to it at session end via `mew wiki sync`. You never work from it directly.
+MewVault does that too. But it's built around two structural ideas that those patterns don't address:
+
+<br>
+
+**Two engines, not one.** Most setups treat the AI workspace as a single directory. MewVault splits it into a write engine and a read layer:
+
+- **`mewvault/`** is where you *work* — the CLI, hooks, agents, secrets. Claude Code runs from here.
+- **`mewwiki/`** is where you *browse* — a separate Obsidian vault that Claude syncs after every session. You never write to it directly; it stays current automatically.
+
+This means your notes and project status are always in Obsidian in a browseable, linkable, searchable form — not buried in git commits or agent memory.
+
+<br>
+
+**Five silos with separate git histories and separate workflows.** Code projects, design work, game prototypes, and your knowledge base each live in their own git repo with their own planning rules, hook context, and promotion paths. A code session injects different context than a design session. A game experiment doesn't need a MewKing plan; a production feature does.
+
+<br>
+
+**Projects promote between silos.** Research in `wiki/` can become a UX brief in `design-studio/`. A Figma-complete design can promote to a scaffolded code project in `software-projects/`. A `game-lab/` experiment can become a full game project. The `mew promote` command handles the cross-silo handoff with a single command.
+
+---
+
+## Architecture
 
 ```
 workspace-root/
-  mewwiki/              # Obsidian vault — auto-updated, read in Obsidian
-  mewvault/             # This repo — CLI, hooks, agents
-  software-projects/    # Code projects (Next.js, Astro, SvelteKit)
-  design-studio/        # UX and design projects (Figma-integrated)
-  game-lab/             # Godot games and experiments
-  wiki/                 # Knowledge base and learning tracks
+├── mewvault/           ← you are here — CLI engine, hooks, agents
+├── mewwiki/            ← Obsidian vault — auto-synced, read-only by convention
+├── software-projects/  ← code (Next.js, Astro, SvelteKit)
+├── design-studio/      ← UX & Figma-integrated design work
+├── game-lab/           ← Godot games and low-commitment experiments
+└── wiki/               ← knowledge base, research, learning tracks
+```
+
+Each silo is an independent git repo. `mewvault/` is the only one Claude opens by default. The `mew wiki sync` command — triggered automatically at session end — mirrors all silo content into `mewwiki/`.
+
+<br>
+
+```
+  silos                    Claude Code               mewwiki (Obsidian)
+  ─────                    ───────────               ──────────────────
+  software-projects/   ──▶  session-start.js  ──▶   Projects/<name>/index.md
+  design-studio/            (injects context)        Projects/<name>/log.md
+  game-lab/                        │                 Knowledge/concepts/
+  wiki/                    session-end.js     ──▶   _inbox/ (new wiki pages)
+                            (mew wiki sync)          Brain/ · Operations/
 ```
 
 ---
 
-## Daily workflow
+## Silo workflows and promotions
 
-### Morning — start the day
+Each silo has its own rules and Claude persona:
 
+| Silo | Stack | Agent | What's different |
+|---|---|---|---|
+| `software-projects/` | Next.js · Astro · SvelteKit | `mew-coder` | TDD warning on every new file; strict tier gates |
+| `design-studio/` | Figma (via MCP) | `mew-designer` | Figma node reads; never manually transcribe measurements |
+| `game-lab/` | GDScript / Godot | `mew-gamedev` | `_experiments/` bypasses MewKing gate — prototype freely |
+| `wiki/` | Markdown | `mew-learner` | Research, concept distillation, learning tracks |
+
+**Project promotion** — moving work between silos when it's ready:
+
+```bash
+# Research → UX brief
+mew promote wiki/ --topic "payment-flow"
+
+# Approved design → scaffolded code project
+mew promote my-ux-project --to my-code-project
+
+# Game experiment → full game project
+mew promote game-lab/_experiments/platformer
 ```
+
+Each promotion scaffolds the destination project with the source artefacts already in place — no copy-pasting, no manual linking.
+
+---
+
+## Daily rhythm
+
+### Morning
+
+```bash
 cd ~/Jan/mewvault
 claude
 ```
 
-Claude Code opens. The session-start hook fires automatically and injects:
-- Your active project status and current phase
-- MewWiki inbox count (notes queued for review in Obsidian)
-- Any projects idle for 14+ days
-- Promoted instincts from past sessions
+Then say: **standup**
 
-Then say:
+Claude reads your North Star, all active `Project_Status.md` files, and open PRs. You get a morning brief: priorities, inbox count, idle projects, today's calendar if connected.
 
-> **standup**
+<br>
 
-Claude reads your Brain/North Star, all active Project_Status.md files, and your open PRs. You get a morning brief in one block — priorities, calendar (if Google Calendar is connected), inbox, PRs.
-
----
-
-### During the day — working on a project
-
-**Start new work in a silo:**
-
-> **new project rate-calc**
-
-Claude asks: name, silo, stack, north star, tier. Runs `mew new`, scaffolds the silo folder, creates a mewwiki mirror in `Projects/rate-calc/` immediately.
-
-**Capture something mid-session:**
-
-> **dump — we decided to use Supabase instead of Prisma for this project**
-
-Claude classifies it (decision, idea, person note, API gotcha, etc.), proposes where it goes, and asks for confirmation before writing.
-
-**Distil a spec document:**
-
-> **ingest raw/spec.pdf**
-
-Claude proposes a set of concept pages to extract, waits for your approval, then writes them to `wiki/`. They flow to mewwiki on the next sync.
-
----
-
-### End of day — wrap up
-
-> **wrap up**
-
-Claude:
-1. Writes a session log entry to the active project's `log.md`
-2. Updates `Project_Status.md` with `last_session` and `next_action`
-3. Runs `mew wiki sync` — silos → mewwiki, committed automatically
-4. Flags any unrouted inbox items
-5. Suggests a git commit message
-
-Then open Obsidian. Your projects, decisions, and wiki pages are current.
-
----
-
-### Other triggers you'll use
+### During the day
 
 | Say this | What happens |
 |---|---|
-| **meeting prep vodafone** | Loads attendee profiles + last meeting notes + suggests agenda |
-| **capture the meeting** | Extracts decisions + action items → files in Operations/ |
-| **ingest raw/spec.pdf** | Discusses concept pages with you before writing |
 | **standup** | Morning brief — projects, inbox, PRs, calendar |
-| **wrap up** | Session end — log, sync, commit suggestion |
+| **new project rate-calc** | Claude asks: silo, stack, north star, tier → scaffolds everything |
+| **dump — we decided to use Supabase** | Classified as decision/idea/gotcha → proposed destination → you confirm |
+| **ingest raw/spec.pdf** | Discusses concept pages with you → writes to `wiki/` on approval |
+| **promote my-design --to my-app** | Cross-silo handoff — scaffolds the code project from the UX artefacts |
+| **meeting prep vodafone** | Loads attendee profiles + last meeting notes + suggests agenda |
+| **wrap up** | Session log, `Project_Status.md` update, wiki sync, commit suggestion |
 
-All triggers work as plain conversational sentences — no slash commands or special syntax.
+All of these are plain sentences — no slash commands, no special syntax.
 
----
+<br>
 
-## Example sessions
+### End of day
 
-### A typical morning
+Say: **wrap up**
 
-```
-You:    standup
-
-Claude: ## Standup — 2026-05-12
-
-        ### Focus
-        Ship the Supabase auth flow for neustring-copilot (Phase 3)
-
-        ### Active Projects
-        | Project            | Phase    | Next action              | Blockers |
-        |--------------------|----------|--------------------------|----------|
-        | neustring-copilot  | phase-3  | wire up OAuth callback   | —        |
-        | brand-refresh      | research | review Figma moodboard   | —        |
-
-        ### Today
-        10:00 Vodafone sync (Sarah Chen, Mike Ross)
-        15:30 1:1 with Jamie
-
-        ### Open PRs
-        - #14 feat: supabase schema migration [draft]
-
-        ### Inbox
-        3 item(s) in mewwiki/_inbox/ waiting for review.
-        neustring-copilot-auth-notes.md, brand-refresh-palette.md, vodafone-notes.md
-```
+Claude writes the session log, updates `Project_Status.md`, runs `mew wiki sync`, checks the inbox, and suggests a commit message. Open Obsidian — everything is current.
 
 ---
 
-### Mid-session capture
+## Planning gates
 
-```
-You:    dump — the Vodafone team confirmed they want a white-label version,
-        not a separate product. decision made in the 10am call.
+Every project has a `tier` in `Project_Status.md`. This is enforced at the OS level by the `PreToolUse` hook — not just a guideline.
 
-Claude: Type:    decision
-        Route:   mewwiki/Operations/Decisions/vodafone-white-label.md
-        Title:   White-label over separate product — Vodafone
-        Project: neustring-copilot
-
-        Content preview:
-        We decided to build a white-label version of neustring-copilot for
-        Vodafone rather than a separate product. Confirmed in 10am sync
-        2026-05-12 with Sarah Chen and Mike Ross.
-
-        Confirm? [y/n/reclassify]
-
-You:    y
-
-Claude: Written: mewwiki/Operations/Decisions/vodafone-white-label.md
-        Will appear in Obsidian immediately.
-```
+| Tier | When | How it works |
+|---|---|---|
+| **Pounce** | Small tasks, under 2 hours | No plan required. Claude writes directly. |
+| **Stalk** | Multi-session features | Claude proposes approach in chat. Verbal approval before writing. |
+| **MewKing** | Architecture or risky changes | Hard gate: no code until `plan_approved: true` in `Project_Status.md`. Claude creates `proposals/active/<feature>/plan.md` and waits. After two blocked attempts, `REVIEW_REQUIRED.md` is written automatically. |
 
 ---
 
-### Starting a new project
+<details>
+<summary><strong>Under the hood — hooks, instincts, token budget</strong></summary>
 
-```
-You:    new project mew-billing
-
-Claude: 1. Slug: mew-billing ✓
-        2. Full name?
-        3. Silo: software, design, or game?
-        4. Stack: next, astro, or sveltekit?
-        5. North star (one sentence — what does "done" look like)?
-        6. Tier: pounce / stalk / mewking?
-
-You:    MewVault Billing, software, next, users can subscribe and manage
-        billing from the dashboard, stalk
-
-Claude: Scaffolding...
-
-        Project created: mew-billing
-        Silo:       software-projects/mew-billing/
-        Wiki mirror: mewwiki/Projects/mew-billing/
-        North Star updated.
-```
-
----
-
-### Wrapping up
-
-```
-You:    wrap up
-
-Claude: What happened this session?
-
-You:    wired up the Supabase OAuth callback, fixed the redirect loop,
-        wrote tests for the auth middleware
-
-Claude: Log entry written → neustring-copilot/log.md
-        Project_Status.md updated: last_session 2026-05-12, next_action: deploy to staging
-        Wiki sync: 1 project updated (neustring-copilot)
-        Inbox check: no unrouted items
-
-        Commit suggestion:
-        feat: wire Supabase OAuth callback and fix redirect loop
-
-        Run: git add ... && git commit -m "feat: wire Supabase OAuth callback and fix redirect loop"
-```
-
----
-
-## How it works — under the hood
+<br>
 
 ### Hook runtime (MewHarness)
 
-Five Claude Code lifecycle hooks fire automatically. You install them once with `mew harness install` and never think about them again.
+Five Claude Code lifecycle hooks fire automatically. Install once with `mew harness install`.
 
 | Hook | Event | What it does |
 |---|---|---|
-| `session-start.js` | `UserPromptSubmit` | Injects vault rules, project status, Brain brief, instincts, semantic context — and detects conversational triggers |
-| `session-end.js` | `Stop` | Writes auto-wrap log entry, runs `mew wiki sync`, appends to Brain/Memories, indexes to vector store |
+| `session-start.js` | `UserPromptSubmit` | Injects vault rules, project status, Brain brief, instincts, semantic context — detects conversational triggers |
+| `session-end.js` | `Stop` | Writes auto-wrap log entry, runs `mew wiki sync`, appends to Brain/Memories |
 | `pre-tool-use.js` | `PreToolUse` | MewKing gate, secrets guard, `raw/` lock, mewwiki write guard, TDD warning |
-| `post-tool-use.js` | `PostToolUse` | Accumulates session activity, detects correction signals for instinct candidates |
+| `post-tool-use.js` | `PostToolUse` | Accumulates session activity, detects rapid-rewrite signals for instinct candidates |
 | `pre-compact.js` | `PreCompact` | Semantic context snapshot before conversation compresses |
+
+<br>
 
 ### Token budget
 
-The `UserPromptSubmit` hook prepends a context block to every prompt. To keep it from ballooning:
+The `UserPromptSubmit` hook prepends a context block to every prompt. To keep it efficient:
 
-- A hard cap of **6,000 tokens** (configurable via `MEW_SESSION_START_MAX_TOKENS`) limits the injected block
-- Sections are ordered so static content (vault rules, agent persona) comes first — these hit Anthropic's **prompt cache** and cost nothing after the first call
+- Hard cap of **6,000 tokens** (configurable via `MEW_SESSION_START_MAX_TOKENS`)
+- Static content (vault rules, agent persona) comes first — hits Anthropic's **prompt cache**, costs nothing after the first call
 - Dynamic content (project status, instincts, wiki brief) comes after the cache boundary
-- The whitelist system filters `Project_Status.md` to only the fields relevant to the active silo (e.g. code projects only inject `current_phase`, `stack`, `open_threads`, `tier`, `plan_approved` — not every field)
-- Context injection is **whitelisted per silo**, so a game session never gets code-silo fields
+- `Project_Status.md` fields are **whitelisted per silo** — a game session never gets code-silo fields
 
 ```
-[static — cached]        vault rules + agent persona
-[dynamic — not cached]   project status (whitelisted) + instincts + wiki brief + trigger
+[static — cached]     vault rules + agent persona
+[dynamic — live]      project status + instincts + wiki brief + trigger
 ```
 
-### Conversational triggers
-
-When you type `standup` or `wrap up`, the `UserPromptSubmit` hook detects the phrase before your message reaches Claude and appends the full workflow instructions to the injected context block. Claude sees both your message and the instructions in the same turn and executes the workflow.
-
-Trigger patterns live in `hooks/session-start.js` as regex + instruction pairs. Arguments are extracted from the prompt — `dump — <content>` passes the content as the argument to the dump workflow.
-
-### Semantic search (doobidoo)
-
-MewVault ships a persistent semantic search layer called **doobidoo** — an MCP server backed by SQLite-vec and Ollama embeddings.
-
-- Runs via MCP stdio transport, auto-started by Claude Code on launch
-- Backend: **SQLite-vec** at `~/.mewvault/chroma-wiki/memory.db`
-- Embeddings: Ollama `nomic-embed-text` running locally
-- Indexes wiki notes and source files; Claude calls it as a tool during any session
-- Re-index after significant changes: `python scripts/ingest_wiki.py` or `scripts/ingest_code.py`
-- Falls back silently if Ollama is not running
-
-**memory MCP** (all silos)
-- In-session knowledge graph via `@modelcontextprotocol/server-memory`
-- Claude uses it to build up entity and relation context during long tasks
-- Resets between sessions — not a persistent store
+<br>
 
 ### Instinct system
 
-MewVault learns from corrections. When `post-tool-use.js` detects that the same file was rewritten within 60 seconds (a rapid-rewrite signal), it writes a candidate to `instincts/pending/`. You review candidates with `mew instinct status` and promote the ones worth keeping. Promoted instincts are injected at every session start as the `## Active Vault Instincts` section.
+MewVault learns from corrections. When `post-tool-use.js` detects the same file was rewritten within 60 seconds, it writes a candidate to `instincts/pending/`. You review and promote the ones worth keeping. Promoted instincts are injected at every session start.
 
 ```
 rapid rewrite detected
        ↓
-instincts/pending/<id>.json    (candidate — not yet active)
+instincts/pending/<id>.json     ← candidate, not yet active
        ↓  mew instinct promote <id>
-instincts/promoted/<id>.json   (injected every session)
+instincts/promoted/<id>.json    ← injected every session
 ```
 
-### Agent array
+```bash
+mew instinct status          # review pending candidates
+mew instinct promote <id>    # make one permanent
+mew instinct prune           # clean up stale entries
+```
 
-Seven specialist agents routed through a **LiteLLM proxy**. Each agent has a fixed model and a scoped role — the session-start hook selects the right one based on the active silo.
+<br>
 
-| Agent | Silo | Role |
-|---|---|---|
-| `mew-coder` | code | Implementation, refactoring, test generation |
-| `mew-gamedev` | game | GDScript, game mechanics, Godot patterns |
-| `mew-designer` | design | UX, Figma review, component specs |
-| `mew-learner` | wiki | Concept distillation, research ingest |
-| `mew-planner` | any | Architecture, MewKing plans |
-| `mew-archivist` | any | Session wrap, log writes, git messages |
-| `mew-chief` | global | Cross-silo orchestration, triage, routing |
+### Semantic search (doobidoo)
 
-The proxy starts with `mew harness proxy`. Agents are invoked via `mew agent invoke <name> --task "..."` or automatically selected by silo context.
+An MCP server backed by **SQLite-vec** and Ollama embeddings for persistent semantic search across wiki notes and source files. Runs via MCP stdio transport, auto-started by Claude Code.
+
+- Backend: SQLite-vec at `~/.mewvault/chroma-wiki/memory.db`
+- Embeddings: Ollama `nomic-embed-text` (local, no API cost)
+- Re-index after significant changes: `python scripts/ingest_wiki.py`
+
+<br>
 
 ### How mewwiki stays current
 
-```
-mewvault/  ──prompt──▶  Claude Code
-                              │
-                    writes to silos
-                              │
-              log.md  Project_Status.md  wiki/*.md
-                              │
-              mew wiki sync (on session end)
-                              │
-               mewwiki/ ──reads──▶  Obsidian
-```
+| Source file | Destination in mewwiki | Behaviour |
+|---|---|---|
+| `Project_Status.md` | `Projects/<slug>/index.md` | Always overwritten on sync |
+| `log.md` | `Projects/<slug>/log.md` | New entries appended, no duplicates |
+| `wiki/<page>.md` | `_inbox/<slug>-<page>.md` | Queued — you route them in Obsidian |
 
-- `Project_Status.md` → `mewwiki/Projects/<slug>/index.md` (always overwritten)
-- `log.md` → `mewwiki/Projects/<slug>/log.md` (new entries appended, no duplicates)
-- `wiki/<page>.md` → `mewwiki/_inbox/<slug>-<page>.md` (queued — you route them)
+The sync is idempotent and git-diff-based — only changed files trigger writes. Direct writes to `mewwiki/` are blocked by the `PreToolUse` hook; all content flows through silos.
 
-The sync is idempotent and git-diff-based — only changed files trigger writes. mewwiki has its own git repo; every sync creates a commit. Direct writes to `mewwiki/` are blocked by the `PreToolUse` hook. All content flows through silos.
+</details>
 
 ---
 
-## Installation
+## Getting started
 
 ### Requirements
 
 | | macOS | Windows |
 |---|---|---|
-| Python | 3.11+ — `brew install python` | 3.11+ — `winget install Python.Python.3.12` |
+| Python | 3.11+ · `brew install python` | 3.11+ · `winget install Python.Python.3.12` |
 | Node.js | `brew install node` | `winget install OpenJS.NodeJS.LTS` |
-| Git | `brew install git` | `winget install Git.Git` |
 | Claude Code | `npm install -g @anthropic-ai/claude-code` | same |
 | Obsidian | [obsidian.md](https://obsidian.md) | same |
-| Ollama *(optional)* | `brew install ollama` — for semantic search | [ollama.com](https://ollama.com/download) |
+| Ollama *(optional)* | `brew install ollama` | [ollama.com](https://ollama.com/download) |
 
----
+<br>
 
-### Step 1 — Clone and install the CLI
+**1 — Clone and install**
 
-**macOS:**
 ```bash
-cd ~/Jan   # or wherever your workspace root is
+cd ~/Jan   # your workspace root
 git clone <this-repo> mewvault
 cd mewvault
 pip3 install -e .
 ```
 
-**Windows (PowerShell):**
-```powershell
-cd C:\Users\<you>\Jan
-git clone <this-repo> mewvault
-cd mewvault
-pip install -e .
-```
+**2 — Set the workspace root**
 
----
-
-### Step 2 — Set the environment variable
-
-**macOS** — add to `~/.zshrc` or `~/.bash_profile`:
 ```bash
+# ~/.zshrc or ~/.bash_profile
 export MEWVAULT_ROOT="$HOME/Jan/mewvault"
-source ~/.zshrc
 ```
 
-**Windows** — add to `$PROFILE`:
-```powershell
-$env:MEWVAULT_ROOT = 'C:\Users\<you>\Jan\mewvault'
-```
-
----
-
-### Step 3 — Register hooks
+**3 — Register hooks**
 
 ```bash
 mew harness install
 ```
 
-Registers five Claude Code lifecycle hooks in `~/.claude/settings.json`. They fire automatically — nothing else needed.
-
----
-
-### Step 4 — Bootstrap the workspace silos
+**4 — Bootstrap silos**
 
 ```bash
 mew init
 ```
 
-Creates `wiki/`, `design-studio/`, `game-lab/`, and `secrets/` adjacent to `mewvault/`. Skips any that already exist.
+Creates `wiki/`, `design-studio/`, `game-lab/`, and `secrets/` adjacent to `mewvault/`.
 
----
-
-### Step 5 — Bootstrap MewWiki
+**5 — Bootstrap MewWiki**
 
 ```bash
 mew wiki init --path ~/Jan/mewwiki
 ```
 
-Creates the Obsidian vault at `~/Jan/mewwiki` with:
-- `Brain/` — North Star, Memories, Patterns, Gotchas
-- `Projects/` — auto-mirrored from silos on each sync
-- `Operations/` — People, Meetings, Decisions, Ideas inbox
-- `Knowledge/` — cross-silo concept library
-- `Integrations/` — Calendar, GitHub (populated by sync)
-- `Bases/` — 6 live dashboards (configure via Obsidian UI)
-- `Templates/` — 8 note templates
-- `.obsidian/` — pre-configured core plugins
+Creates the Obsidian vault with Brain, Projects, Operations, Knowledge, Integrations, Bases, and Templates pre-configured.
 
----
+**6 — Open in Obsidian**
 
-### Step 6 — Open in Obsidian
+Open Obsidian → **Open folder as vault** → select `~/Jan/mewwiki`. Enable **Bases** in Settings → Core plugins.
 
-1. Open Obsidian → **Open folder as vault** → select `~/Jan/mewwiki`
-2. Go to **Settings → Core plugins** → enable **Bases**
-3. Go to **Settings → Core plugins → Templates** → set folder to `Templates`
-
----
-
-### Step 7 — First sync
+**7 — First sync**
 
 ```bash
-cd ~/Jan/mewvault
-python mew.py wiki sync
+mew wiki sync
 ```
 
-Obsidian updates immediately. Each silo's `Project_Status.md` and `log.md` are mirrored into `Projects/`. Wiki pages queue in `_inbox/` for you to route.
-
----
-
-### Step 8 (optional) — Enable semantic search
-
-MewVault uses **doobidoo** for persistent semantic search across wiki notes and source files. It requires Ollama running locally.
-
-```bash
-# Install Ollama and pull the embedding model
-brew install ollama          # macOS
-ollama pull nomic-embed-text
-
-# Install the doobidoo MCP server into the venv
-pip install mcp-memory-service
-
-# Add doobidoo to Claude Code's MCP config (see mcp-configs/doobidoo.json)
-# Point it at the workspace root: /Jan/.mcp.json
-```
-
-Ollama runs as a Homebrew launchd service — it starts at login and stays running. Verify with:
-
-```bash
-brew services list | grep ollama   # should show: started
-ollama list                         # confirm nomic-embed-text is present
-```
-
-After significant file changes, re-index manually:
-
-```bash
-python scripts/ingest_wiki.py    # wiki notes
-python scripts/ingest_code.py    # source files
-```
-
----
-
-### Verify everything works
+**8 — Verify**
 
 ```bash
 mew status --quick      # vault overview
-mew harness status      # hook registration
-mew wiki sync --dry-run # preview next sync without writing
+mew harness status      # hook registration check
 ```
 
-Then open Claude Code in `mewvault/`:
-```bash
-cd ~/Jan/mewvault
-claude
-```
-
-Say **standup**. You should see a morning brief with your active projects and inbox count.
+Open Claude Code in `mewvault/`. Say **standup**.
 
 ---
 
-## Upgrading
+<details>
+<summary><strong>Full CLI reference</strong></summary>
 
-```bash
-cd ~/Jan/mewvault
-git pull
-pip3 install -e .
-mew harness install   # re-registers if new hooks were added
-```
+<br>
 
----
-
-## CLI reference
-
-### MewWiki
+**MewWiki**
 
 | Command | Description |
 |---|---|
-| `mew wiki init [--path PATH]` | Bootstrap a new mewwiki vault |
-| `mew wiki sync` | Sync all silos → mewwiki (idempotent) |
-| `mew wiki sync --dry-run` | Preview what would sync without writing |
-| `mew wiki sync --wiki PATH` | Override vault path for this run |
+| `mew wiki init [--path PATH]` | Bootstrap a new Obsidian vault |
+| `mew wiki sync` | Sync all silos → mewwiki |
+| `mew wiki sync --dry-run` | Preview without writing |
 
-### Workspace
+**Workspace**
 
 | Command | Description |
 |---|---|
 | `mew status` | Vault overview across all silos |
 | `mew status --domain software` | Filter to one silo |
-| `mew status --project <name>` | Deep view of a single project |
 | `mew status --stale 14` | Projects untouched for 14+ days |
-| `mew status --quick` | Single-line vault summary |
+| `mew status --quick` | Single-line summary |
 | `mew validate` | Check all Project_Status.md files |
-| `mew validate --fix` | Offer to repair fixable issues |
 
-### Projects
+**Projects**
 
 | Command | Description |
 |---|---|
 | `mew new code-project <name> --stack next` | Scaffold a code project |
 | `mew new ux-project <name>` | Scaffold a design project |
 | `mew new game-project <name>` | Scaffold a full game project |
-| `mew new game-experiment <name>` | Low-commitment prototype |
-| `mew new learning-path <name>` | Learning track in wiki/ |
-| `mew rename <old> <new>` | Rename a project folder |
+| `mew new game-experiment <name>` | Low-commitment prototype (no gate) |
+| `mew rename <old> <new>` | Rename a project |
 | `mew archive <name>` | Move to `_archive/` |
 | `mew abandon <name>` | Mark abandoned with a reason |
 
-### Promotions
+**Promotions**
 
 | Command | Description |
 |---|---|
-| `mew promote <ux-name> --to <code-name>` | UX → code project |
+| `mew promote <ux-name> --to <code-name>` | Design → code project |
 | `mew promote game-lab/_experiments/<name>` | Experiment → full game |
-| `mew promote wiki/ --topic <tag>` | Wiki research → UX project |
+| `mew promote wiki/ --topic <tag>` | Research → UX project |
 
-### Git
+**Git**
 
 | Command | Description |
 |---|---|
-| `mew sync` | Git status across all silo repos |
+| `mew sync` | Git status across all repos |
 | `mew sync --commit "message"` | Interactively commit each repo |
-| `mew sync --commit "message" --push` | Commit and push |
-| `mew sync --pr` | Create GitHub PR from last-session-message.txt |
+| `mew sync --pr` | Create GitHub PR from session message |
 
-### Secrets
+**Secrets**
 
 | Command | Description |
 |---|---|
@@ -533,76 +367,22 @@ mew harness install   # re-registers if new hooks were added
 | `mew secret list` | List key names (not values) |
 | `mew secret rotate KEY_NAME` | Rotate a stored secret |
 
-### Context
-
-| Command | Description |
-|---|---|
-| `mew dump <project>` | Token-budgeted context snapshot |
-| `mew compact` | Semantic context map for workspace |
-| `mew compact --project <name>` | Scope to one project |
-| `mew process-inbox` | List `wiki/_inbox/` and propose routing |
-
-### Agents
-
-| Command | Description |
-|---|---|
-| `mew harness proxy` | Start the LiteLLM proxy |
-| `mew agent list` | List specialist agents |
-| `mew agent invoke <name> --task "..."` | Invoke an agent |
-
-### Instincts
-
-| Command | Description |
-|---|---|
-| `mew instinct status` | Pending and promoted instincts |
-| `mew instinct promote <id>` | Promote a pending instinct |
-| `mew instinct prune` | Remove stale instincts |
-| `mew instinct export --out file.json` | Export to JSON |
-
-### Harness
+**Harness & Instincts**
 
 | Command | Description |
 |---|---|
 | `mew harness install` | Register hooks |
 | `mew harness status` | Hook registration and instinct counts |
-| `mew harness status --verbose` | Per-silo field whitelist |
-| `mew harness config` | Harness env vars |
 | `mew harness disable` | Remove all hooks |
+| `mew instinct status` | Pending and promoted instincts |
+| `mew instinct promote <id>` | Promote a pending instinct |
+| `mew instinct prune` | Remove stale instincts |
+
+</details>
 
 ---
 
-## Tier gates
-
-Every project has a `tier` in `Project_Status.md`.
-
-**Pounce** — small tasks under 2 hours. No plan required. Claude writes directly.
-
-**Stalk** — multi-session features. Claude proposes approach in chat. Verbal approval before writing.
-
-**MewKing** — architecture or risky changes. Hard gate: Claude cannot write code until `plan_approved: true` in `Project_Status.md`. Creates `proposals/active/<feature>/plan.md`. After two blocked attempts, `REVIEW_REQUIRED.md` is written automatically.
-
----
-
-## Project layout
-
-```
-<silo>/<project>/
-  Project_Status.md   # tier, status, current_phase, next_action
-  proposals/active/   # MewKing plans
-  src/                # Source code
-  raw/                # Specs, PRDs — immutable
-  wiki/               # Architecture decisions (flow to mewwiki)
-  log.md              # Session log (flows to mewwiki)
-```
-
-```
-mewwiki/
-  Brain/              # North Star, Memories, Patterns, Gotchas
-  Projects/           # Mirrors of all silo projects
-  Operations/         # People, Meetings, Decisions, Ideas
-  Knowledge/          # Cross-silo concept library
-  Integrations/       # Calendar, GitHub
-  _inbox/             # New wiki pages queued for review
-  Bases/              # 6 live dashboards
-  Templates/          # 8 note templates
-```
+<div align="center">
+<br>
+<sub>Built for Claude Code · Works on macOS and Windows · Requires Obsidian for the wiki layer</sub>
+</div>
