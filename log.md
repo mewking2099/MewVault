@@ -2,6 +2,12 @@
 
 ## Entries
 
+- **2026-05-23** — Agent Array v2 shipped. Dispatcher-driven architecture: mew-chief classifies every prompt and spawns specialist sub-agents via Claude Code native Agent tool — no LiteLLM proxy needed, works on subscription. Built `mew/lib/skill_loader.py` (scan, parse, assemble, chain detect), rewrote `mew/commands/agent.py` (invoke/sync/fetch-skills), updated `mew/cli.py` to register `sync` and `fetch-skills` sub-commands. Created 7 agent directories under `agents/` with manifest.yaml, system-prompt.md, and skills/. Seeded 16 skill .md files across all agents. `agents/.routing-index.json` built via `mew agent sync` (7 agents, 16 skills). Dispatcher skill injected into session-start by `loadAgentDispatcher()` in hooks/session-start.js with `{{ROUTING_INDEX}}` placeholder substitution. README agent array section rewritten to match v2 architecture (dispatcher flow diagram, skill drop-in pattern, stack table corrected). [wrap]
+
+- **2026-05-23 12:36** — auto-wrap: modified README.md [auto-wrap]
+
+- **2026-05-23 12:34** — auto-wrap: modified Project_Status.md, manifest.yaml, manifest.yaml +26 more [auto-wrap]
+
 - **2026-05-23 12:17** — auto-wrap: modified doobidoo.json, hook-test.tmp, ingest_code.py +310 more [auto-wrap]
 
 - **2026-05-21** — DSaaS session 29: fixed 4 bugs in `token-export.ts` that caused brand-tokens.json to fail Figma Variables import. Bugs: variable paths remapped to Figma-canonical (`brand.primary.50` → `Colors/Primary/50`, font paths → `Font/Typescales/Header/H1/line_height`, etc.), color values converted from hex strings to srgb color objects, `$type` values fixed (`fontFamilies`/`dimension`/`other` → `string`/`number`), root restructured with `$extensions.com.figma.modeName`. Regenerated brand-tokens.json for user testing. [wrap]
