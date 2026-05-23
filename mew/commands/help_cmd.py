@@ -299,18 +299,24 @@ Examples:
 mew agent list
 mew agent invoke <name> [--task "description"]
 
-List or describe specialist agents in the MewVault agent array.
+List or invoke specialist agents. Each agent runs as a Claude Code sub-agent
+via: claude --model <alias> --append-system-prompt <template> [--print <task>]
 
-Agents (routed via LiteLLM proxy):
-  mew-planner    claude-opus-4-7    Architecture, MewKing plans
-  mew-designer   claude-sonnet-4-6  UX, Figma review, component specs
-  mew-coder      mimo-v2-pro        Implementation, tests (~5x cheaper than Sonnet)
-  mew-gamedev    mimo-v2-pro        GDScript, game mechanics, Godot patterns
-  mew-learner    claude-sonnet-4-6  Concept distillation, Karpathy ingest
-  mew-archivist  claude-haiku-4-5   Session wrap, log writes, git messages
-  mew-chief      claude-sonnet-4-6  Cross-silo orchestration, triage, routing
+No proxy required. Works with Claude Code subscription or ANTHROPIC_API_KEY.
 
-Start the proxy first: mew harness proxy
+Agents:
+  mew-planner    opus    Architecture, MewKing plans
+  mew-designer   sonnet  UX, Figma review, component specs
+  mew-coder      sonnet  Implementation, refactoring, test generation
+  mew-gamedev    sonnet  GDScript, game mechanics, Godot patterns
+  mew-learner    sonnet  Concept distillation, research ingest
+  mew-archivist  haiku   Session wrap, log writes, git messages
+  mew-chief      sonnet  Cross-silo orchestration, triage, routing
+
+Examples:
+  mew agent invoke mew-archivist --task "write the session log for today"
+  mew agent invoke mew-planner --task "plan the token pipeline refactor"
+  mew agent invoke mew-coder          # interactive session as mew-coder
 """,
     "instinct": """
 mew instinct <action>

@@ -1,19 +1,29 @@
-"""mew agent — list and invoke specialist agents."""
-import json
+"""mew agent — list and invoke specialist agents via Claude Code sub-agents."""
+import os
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 MEWVAULT_DIR = Path(__file__).parent.parent.parent.resolve()
 AGENTS_DIR = MEWVAULT_DIR / "templates" / "agents"
 
+# Map stored model names → Claude Code --model aliases
+_MODEL_ALIASES: dict[str, str] = {
+    "claude-opus-4-7":           "opus",
+    "claude-sonnet-4-6":         "sonnet",
+    "claude-haiku-4-5-20251001": "haiku",
+    "claude-haiku-4-5":          "haiku",
+}
+
 AGENT_REGISTRY = [
-    {"name": "mew-planner",   "model": "claude-opus-4-7",   "silo": "global",  "role": "Architecture and MewKing planning"},
-    {"name": "mew-designer",  "model": "claude-sonnet-4-6", "silo": "design",  "role": "UX, Figma review, component specs"},
-    {"name": "mew-coder",     "model": "claude-sonnet-4-6", "silo": "code",    "role": "Implementation, refactoring, test generation"},
-    {"name": "mew-gamedev",   "model": "claude-sonnet-4-6", "silo": "game",    "role": "GDScript, game mechanics, Godot patterns"},
-    {"name": "mew-learner",   "model": "claude-sonnet-4-6", "silo": "wiki",    "role": "Concept distillation, Karpathy ingest"},
-    {"name": "mew-archivist", "model": "claude-haiku-4-5",  "silo": "global",  "role": "Session wrap, log writes, git messages"},
-    {"name": "mew-chief",     "model": "claude-sonnet-4-6", "silo": "global",  "role": "Cross-silo orchestration, triage, routing"},
+    {"name": "mew-planner",   "model": "claude-opus-4-7",           "silo": "global", "role": "Architecture and MewKing planning"},
+    {"name": "mew-designer",  "model": "claude-sonnet-4-6",         "silo": "design", "role": "UX, Figma review, component specs"},
+    {"name": "mew-coder",     "model": "claude-sonnet-4-6",         "silo": "code",   "role": "Implementation, refactoring, test generation"},
+    {"name": "mew-gamedev",   "model": "claude-sonnet-4-6",         "silo": "game",   "role": "GDScript, game mechanics, Godot patterns"},
+    {"name": "mew-learner",   "model": "claude-sonnet-4-6",         "silo": "wiki",   "role": "Concept distillation, research ingest"},
+    {"name": "mew-archivist", "model": "claude-haiku-4-5-20251001", "silo": "global", "role": "Session wrap, log writes, git messages"},
+    {"name": "mew-chief",     "model": "claude-sonnet-4-6",         "silo": "global", "role": "Cross-silo orchestration, triage, routing"},
 ]
 
 
@@ -29,25 +39,26 @@ def run_agent(args) -> None:
 
 def _list_agents() -> None:
     print("\nMewVault Agent Array\n")
-    print(f"{'Name':<18} {'Model':<24} {'Silo':<10} Role")
-    print("-" * 75)
+    print(f"  {'':2} {'Name':<16} {'Model alias':<10} {'Silo':<10} Role")
+    print("  " + "-" * 72)
     for a in AGENT_REGISTRY:
-        template_path = AGENTS_DIR / f"{a['name']}.md"
-        installed = "ok" if template_path.exists() else " -"
-        print(f"  {installed} {a['name']:<16} {a['model']:<24} {a['silo']:<10} {a['role']}")
+        installed = "ok" if (AGENTS_DIR / f"{a['name']}.md").exists() else " -"
+        alias = _MODEL_ALIASES.get(a["model"], a["model"])
+        print(f"  {installed} {a['name']:<16} {alias:<10} {a['silo']:<10} {a['role']}")
     print()
-    print("Legend: ok = template installed   - = template not yet created")
-    proxy_cfg = MEWVAULT_DIR / "proxy" / "litellm-config.yaml"
-    if proxy_cfg.exists():
-        print("LiteLLM proxy: configured (run 'mew harness proxy' to start)")
-    else:
-        print("LiteLLM proxy: not configured")
+    print("  Invocation: claude --model <alias> --append-system-prompt <template>")
+    print("  Auth: Claude Code subscription or ANTHROPIC_API_KEY (no proxy required)")
     print()
 
 
 def _invoke_agent(args) -> None:
-    name = args.name
+    name = getattr(args, "name", None)
     task = getattr(args, "task", None)
+
+    if not name:
+        print("Usage: mew agent invoke <name> [--task \"...\"]", file=sys.stderr)
+        sys.exit(1)
+
     agent = next((a for a in AGENT_REGISTRY if a["name"] == name), None)
     if not agent:
         print(f"Unknown agent: {name}", file=sys.stderr)
@@ -60,12 +71,42 @@ def _invoke_agent(args) -> None:
         print("Run 'mew harness install' to install agent templates.", file=sys.stderr)
         sys.exit(1)
 
-    print(f"\nInvoking {name} ({agent['model']}) — {agent['role']}")
-    if task:
-        print(f"Task: {task}")
-    print()
-    print("Note: Direct agent invocation requires the LiteLLM proxy to be running.")
-    print("The agent system is designed to be invoked by Claude Code hooks,")
-    print("not called directly from the CLI in v2.0.")
-    print()
-    print(f"Agent system prompt is at: {template_path}")
+    if not shutil.which("claude"):
+        print("Error: 'claude' not found in PATH.", file=sys.stderr)
+        print("Install Claude Code: npm install -g @anthropic-ai/claude-code", file=sys.stderr)
+        sys.exit(1)
+
+    system_prompt = _strip_frontmatter(template_path.read_text(encoding="utf-8"))
+    alias = _MODEL_ALIASES.get(agent["model"], agent["model"])
+
+    if not task:
+        # No task — launch an interactive Claude Code session with this agent's persona
+        print(f"\nStarting interactive session: {name} ({alias})")
+        print(f"Role: {agent['role']}")
+        print("Type /exit or Ctrl+C to end the session.\n")
+        cmd = ["claude", "--model", alias, "--append-system-prompt", system_prompt]
+        os.execvp("claude", cmd)
+        # execvp replaces this process — nothing below runs
+
+    # --task provided: non-interactive print mode
+    print(f"\n{name} ({alias}) — {agent['role']}")
+    print(f"Task: {task}")
+    print("-" * 60)
+
+    result = subprocess.run([
+        "claude",
+        "--model", alias,
+        "--append-system-prompt", system_prompt,
+        "--print",
+        task,
+    ])
+    sys.exit(result.returncode)
+
+
+def _strip_frontmatter(content: str) -> str:
+    """Remove YAML --- frontmatter block, return body only."""
+    if content.startswith("---"):
+        end = content.find("---", 3)
+        if end != -1:
+            return content[end + 3:].lstrip("\n")
+    return content
