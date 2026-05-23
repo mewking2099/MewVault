@@ -2,6 +2,14 @@
 
 ## Entries
 
+- **2026-05-23 12:17** — auto-wrap: modified doobidoo.json, hook-test.tmp, ingest_code.py +310 more [auto-wrap]
+
+- **2026-05-21** — DSaaS session 29: fixed 4 bugs in `token-export.ts` that caused brand-tokens.json to fail Figma Variables import. Bugs: variable paths remapped to Figma-canonical (`brand.primary.50` → `Colors/Primary/50`, font paths → `Font/Typescales/Header/H1/line_height`, etc.), color values converted from hex strings to srgb color objects, `$type` values fixed (`fontFamilies`/`dimension`/`other` → `string`/`number`), root restructured with `$extensions.com.figma.modeName`. Regenerated brand-tokens.json for user testing. [wrap]
+
+- **2026-05-18** — (session 4) Updated README.md: removed outdated ChromaDB HTTP server references, replaced with accurate doobidoo/SQLite-vec + Ollama description, rewrote Step 8 with correct setup instructions, added Ollama to requirements table. Committed and pushed to main. [wrap]
+
+- **2026-05-18** — (session 3) Wiki documentation pass. Updated `wiki/mewvault-ops-reference.md`: fixed hook trigger event names, added pre-compact row, MCP server details, full mew CLI command list (20 commands), skills section (25 skills), expanded key file locations. Created `wiki/mewvault-how-it-works.md` (was linked but missing): workspace layout diagram, full session lifecycle flow, hook architecture table, silo detection + agent identity map, MCP server details, tier gates, instinct pipeline 4-step flow, rules hierarchy, skills index. Committed + pushed to main. [wrap]
+
 - **2026-05-18** — (session 2) Hooks sanity check: all 5 firing confirmed. Instinct pipeline: 3 pending instincts from session 1 promoted — now surface in session-start banner. Ollama confirmed as launchd service (always up). Ops reference written to `mewvault/wiki/mewvault-ops-reference.md` + queued to `mewwiki/_inbox/`. Clarified: `/wrap` is not a slash command — use `wrap up` as a prompt instead. [wrap]
 
 - **2026-05-18** — Doobidoo full wiring + chromadb removal. Fixed doobidoo env vars (`MCP_EXTERNAL_EMBEDDING_URL/MODEL` replacing stale ChromaDB names) in `mcp-configs/doobidoo.json` and `/Jan/.mcp.json`. Discovered workspace-level `.mcp.json` was the authoritative MCP config (not user-scope); updated it directly with correct doobidoo entry (venv binary, correct env vars), removed chromadb server block. Wired all 5 hooks into `settings.local.json` (were documented in `hooks.json` but never loaded by Claude Code). Ingested 36 wiki notes (312 chunks) via `scripts/ingest_wiki.py`; ingested 413 code files from software-projects/ + game-lab/ (3588 chunks) via `scripts/ingest_code.py` — added text fallback chunker for source extensions `.ts/.tsx/.gd/.py/.cs` that `get_loader_for_file` doesn't handle. Verified semantic search works for both silos. `retrieve_memories` returns `{"memories":[...], "query":..., "count":...}`. [auto-wrap]

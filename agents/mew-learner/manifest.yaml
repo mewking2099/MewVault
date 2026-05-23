@@ -1,0 +1,20 @@
+name: mew-learner
+model: sonnet
+silo: wiki
+role: Concept distillation, research ingest
+handles_direct: []
+routing_triggers:
+  - ingest
+  - learn
+  - wiki
+  - concept
+  - distil
+  - distill
+  - research
+  - read this
+  - summarise
+  - summarize
+  - explain
+  - what is
+  - take notes
+mcp_servers: []

@@ -1,0 +1,242 @@
+{
+  "mew-archivist": [
+    {
+      "name": "commit-suggest",
+      "triggers": [
+        "commit message",
+        "suggest commit",
+        "git commit",
+        "what should i commit"
+      ],
+      "description": "Generate a conventional commit message from session activity",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "log-write",
+      "triggers": [
+        "write the log",
+        "log entry",
+        "record this",
+        "document what happened"
+      ],
+      "description": "Write a single log entry to a project's log.md",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "session-wrap",
+      "triggers": [
+        "wrap",
+        "wrap up",
+        "end session",
+        "done for the day",
+        "finishing up"
+      ],
+      "description": "Full session-end sequence \u2014 log, status, sync, commit suggestion",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-chief": [
+    {
+      "name": "dispatcher",
+      "triggers": [],
+      "description": "Classify every request and route to the right sub-agent",
+      "inject": "always",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-coder": [
+    {
+      "name": "code-review",
+      "triggers": [
+        "review",
+        "check this",
+        "look at this code",
+        "is this correct",
+        "code quality"
+      ],
+      "description": "Security and quality review of changed files",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "differential-review",
+        "static-analysis"
+      ]
+    },
+    {
+      "name": "refactor",
+      "triggers": [
+        "refactor",
+        "clean up",
+        "simplify",
+        "reduce duplication",
+        "extract",
+        "rename"
+      ],
+      "description": "Safe refactor with verification gate \u2014 no behaviour changes",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "tdd-workflow",
+      "triggers": [
+        "implement",
+        "build",
+        "write",
+        "new component",
+        "new function",
+        "new feature",
+        "add"
+      ],
+      "description": "Test-first implementation cycle for any new src/ or lib/ file",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-designer": [
+    {
+      "name": "figma-spec",
+      "triggers": [
+        "figma",
+        "design spec",
+        "component spec",
+        "get the design",
+        "check figma",
+        "figma file"
+      ],
+      "description": "Extract component specs from Figma via MCP and produce handoff notes",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "token-audit",
+      "triggers": [
+        "token audit",
+        "design tokens",
+        "check tokens",
+        "token inconsistency",
+        "token coverage"
+      ],
+      "description": "Audit design token usage \u2014 missing aliases, unused tokens, coverage gaps",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-gamedev": [
+    {
+      "name": "gdscript-review",
+      "triggers": [
+        "review this script",
+        "check the gdscript",
+        "godot code review",
+        "is this correct"
+      ],
+      "description": "Review GDScript for Godot conventions and performance issues",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "mechanic-design",
+      "triggers": [
+        "mechanic",
+        "game feel",
+        "how should the player",
+        "design the",
+        "prototype"
+      ],
+      "description": "Design a game mechanic with feel notes and Godot implementation sketch",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-learner": [
+    {
+      "name": "concept-distill",
+      "triggers": [
+        "distil",
+        "distill",
+        "concept",
+        "summarise",
+        "summarize",
+        "key ideas",
+        "take notes on",
+        "what are the main points"
+      ],
+      "description": "Distil a source document into structured concept pages",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "ingest-pdf",
+      "triggers": [
+        "ingest",
+        "read this pdf",
+        "process this document",
+        "extract from",
+        "import this"
+      ],
+      "description": "Process a raw PDF or document into wiki concept pages",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-planner": [
+    {
+      "name": "risk-map",
+      "triggers": [
+        "risk",
+        "what could go wrong",
+        "potential issues",
+        "before we start",
+        "is this safe"
+      ],
+      "description": "Surface risks and mitigations before implementation begins",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "tier-analysis",
+      "triggers": [
+        "what tier",
+        "which tier",
+        "pounce or stalk",
+        "is this mewking",
+        "classify this task"
+      ],
+      "description": "Classify a task as Pounce / Stalk / MewKing with reasoning",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "write-mewking-plan",
+      "triggers": [
+        "plan",
+        "architect",
+        "mewking",
+        "proposal",
+        "design the system",
+        "how should we build"
+      ],
+      "description": "Produce a MewKing plan.md with phases, files, risks, and acceptance tests",
+      "inject": "on-trigger",
+      "chains_to": null,
+      "claude_code_skills": []
+    }
+  ]
+}

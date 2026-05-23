@@ -252,13 +252,16 @@ def _wiki_sync(args) -> None:
             continue
 
         last_sha = manifest["repos"].get(manifest_key, "")
-        if last_sha == current_sha:
+        mirror_exists = (wiki_path / "Projects" / slug / "index.md").exists()
+        if last_sha == current_sha and mirror_exists:
             print(f"  ok (no changes): {slug}")
             continue
 
-        cache_key = (git_root, last_sha)
+        # Force full file listing when wiki mirror is absent (newly scaffolded project)
+        effective_sha = last_sha if mirror_exists else ""
+        cache_key = (git_root, effective_sha)
         if cache_key not in _diff_cache:
-            _diff_cache[cache_key] = _get_changed_files(git_root, last_sha)
+            _diff_cache[cache_key] = _get_changed_files(git_root, effective_sha)
         all_changed = _diff_cache[cache_key]
 
         # For silo-level repos, filter and strip the slug/ prefix
@@ -365,18 +368,28 @@ def _get_head_sha(repo: Path) -> str:
 
 def _get_changed_files(repo: Path, last_sha: str) -> list[str]:
     if not last_sha:
-        result = subprocess.run(
+        tracked = subprocess.run(
             ["git", "-C", str(repo), "ls-files"],
             capture_output=True, text=True,
         )
+        untracked = subprocess.run(
+            ["git", "-C", str(repo), "ls-files", "--others", "--exclude-standard"],
+            capture_output=True, text=True,
+        )
+        lines = []
+        if tracked.returncode == 0:
+            lines += tracked.stdout.strip().splitlines()
+        if untracked.returncode == 0:
+            lines += untracked.stdout.strip().splitlines()
+        return [f for f in lines if f]
     else:
         result = subprocess.run(
             ["git", "-C", str(repo), "diff", "--name-only", last_sha, "HEAD"],
             capture_output=True, text=True,
         )
-    if result.returncode != 0:
-        return []
-    return [f for f in result.stdout.strip().splitlines() if f]
+        if result.returncode != 0:
+            return []
+        return [f for f in result.stdout.strip().splitlines() if f]
 
 
 def _sync_log(src: Path, dest: Path, since_date: str, dry_run: bool) -> None:

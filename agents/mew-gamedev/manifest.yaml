@@ -1,0 +1,17 @@
+name: mew-gamedev
+model: sonnet
+silo: game
+role: GDScript, game mechanics, Godot patterns
+handles_direct: []
+routing_triggers:
+  - game
+  - godot
+  - gdscript
+  - mechanic
+  - scene
+  - sprite
+  - level design
+  - prototype
+  - playtest
+  - game loop
+mcp_servers: []

@@ -1,0 +1,15 @@
+name: mew-chief
+model: sonnet
+silo: global
+role: Cross-silo orchestration, triage, routing
+handles_direct:
+  - standup
+  - wrap
+  - wiki sync
+  - dump
+  - status
+  - inbox
+  - promote
+routing_triggers: []
+mcp_servers:
+  - memory

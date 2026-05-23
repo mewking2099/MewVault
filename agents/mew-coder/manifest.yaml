@@ -1,0 +1,21 @@
+name: mew-coder
+model: sonnet
+silo: code
+role: Implementation, refactoring, test generation
+handles_direct: []
+routing_triggers:
+  - implement
+  - build
+  - write the code
+  - fix
+  - bug
+  - feature
+  - refactor
+  - function
+  - component
+  - endpoint
+  - api
+  - migration
+  - test
+  - unit test
+mcp_servers: []

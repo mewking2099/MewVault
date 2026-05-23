@@ -119,6 +119,44 @@ function loadInstincts(silo) {
   return instincts.sort((a, b) => (b.confidence || 0) - (a.confidence || 0)).slice(0, 5);
 }
 
+function loadAgentDispatcher(workspaceRoot) {
+  try {
+    const agentsDir = path.join(workspaceRoot, 'mewvault', 'agents');
+    const indexPath = path.join(agentsDir, '.routing-index.json');
+    const dispatcherPath = path.join(agentsDir, 'mew-chief', 'skills', 'dispatcher.md');
+
+    if (!fs.existsSync(dispatcherPath)) return null;
+
+    // Load dispatcher skill (strip frontmatter)
+    let dispatcher = fs.readFileSync(dispatcherPath, 'utf8');
+    if (dispatcher.startsWith('---')) {
+      const end = dispatcher.indexOf('---', 3);
+      if (end !== -1) dispatcher = dispatcher.slice(end + 3).trimStart();
+    }
+
+    // Build compact routing index string
+    let indexBlock = '_(run `mew agent sync` to build the routing index)_';
+    if (fs.existsSync(indexPath)) {
+      const index = JSON.parse(fs.readFileSync(indexPath, 'utf8'));
+      const lines = [];
+      for (const [agent, skills] of Object.entries(index)) {
+        if (!skills.length) continue;
+        const triggerSummary = skills
+          .flatMap(s => s.triggers || [])
+          .slice(0, 6)
+          .join(', ');
+        lines.push(`- **${agent}**: ${triggerSummary || '(no triggers)'}`);
+        for (const skill of skills) {
+          lines.push(`  - skill: ${skill.name}${skill.description ? ' — ' + skill.description : ''}`);
+        }
+      }
+      indexBlock = lines.join('\n');
+    }
+
+    return dispatcher.replace('{{ROUTING_INDEX}}', indexBlock);
+  } catch { return null; }
+}
+
 function loadActiveMcps(workspaceRoot) {
   try {
     const settingsFile = path.join(workspaceRoot, '.claude', 'settings.json');
@@ -650,6 +688,12 @@ async function main() {
     `## Active Agent: ${agent.name} (${agent.model})\n\n` +
     `Silo: ${silo || 'global'} | Role: ${agent.role}`
   );
+
+  // 3b: Dispatcher skill + routing index (mew-chief / global only)
+  if (!silo || agent.name === 'mew-chief') {
+    const dispatcher = loadAgentDispatcher(workspaceRoot);
+    if (dispatcher) sections.push('## Agent Dispatch\n\n' + dispatcher);
+  }
 
   // 4: Project status (dynamic, whitelisted)
   const status = loadProjectStatus(cwd, workspaceRoot, silo);

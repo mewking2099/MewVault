@@ -1,0 +1,22 @@
+name: mew-designer
+model: sonnet
+silo: design
+role: UX, Figma review, component specs
+handles_direct: []
+routing_triggers:
+  - design
+  - figma
+  - ux
+  - ui
+  - wireframe
+  - component spec
+  - layout
+  - token
+  - style guide
+  - handoff
+  - visual
+  - colour
+  - color
+  - typography
+mcp_servers:
+  - figma

@@ -1,55 +1,122 @@
-"""mew agent — list and invoke specialist agents via Claude Code sub-agents."""
+"""mew agent — dispatcher-driven specialist agents via Claude Code sub-agents."""
 import os
 import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-MEWVAULT_DIR = Path(__file__).parent.parent.parent.resolve()
-AGENTS_DIR = MEWVAULT_DIR / "templates" / "agents"
+from mew.lib.skill_loader import (
+    AGENTS_DIR,
+    assemble_context,
+    build_routing_index,
+    list_all_agents,
+    parse_manifest,
+    scan_agent_skills,
+    write_routing_index,
+)
 
-# Map stored model names → Claude Code --model aliases
-_MODEL_ALIASES: dict[str, str] = {
+_MODEL_ALIASES = {
     "claude-opus-4-7":           "opus",
     "claude-sonnet-4-6":         "sonnet",
     "claude-haiku-4-5-20251001": "haiku",
     "claude-haiku-4-5":          "haiku",
+    "opus": "opus",
+    "sonnet": "sonnet",
+    "haiku": "haiku",
 }
 
-AGENT_REGISTRY = [
-    {"name": "mew-planner",   "model": "claude-opus-4-7",           "silo": "global", "role": "Architecture and MewKing planning"},
-    {"name": "mew-designer",  "model": "claude-sonnet-4-6",         "silo": "design", "role": "UX, Figma review, component specs"},
-    {"name": "mew-coder",     "model": "claude-sonnet-4-6",         "silo": "code",   "role": "Implementation, refactoring, test generation"},
-    {"name": "mew-gamedev",   "model": "claude-sonnet-4-6",         "silo": "game",   "role": "GDScript, game mechanics, Godot patterns"},
-    {"name": "mew-learner",   "model": "claude-sonnet-4-6",         "silo": "wiki",   "role": "Concept distillation, research ingest"},
-    {"name": "mew-archivist", "model": "claude-haiku-4-5-20251001", "silo": "global", "role": "Session wrap, log writes, git messages"},
-    {"name": "mew-chief",     "model": "claude-sonnet-4-6",         "silo": "global", "role": "Cross-silo orchestration, triage, routing"},
+# Fallback registry if agents/ dir doesn't exist yet
+_FALLBACK_REGISTRY = [
+    {"name": "mew-planner",   "model": "opus",   "silo": "global",  "role": "Architecture and MewKing planning"},
+    {"name": "mew-designer",  "model": "sonnet", "silo": "design",  "role": "UX, Figma review, component specs"},
+    {"name": "mew-coder",     "model": "sonnet", "silo": "code",    "role": "Implementation, refactoring, test generation"},
+    {"name": "mew-gamedev",   "model": "sonnet", "silo": "game",    "role": "GDScript, game mechanics, Godot patterns"},
+    {"name": "mew-learner",   "model": "sonnet", "silo": "wiki",    "role": "Concept distillation, research ingest"},
+    {"name": "mew-archivist", "model": "haiku",  "silo": "global",  "role": "Session wrap, log writes, git messages"},
+    {"name": "mew-chief",     "model": "sonnet", "silo": "global",  "role": "Cross-silo orchestration, triage, routing"},
 ]
 
 
 def run_agent(args) -> None:
     action = getattr(args, "agent_action", None) or "list"
-    if action == "list":
-        _list_agents()
-    elif action == "invoke":
-        _invoke_agent(args)
+    dispatch = {
+        "list":         _list_agents,
+        "invoke":       _invoke_agent,
+        "sync":         _sync,
+        "fetch-skills": _fetch_skills,
+    }
+    fn = dispatch.get(action)
+    if fn:
+        fn(args)
     else:
-        _list_agents()
+        _list_agents(args)
 
 
-def _list_agents() -> None:
+# ── list ──────────────────────────────────────────────────────────────────────
+
+def _list_agents(args=None) -> None:
+    agents = _load_agents()
     print("\nMewVault Agent Array\n")
-    print(f"  {'':2} {'Name':<16} {'Model alias':<10} {'Silo':<10} Role")
-    print("  " + "-" * 72)
-    for a in AGENT_REGISTRY:
-        installed = "ok" if (AGENTS_DIR / f"{a['name']}.md").exists() else " -"
-        alias = _MODEL_ALIASES.get(a["model"], a["model"])
-        print(f"  {installed} {a['name']:<16} {alias:<10} {a['silo']:<10} {a['role']}")
+    print(f"  {'':2} {'Name':<16} {'Model':<8} {'Silo':<10} {'Skills':<8} Role")
+    print("  " + "-" * 76)
+    for a in agents:
+        installed = "ok" if (AGENTS_DIR / a["name"] / "system-prompt.md").exists() else " -"
+        skill_count = len(scan_agent_skills(a["name"])) if AGENTS_DIR.exists() else "-"
+        model = _MODEL_ALIASES.get(a["model"], a["model"])
+        print(f"  {installed} {a['name']:<16} {model:<8} {a['silo']:<10} {str(skill_count):<8} {a['role']}")
     print()
-    print("  Invocation: claude --model <alias> --append-system-prompt <template>")
-    print("  Auth: Claude Code subscription or ANTHROPIC_API_KEY (no proxy required)")
+    index_exists = (AGENTS_DIR / ".routing-index.json").exists()
+    index_status = "current" if index_exists else "not built — run: mew agent sync"
+    print(f"  Routing index: {index_status}")
+    print(f"  Auth: Claude Code subscription or ANTHROPIC_API_KEY (no proxy required)")
     print()
 
+
+# ── sync ──────────────────────────────────────────────────────────────────────
+
+def _sync(args=None) -> None:
+    print("\nMewVault Agent Sync\n")
+    if not AGENTS_DIR.exists():
+        print("  Error: agents/ directory not found.", file=sys.stderr)
+        sys.exit(1)
+
+    index_path = write_routing_index()
+    index = build_routing_index()
+
+    total_skills = sum(len(v) for v in index.values())
+    print(f"  Scanned {len(index)} agents · {total_skills} skills")
+    for agent_name, skills in sorted(index.items()):
+        if skills:
+            print(f"  {agent_name}: {', '.join(s['name'] for s in skills)}")
+        else:
+            print(f"  {agent_name}: (no skills yet)")
+    print(f"\n  Written: {index_path}")
+    print("  Restart your Claude session to apply changes.\n")
+
+
+# ── fetch-skills ──────────────────────────────────────────────────────────────
+
+def _fetch_skills(args=None) -> None:
+    source = getattr(args, "from_source", None) or getattr(args, "url", None)
+    if not source:
+        print("Usage: mew agent fetch-skills --from <source> | --url <url>", file=sys.stderr)
+        print("\nKnown sources:")
+        print("  awesome-claude   — f/awesome-chatgpt-prompts (adapted)")
+        print("  anthropic        — anthropics/prompt-library")
+        print()
+        print("Fetched skills are staged in agents/_fetched/ for review.")
+        print("Promote with: mew agent promote-skill <agent> <file>")
+        sys.exit(0)
+
+    staged_dir = AGENTS_DIR / "_fetched" / (source.replace("/", "-").replace(":", ""))
+    staged_dir.mkdir(parents=True, exist_ok=True)
+    print(f"\nFetch-skills: source = {source}")
+    print(f"Staging to: {staged_dir}")
+    print("(Fetching from external repos not yet implemented — drop .md files manually into agents/_fetched/)")
+    print()
+
+
+# ── invoke ────────────────────────────────────────────────────────────────────
 
 def _invoke_agent(args) -> None:
     name = getattr(args, "name", None)
@@ -59,52 +126,79 @@ def _invoke_agent(args) -> None:
         print("Usage: mew agent invoke <name> [--task \"...\"]", file=sys.stderr)
         sys.exit(1)
 
-    agent = next((a for a in AGENT_REGISTRY if a["name"] == name), None)
+    agents = _load_agents()
+    agent = next((a for a in agents if a["name"] == name), None)
     if not agent:
         print(f"Unknown agent: {name}", file=sys.stderr)
-        print(f"Available: {', '.join(a['name'] for a in AGENT_REGISTRY)}", file=sys.stderr)
-        sys.exit(1)
-
-    template_path = AGENTS_DIR / f"{name}.md"
-    if not template_path.exists():
-        print(f"Agent template not found: {template_path}", file=sys.stderr)
-        print("Run 'mew harness install' to install agent templates.", file=sys.stderr)
+        print(f"Available: {', '.join(a['name'] for a in agents)}", file=sys.stderr)
         sys.exit(1)
 
     if not shutil.which("claude"):
         print("Error: 'claude' not found in PATH.", file=sys.stderr)
-        print("Install Claude Code: npm install -g @anthropic-ai/claude-code", file=sys.stderr)
+        print("Install: npm install -g @anthropic-ai/claude-code", file=sys.stderr)
         sys.exit(1)
 
-    system_prompt = _strip_frontmatter(template_path.read_text(encoding="utf-8"))
-    alias = _MODEL_ALIASES.get(agent["model"], agent["model"])
+    model = _MODEL_ALIASES.get(agent["model"], agent["model"])
+
+    # Assemble context: system-prompt + matched skills
+    if task:
+        context = assemble_context(name, task)
+    else:
+        # Interactive: load system-prompt + always-inject skills only
+        context = assemble_context(name, "")
+
+    if not context:
+        # Fallback: old templates/agents/<name>.md
+        fallback = Path(__file__).parent.parent.parent / "templates" / "agents" / f"{name}.md"
+        if fallback.exists():
+            from mew.commands.agent import _strip_frontmatter  # avoid circular
+            context = _strip_frontmatter(fallback.read_text(encoding="utf-8"))
+        else:
+            print(f"No system prompt found for {name}.", file=sys.stderr)
+            sys.exit(1)
 
     if not task:
-        # No task — launch an interactive Claude Code session with this agent's persona
-        print(f"\nStarting interactive session: {name} ({alias})")
+        print(f"\nStarting interactive session: {name} ({model})")
         print(f"Role: {agent['role']}")
-        print("Type /exit or Ctrl+C to end the session.\n")
-        cmd = ["claude", "--model", alias, "--append-system-prompt", system_prompt]
-        os.execvp("claude", cmd)
-        # execvp replaces this process — nothing below runs
+        skill_count = len(scan_agent_skills(name))
+        if skill_count:
+            print(f"Skills loaded: {skill_count} (always-inject only for interactive mode)")
+        print("Type /exit or Ctrl+C to end.\n")
+        os.execvp("claude", ["claude", "--model", model, "--append-system-prompt", context])
 
-    # --task provided: non-interactive print mode
-    print(f"\n{name} ({alias}) — {agent['role']}")
-    print(f"Task: {task}")
-    print("-" * 60)
+    print(f"\n→ {name} ({model}) — {agent['role']}")
+    print(f"  Task: {task}\n" + "-" * 60)
 
     result = subprocess.run([
         "claude",
-        "--model", alias,
-        "--append-system-prompt", system_prompt,
+        "--model", model,
+        "--append-system-prompt", context,
         "--print",
         task,
     ])
     sys.exit(result.returncode)
 
 
+# ── helpers ───────────────────────────────────────────────────────────────────
+
+def _load_agents() -> list[dict]:
+    """Load agent list from agents/*/manifest.yaml, fallback to hardcoded registry."""
+    names = list_all_agents()
+    if not names:
+        return _FALLBACK_REGISTRY
+    agents = []
+    for name in names:
+        m = parse_manifest(name)
+        agents.append({
+            "name": m.get("name", name),
+            "model": m.get("model", "sonnet"),
+            "silo": m.get("silo", "global"),
+            "role": m.get("role", ""),
+        })
+    return agents
+
+
 def _strip_frontmatter(content: str) -> str:
-    """Remove YAML --- frontmatter block, return body only."""
     if content.startswith("---"):
         end = content.find("---", 3)
         if end != -1:

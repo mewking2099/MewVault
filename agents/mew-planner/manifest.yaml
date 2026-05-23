@@ -1,0 +1,19 @@
+name: mew-planner
+model: opus
+silo: global
+role: Architecture and MewKing planning
+handles_direct: []
+routing_triggers:
+  - plan
+  - architect
+  - architecture
+  - mewking
+  - proposal
+  - risk
+  - phase
+  - structure
+  - breaking change
+  - redesign
+  - how should we
+  - what's the best approach
+mcp_servers: []

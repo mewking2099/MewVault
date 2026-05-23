@@ -124,6 +124,10 @@ def main() -> None:
     p_agent_invoke = p_agent_sub.add_parser("invoke", help="Invoke an agent by name")
     p_agent_invoke.add_argument("name", help="Agent name (e.g. mew-planner)")
     p_agent_invoke.add_argument("--task", metavar="TEXT", help="Task description to pass")
+    p_agent_sub.add_parser("sync", help="Rebuild the agent routing index from skills/")
+    p_fetch = p_agent_sub.add_parser("fetch-skills", help="Fetch skills from online sources")
+    p_fetch.add_argument("--from", dest="from_source", metavar="SOURCE", help="Named source (e.g. awesome-claude)")
+    p_fetch.add_argument("--url", metavar="URL", help="Direct URL to a skill file")
 
     # instinct
     p_instinct = subparsers.add_parser("instinct", help="Manage the instinct pipeline")

@@ -1,0 +1,14 @@
+{
+  "id": "global-rewrite-6e73c899-1779075093490",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "settings.local",
+  "wrong_assumption": "First version of settings.local.json was immediately revised",
+  "correct_behavior": "Review settings.local.json before writing \u2014 verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 2,
+  "created": "2026-05-18T03:31:33.490Z",
+  "status": "promoted",
+  "promoted_at": "2026-05-18T03:55:12.489253+00:00"
+}
