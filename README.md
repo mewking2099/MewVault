@@ -365,11 +365,52 @@ The sync is idempotent and git-diff-based — only changed files trigger writes.
 
 ## Getting started
 
+### One-liner install (macOS)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/mewking2099/MewVault/main/bootstrap.sh | bash
+```
+
+This creates `~/Jan/`, clones the vault, installs `mew`, wires up Claude Code hooks and rules, and scaffolds a fresh personal wiki. Idempotent — safe to re-run.
+
+> **Step-by-step guide for a brand-new Mac** → see [INSTALL.md](INSTALL.md)
+
+<br>
+
+After the bootstrap completes:
+
+**1 — Install Claude Code**
+
+```bash
+npm install -g @anthropic-ai/claude-code
+claude   # log in via browser auth
+```
+
+**2 — Store your API key**
+
+```bash
+mew secret set ANTHROPIC_API_KEY
+```
+
+**3 — Open your wiki in Obsidian**
+
+Open Obsidian → **Open folder as vault** → select `~/Jan/mewwiki`.
+
+**4 — First session**
+
+```bash
+cd ~/Jan && claude
+```
+
+Then say: **standup**
+
+<br>
+
 ### Requirements
 
 | | macOS | Windows |
 |---|---|---|
-| Python | 3.11+ · `brew install python` | 3.11+ · `winget install Python.Python.3.12` |
+| Python | 3.11+ · `brew install python@3.11` | 3.11+ · `winget install Python.Python.3.12` |
 | Node.js | `brew install node` | `winget install OpenJS.NodeJS.LTS` |
 | Claude Code | `npm install -g @anthropic-ai/claude-code` | same |
 | Obsidian | [obsidian.md](https://obsidian.md) | same |
@@ -377,62 +418,13 @@ The sync is idempotent and git-diff-based — only changed files trigger writes.
 
 <br>
 
-**1 — Clone and install**
+### Custom workspace path
+
+The bootstrap defaults to `~/Jan`. To use a different location:
 
 ```bash
-cd ~/Jan   # your workspace root
-git clone <this-repo> mewvault
-cd mewvault
-pip3 install -e .
+bash <(curl -fsSL https://raw.githubusercontent.com/mewking2099/MewVault/main/bootstrap.sh) ~/myworkspace
 ```
-
-**2 — Set the workspace root**
-
-```bash
-# ~/.zshrc or ~/.bash_profile
-export MEWVAULT_ROOT="$HOME/Jan/mewvault"
-```
-
-**3 — Register hooks**
-
-```bash
-mew harness install
-```
-
-**4 — Bootstrap silos**
-
-```bash
-mew init
-```
-
-Creates `wiki/`, `design-studio/`, `game-lab/`, and `secrets/` adjacent to `mewvault/`.
-
-**5 — Bootstrap MewWiki**
-
-```bash
-mew wiki init --path ~/Jan/mewwiki
-```
-
-Creates the Obsidian vault with Brain, Projects, Operations, Knowledge, Integrations, Bases, and Templates pre-configured.
-
-**6 — Open in Obsidian**
-
-Open Obsidian → **Open folder as vault** → select `~/Jan/mewwiki`. Enable **Bases** in Settings → Core plugins.
-
-**7 — First sync**
-
-```bash
-mew wiki sync
-```
-
-**8 — Verify**
-
-```bash
-mew status --quick      # vault overview
-mew harness status      # hook registration check
-```
-
-Open Claude Code in `mewvault/`. Say **standup**.
 
 ---
 

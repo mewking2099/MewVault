@@ -2,6 +2,26 @@
 
 ## Entries
 
+- **2026-05-24 06:00** — auto-wrap: modified Project_Status.md, log.md [auto-wrap]
+
+- **2026-05-24** — Phase 5 complete + bootstrap installer shipped. Phase 5: implemented skill chaining (`_execute_chains`, `_run_chained_agent` in `agent.py`) — fires `on_complete` chain links after task-mode invocations; MCP scoping (`build_mcp_config_for_agent`, `write_temp_mcp_config` in `skill_loader.py`) — task-mode spawns pass `--mcp-config --strict-mcp-config` with agent-scoped server list; deprecated `templates/agents/` with `DEPRECATED.md`. Bootstrap: `bootstrap.sh` one-liner installer (idempotent, Mac-first), `bootstrap/rules/` bundles all 6 rule files as single source of truth (symlinked on install), `bootstrap/settings.template.json` generates workspace-correct hooks config, fresh wiki scaffold for new installs. `INSTALL.md` step-by-step guide for a blank Mac. [wrap]
+
+- **2026-05-24 05:59** — auto-wrap: modified INSTALL.md [auto-wrap]
+
+- **2026-05-24 05:58** — auto-wrap: modified bootstrap.sh [auto-wrap]
+
+- **2026-05-24 05:53** — auto-wrap: modified bootstrap.sh, settings.template.json, secrets.md +5 more [auto-wrap]
+
+- **2026-05-24 05:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-24 05:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-24 05:40** — auto-wrap: modified skill_loader.py, agent.py, DEPRECATED.md [auto-wrap]
+
+- **2026-05-24 05:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-23 12:41** — auto-wrap: modified log.md, Project_Status.md [auto-wrap]
+
 - **2026-05-23** — Agent Array v2 shipped. Dispatcher-driven architecture: mew-chief classifies every prompt and spawns specialist sub-agents via Claude Code native Agent tool — no LiteLLM proxy needed, works on subscription. Built `mew/lib/skill_loader.py` (scan, parse, assemble, chain detect), rewrote `mew/commands/agent.py` (invoke/sync/fetch-skills), updated `mew/cli.py` to register `sync` and `fetch-skills` sub-commands. Created 7 agent directories under `agents/` with manifest.yaml, system-prompt.md, and skills/. Seeded 16 skill .md files across all agents. `agents/.routing-index.json` built via `mew agent sync` (7 agents, 16 skills). Dispatcher skill injected into session-start by `loadAgentDispatcher()` in hooks/session-start.js with `{{ROUTING_INDEX}}` placeholder substitution. README agent array section rewritten to match v2 architecture (dispatcher flow diagram, skill drop-in pattern, stack table corrected). [wrap]
 
 - **2026-05-23 12:36** — auto-wrap: modified README.md [auto-wrap]

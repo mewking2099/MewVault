@@ -1,6 +1,7 @@
 """skill_loader — scan agent skill directories and assemble sub-agent context."""
 import json
 import re
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -219,3 +220,58 @@ def detect_chains(agent_name: str, skill_name: str, visited: set | None = None) 
             continue
         steps.extend(detect_chains(next_agent, next_skill, visited.copy()))
     return steps
+
+
+# ── MCP scoping ───────────────────────────────────────────────────────────────
+
+def _find_global_mcp_config() -> Path | None:
+    """Search for the workspace-level .mcp.json."""
+    candidates = [
+        AGENTS_DIR.parent.parent / ".mcp.json",   # Jan/.mcp.json (one level above mewvault)
+        Path.home() / ".mcp.json",
+    ]
+    for p in candidates:
+        if p.exists():
+            return p
+    return None
+
+
+def build_mcp_config_for_agent(agent_name: str) -> dict | None:
+    """
+    Return a filtered mcpServers dict containing only servers declared in the agent manifest.
+    Returns None if agent needs no MCP servers or global config is not found.
+    """
+    manifest = parse_manifest(agent_name)
+    servers_needed: list = manifest.get("mcp_servers", []) or []
+    if not servers_needed:
+        return None
+
+    global_path = _find_global_mcp_config()
+    if not global_path:
+        return None
+
+    try:
+        all_servers = json.loads(global_path.read_text(encoding="utf-8")).get("mcpServers", {})
+    except Exception:
+        return None
+
+    filtered = {k: v for k, v in all_servers.items() if k in servers_needed}
+    return {"mcpServers": filtered} if filtered else None
+
+
+def write_temp_mcp_config(agent_name: str) -> Path | None:
+    """
+    Write a temp MCP config file scoped to the agent's declared servers.
+    Returns the Path, or None if no scoping is needed. Caller must delete the file.
+    """
+    config = build_mcp_config_for_agent(agent_name)
+    if not config:
+        return None
+    fd, tmp_path = tempfile.mkstemp(suffix="-mcp.json", prefix=f"{agent_name}-")
+    try:
+        with open(fd, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2)
+    except Exception:
+        Path(tmp_path).unlink(missing_ok=True)
+        return None
+    return Path(tmp_path)

@@ -13,6 +13,7 @@ from mew.lib.skill_loader import (
     parse_manifest,
     scan_agent_skills,
     write_routing_index,
+    write_temp_mcp_config,
 )
 
 _MODEL_ALIASES = {
@@ -169,14 +170,20 @@ def _invoke_agent(args) -> None:
     print(f"\n→ {name} ({model}) — {agent['role']}")
     print(f"  Task: {task}\n" + "-" * 60)
 
-    result = subprocess.run([
-        "claude",
-        "--model", model,
-        "--append-system-prompt", context,
-        "--print",
-        task,
-    ])
-    sys.exit(result.returncode)
+    cmd = ["claude", "--model", model, "--append-system-prompt", context, "--print", task]
+    mcp_tmp = write_temp_mcp_config(name)
+    if mcp_tmp:
+        cmd.extend(["--mcp-config", str(mcp_tmp), "--strict-mcp-config"])
+
+    try:
+        result = subprocess.run(cmd)
+        exit_code = result.returncode
+    finally:
+        if mcp_tmp and mcp_tmp.exists():
+            mcp_tmp.unlink()
+
+    _execute_chains(name, task, exit_code)
+    sys.exit(exit_code)
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -196,6 +203,66 @@ def _load_agents() -> list[dict]:
             "role": m.get("role", ""),
         })
     return agents
+
+
+def _execute_chains(agent_name: str, task: str, prior_exit_code: int) -> None:
+    """Fire on_complete chain links declared by skills that were triggered for this task."""
+    if prior_exit_code != 0:
+        return
+
+    skills = scan_agent_skills(agent_name)
+    task_lower = task.lower()
+
+    for skill in skills:
+        inject = skill.get("inject", "on-trigger")
+        if inject == "manual":
+            continue
+        if inject == "on-trigger":
+            triggers = skill.get("triggers", [])
+            if not any(t.lower() in task_lower for t in triggers):
+                continue
+
+        for chain in skill.get("chains_to", []):
+            if not isinstance(chain, dict):
+                continue
+            if chain.get("trigger", "on_complete") != "on_complete":
+                continue
+            next_agent = chain.get("agent")
+            next_skill_name = chain.get("skill", "")
+            if not next_agent:
+                continue
+            print(f"\n→ Chain: {agent_name}/{skill['name']} → {next_agent}/{next_skill_name}")
+            _run_chained_agent(next_agent, next_skill_name, task)
+
+
+def _run_chained_agent(agent_name: str, skill_name: str, task: str) -> None:
+    """Invoke an agent as part of a skill chain, with MCP scoping."""
+    agents = _load_agents()
+    agent = next((a for a in agents if a["name"] == agent_name), None)
+    if not agent:
+        print(f"  Chain error: agent not found: {agent_name}", file=sys.stderr)
+        return
+
+    model = _MODEL_ALIASES.get(agent["model"], agent["model"])
+    chain_task = f"{skill_name}: {task}" if skill_name else task
+    context = assemble_context(agent_name, chain_task)
+
+    if not context:
+        print(f"  Chain error: no context assembled for {agent_name}", file=sys.stderr)
+        return
+
+    print(f"  {agent_name} ({model}) — {skill_name or 'default'}")
+
+    cmd = ["claude", "--model", model, "--append-system-prompt", context, "--print", task]
+    mcp_tmp = write_temp_mcp_config(agent_name)
+    if mcp_tmp:
+        cmd.extend(["--mcp-config", str(mcp_tmp), "--strict-mcp-config"])
+
+    try:
+        subprocess.run(cmd)
+    finally:
+        if mcp_tmp and mcp_tmp.exists():
+            mcp_tmp.unlink()
 
 
 def _strip_frontmatter(content: str) -> str:
