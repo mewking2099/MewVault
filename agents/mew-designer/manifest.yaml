@@ -2,6 +2,7 @@ name: mew-designer
 model: sonnet
 silo: design
 role: UX, Figma review, component specs
+delegation_role: leaf
 handles_direct: []
 routing_triggers:
   - design

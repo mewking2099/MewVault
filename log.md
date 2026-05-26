@@ -2,6 +2,56 @@
 
 ## Entries
 
+- **2026-05-26 08:58** — auto-wrap: modified log.md [auto-wrap]
+
+- **2026-05-26** — Phase 6 complete: 44-skill agent array with Hermes-inspired delegation model, persistent SQLite memory layer (164 entries indexed), agentskills.io compliance pass, github-issue-fix skill, image-gen/notify/schedule skills, Phase 1-3 all shipped [auto-wrap]
+
+- **2026-05-26 08:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 08:56** — auto-wrap: modified Project_Status.md, memory_store.py, memory.py +4 more [auto-wrap]
+
+- **2026-05-26 08:52** — auto-wrap: modified github-issue-fix.md, plan.md, Project_Status.md +1 more [auto-wrap]
+
+- **2026-05-26 08:47** — auto-wrap: modified image-gen.md, notify.md, schedule.md +1 more [auto-wrap]
+
+- **2026-05-26 08:43** — auto-wrap: modified dispatcher.md, browser-use.md, manifest.yaml +9 more [auto-wrap]
+
+- **2026-05-26 08:39** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 08:34** — auto-wrap: modified project_mewvault_backlog.md [auto-wrap]
+
+- **2026-05-26 08:30** — auto-wrap: modified project_mewvault_backlog.md, MEMORY.md [auto-wrap]
+
+- **2026-05-26 08:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 08:25** — auto-wrap: modified webapp-testing.md, mcp-builder.md, claude-api.md +15 more [auto-wrap]
+
+- **2026-05-26 08:04** — auto-wrap: modified idea-capture.md, idea-expand.md, idea-brief.md +3 more [auto-wrap]
+
+- **2026-05-26 07:05** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 06:30** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 06:28** — auto-wrap: modified session-start.js, Project_Status.md, log.md +3 more [auto-wrap]
+
+- **2026-05-26 06:25** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 06:24** — auto-wrap: modified idea-hub-rules.md, manifest.yaml, manifest.yaml +8 more [auto-wrap]
+
+- **2026-05-26 05:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 05:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-26 05:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-24 08:07** — auto-wrap: session ended [auto-wrap]
+
+- **2026-05-24 07:01** — auto-wrap: modified log.md, Project_Status.md [auto-wrap]
+
+- **2026-05-24** — README Getting started rewritten: replaced 8-step manual install with one-liner bootstrap + link to INSTALL.md; custom workspace path example added. Committed and pushed (a5bf22a) — 15 files, 789 insertions. Repo is live and shareable. [wrap]
+
+- **2026-05-24 06:02** — auto-wrap: modified README.md [auto-wrap]
+
 - **2026-05-24 06:00** — auto-wrap: modified Project_Status.md, log.md [auto-wrap]
 
 - **2026-05-24** — Phase 5 complete + bootstrap installer shipped. Phase 5: implemented skill chaining (`_execute_chains`, `_run_chained_agent` in `agent.py`) — fires `on_complete` chain links after task-mode invocations; MCP scoping (`build_mcp_config_for_agent`, `write_temp_mcp_config` in `skill_loader.py`) — task-mode spawns pass `--mcp-config --strict-mcp-config` with agent-scoped server list; deprecated `templates/agents/` with `DEPRECATED.md`. Bootstrap: `bootstrap.sh` one-liner installer (idempotent, Mac-first), `bootstrap/rules/` bundles all 6 rule files as single source of truth (symlinked on install), `bootstrap/settings.template.json` generates workspace-correct hooks config, fresh wiki scaffold for new installs. `INSTALL.md` step-by-step guide for a blank Mac. [wrap]

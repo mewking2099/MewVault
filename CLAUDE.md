@@ -6,8 +6,11 @@ This silo contains the `mew` CLI: entry point, commands, templates, and secrets.
 
 - `mew.py` — entry point (`python mew.py <command>`)
 - `mew/` — Python package (commands, workspace detection, utilities)
+- `mew/memory_store.py` — SQLite FTS5 adapter for cross-session memory
+- `mew/commands/memory.py` — `mew memory sync|search|recall|purge`
 - `templates/` — scaffolding templates per project type
 - `secrets/` — gitignored, owner-only permissions
+- `.mew-memory.db` — gitignored SQLite memory store (auto-created on first sync)
 
 ## Development rules
 

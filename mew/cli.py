@@ -158,6 +158,23 @@ def main() -> None:
     p_wiki_sync.add_argument("--dry-run", action="store_true", dest="dry_run",
                              help="Show what would sync without writing")
 
+    # memory
+    p_memory = subparsers.add_parser("memory", help="Cross-session context store")
+    p_memory_sub = p_memory.add_subparsers(dest="memory_action")
+    p_mem_sync = p_memory_sub.add_parser("sync", help="Index workspace content into memory")
+    p_mem_sync.add_argument("--silo", metavar="NAME", help="Limit to one silo")
+    p_mem_search = p_memory_sub.add_parser("search", help="Full-text search memory")
+    p_mem_search.add_argument("query", help="Search query")
+    p_mem_search.add_argument("--silo", metavar="NAME", help="Limit to one silo")
+    p_mem_search.add_argument("--limit", type=int, default=10, help="Max results (default: 10)")
+    p_mem_recall = p_memory_sub.add_parser("recall", help="Recent context for a silo")
+    p_mem_recall.add_argument("--silo", metavar="NAME", help="Silo name")
+    p_mem_recall.add_argument("--days", type=int, default=14, help="How many days back (default: 14)")
+    p_mem_recall.add_argument("--limit", type=int, default=5, help="Max entries (default: 5)")
+    p_mem_purge = p_memory_sub.add_parser("purge", help="Remove stale entries")
+    p_mem_purge.add_argument("--before", metavar="DATE", help="ISO 8601 date cutoff")
+    p_mem_purge.add_argument("--days", type=int, default=90, help="Delete entries older than N days (default: 90)")
+
     # help
     p_help = subparsers.add_parser("help", help="Show help")
     p_help.add_argument("topic", nargs="?", help="Command, 'slash', or 'triggers'")
@@ -189,6 +206,7 @@ def main() -> None:
         "instinct":       lambda: _run("instinct", args),
         "compact":        lambda: _run("compact", args),
         "wiki":           lambda: _run("wiki", args),
+        "memory":         lambda: _run("memory", args),
         "help":           lambda: _run("help", args),
     }
 
@@ -258,6 +276,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "wiki":
         from mew.commands.wiki import run_wiki
         run_wiki(args)
+    elif command == "memory":
+        from mew.commands.memory import run_memory
+        run_memory(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))

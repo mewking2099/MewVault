@@ -1,0 +1,21 @@
+name: mew-researcher
+model: opus
+silo: idea-hub
+role: Feasibility analysis, market research, competitive intelligence
+delegation_role: leaf
+handles_direct: []
+routing_triggers:
+  - feasibility
+  - is this viable
+  - market research
+  - who else does this
+  - competitors
+  - how big is the market
+  - effort estimate
+  - how long would this take
+  - competitor map
+  - validate idea
+  - research this
+mcp_servers:
+  - gemini
+  - google-trends

@@ -2,6 +2,7 @@ name: mew-planner
 model: opus
 silo: global
 role: Architecture and MewKing planning
+delegation_role: orchestrator
 handles_direct: []
 routing_triggers:
   - plan

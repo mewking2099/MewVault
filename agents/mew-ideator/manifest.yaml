@@ -1,0 +1,20 @@
+name: mew-ideator
+model: sonnet
+silo: idea-hub
+role: Idea capture, expansion, and brief generation
+delegation_role: leaf
+handles_direct: []
+routing_triggers:
+  - new idea
+  - capture idea
+  - i have an idea
+  - brain dump
+  - expand this idea
+  - what if
+  - idea brief
+  - flesh out
+  - idea pitch
+  - seed idea
+mcp_servers:
+  - gemini
+  - google-trends

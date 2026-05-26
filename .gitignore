@@ -13,6 +13,9 @@ secrets/
 .env
 .env.*
 
+# MewVault memory store (machine-local SQLite)
+.mew-memory.db
+
 # MewHarness session artifacts (not committed — machine-local)
 .claude/session-activity.json
 .claude/gateguard-session.json

@@ -2,6 +2,7 @@ name: mew-archivist
 model: haiku
 silo: global
 role: Session wrap, log writes, git messages
+delegation_role: leaf
 handles_direct: []
 routing_triggers:
   - wrap

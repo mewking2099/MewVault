@@ -2,6 +2,7 @@ name: mew-learner
 model: sonnet
 silo: wiki
 role: Concept distillation, research ingest
+delegation_role: leaf
 handles_direct: []
 routing_triggers:
   - ingest

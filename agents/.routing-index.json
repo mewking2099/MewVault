@@ -1,6 +1,57 @@
 {
   "mew-archivist": [
     {
+      "name": "notify",
+      "triggers": [
+        "notify me",
+        "send me a message",
+        "telegram",
+        "slack notification",
+        "notify when done",
+        "send notification",
+        "ping me",
+        "alert me"
+      ],
+      "description": "Notify via Telegram or Slack — wraps, milestones, blockers",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "doc-coauthoring",
+      "triggers": [
+        "help me write",
+        "draft a doc",
+        "write a spec",
+        "write this up",
+        "write a summary",
+        "co-author",
+        "write a report",
+        "structured document"
+      ],
+      "description": "3-stage co-authoring: context → structure → reader test",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "internal-comms",
+      "triggers": [
+        "write an update",
+        "status report",
+        "project update",
+        "internal comms",
+        "team update",
+        "write a newsletter",
+        "incident report",
+        "weekly update"
+      ],
+      "description": "Write 3P updates, status reports, incident reports, FAQs",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
       "name": "commit-suggest",
       "triggers": [
         "commit message",
@@ -35,13 +86,31 @@
         "done for the day",
         "finishing up"
       ],
-      "description": "Full session-end sequence \u2014 log, status, sync, commit suggestion",
+      "description": "Session-end: log, status, sync, commit suggestion",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-chief": [
+    {
+      "name": "schedule",
+      "triggers": [
+        "schedule this",
+        "remind me",
+        "set a reminder",
+        "every morning",
+        "recurring task",
+        "run this daily",
+        "cron job",
+        "set up a schedule",
+        "remind me to"
+      ],
+      "description": "Schedule recurring/one-shot prompts with CronCreate",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
     {
       "name": "dispatcher",
       "triggers": [],
@@ -52,6 +121,90 @@
     }
   ],
   "mew-coder": [
+    {
+      "name": "github-issue-fix",
+      "triggers": [
+        "fix this github issue",
+        "triage issue",
+        "work on this issue",
+        "github issue",
+        "issue number",
+        "resolve issue",
+        "close issue"
+      ],
+      "description": "Triage, fix, review, and PR a GitHub issue",
+      "inject": "on-trigger",
+      "chains_to": [
+        "code-review"
+      ],
+      "claude_code_skills": []
+    },
+    {
+      "name": "claude-api",
+      "triggers": [
+        "claude api",
+        "call claude",
+        "anthropic api",
+        "integrate claude",
+        "use claude in code",
+        "build with claude"
+      ],
+      "description": "Integrate Claude API — tool use, streaming, caching",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "claude-api"
+      ]
+    },
+    {
+      "name": "mcp-builder",
+      "triggers": [
+        "build an mcp",
+        "mcp server",
+        "model context protocol",
+        "create mcp",
+        "mcp tool"
+      ],
+      "description": "Scaffold MCP servers with tools and transport setup",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "mcp-builder"
+      ]
+    },
+    {
+      "name": "webapp-testing",
+      "triggers": [
+        "test this app",
+        "write tests",
+        "e2e test",
+        "test coverage",
+        "browser test",
+        "playwright"
+      ],
+      "description": "Write and run unit, integration, and e2e web tests",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "webapp-testing"
+      ]
+    },
+    {
+      "name": "xlsx",
+      "triggers": [
+        "xlsx",
+        "spreadsheet",
+        "excel",
+        "edit the xlsx",
+        "create a spreadsheet",
+        "csv file",
+        "tabular data"
+      ],
+      "description": "Create, read, edit .xlsx/.csv with formulas and formatting",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
     {
       "name": "code-review",
       "triggers": [
@@ -79,7 +232,7 @@
         "extract",
         "rename"
       ],
-      "description": "Safe refactor with verification gate \u2014 no behaviour changes",
+      "description": "Safe refactor with verification gate — no behaviour changes",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -95,13 +248,97 @@
         "new feature",
         "add"
       ],
-      "description": "Test-first implementation cycle for any new src/ or lib/ file",
+      "description": "Test-first cycle for any new src/ or lib/ file",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-designer": [
+    {
+      "name": "image-gen",
+      "triggers": [
+        "generate an image",
+        "create an image",
+        "make an image",
+        "image generation",
+        "generate a photo",
+        "ai image",
+        "flux",
+        "dalle",
+        "stability ai",
+        "generate artwork"
+      ],
+      "description": "Generate AI images via FAL/Flux, Stability, or DALL-E",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "canvas-design",
+      "triggers": [
+        "create a poster",
+        "design this",
+        "piece of art",
+        "visual design",
+        "make art",
+        "canvas design",
+        "generate a design"
+      ],
+      "description": "Create visual art as .png/.pdf — philosophy + execution",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "frontend-design",
+      "triggers": [
+        "design the ui",
+        "style this component",
+        "make it look good",
+        "improve the design",
+        "ui design",
+        "component design"
+      ],
+      "description": "Design and implement polished frontend UI components",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "frontend-design"
+      ]
+    },
+    {
+      "name": "theme-factory",
+      "triggers": [
+        "apply a theme",
+        "theme this",
+        "color scheme",
+        "choose colors",
+        "style guide",
+        "pick a theme",
+        "theme factory"
+      ],
+      "description": "Apply color+font themes to slides, docs, HTML pages",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "web-artifacts-builder",
+      "triggers": [
+        "build a web artifact",
+        "interactive demo",
+        "html artifact",
+        "self-contained html",
+        "web prototype"
+      ],
+      "description": "Build self-contained interactive HTML artifacts",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "web-artifacts-builder"
+      ]
+    },
     {
       "name": "figma-spec",
       "triggers": [
@@ -112,7 +349,7 @@
         "check figma",
         "figma file"
       ],
-      "description": "Extract component specs from Figma via MCP and produce handoff notes",
+      "description": "Extract Figma component specs and produce handoff notes",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -126,13 +363,60 @@
         "token inconsistency",
         "token coverage"
       ],
-      "description": "Audit design token usage \u2014 missing aliases, unused tokens, coverage gaps",
+      "description": "Audit design tokens — aliases, unused, coverage gaps",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-gamedev": [
+    {
+      "name": "algorithmic-art",
+      "triggers": [
+        "generative art",
+        "algorithmic art",
+        "flow field",
+        "particle system",
+        "create art using code",
+        "make generative art",
+        "p5.js"
+      ],
+      "description": "Generative art with p5.js — philosophy + interactive HTML",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "frontend-design",
+      "triggers": [
+        "game ui design",
+        "style the hud",
+        "game menu design",
+        "ui for the game",
+        "title screen"
+      ],
+      "description": "Design polished game UI — HUDs, menus, title screens",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "frontend-design"
+      ]
+    },
+    {
+      "name": "webapp-testing",
+      "triggers": [
+        "test the game export",
+        "test the web build",
+        "browser test",
+        "e2e test game"
+      ],
+      "description": "Test web game exports with Playwright",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "webapp-testing"
+      ]
+    },
     {
       "name": "gdscript-review",
       "triggers": [
@@ -155,13 +439,88 @@
         "design the",
         "prototype"
       ],
-      "description": "Design a game mechanic with feel notes and Godot implementation sketch",
+      "description": "Design a mechanic with feel notes and Godot sketch",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
+  "mew-ideator": [
+    {
+      "name": "pptx",
+      "triggers": [
+        "pitch deck",
+        "slide deck",
+        "presentation",
+        "slides",
+        "pptx",
+        "make slides",
+        "create a deck"
+      ],
+      "description": "Build pitch decks from idea briefs using pptxgenjs",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "idea-brief",
+      "triggers": [
+        "idea brief",
+        "one-pager",
+        "pitch this",
+        "summarise idea",
+        "summarize idea"
+      ],
+      "description": "One-page pitch summary from a populated idea folder",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "idea-capture",
+      "triggers": [
+        "capture idea",
+        "new idea",
+        "brain dump",
+        "i have an idea",
+        "quick idea"
+      ],
+      "description": "Scaffold a structured idea.md from a rough brain dump",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "idea-expand",
+      "triggers": [
+        "expand this idea",
+        "flesh out",
+        "what if",
+        "deepen",
+        "explore angles"
+      ],
+      "description": "Deepen a seed idea — pivots, analogues, moats",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-learner": [
+    {
+      "name": "pdf",
+      "triggers": [
+        "read this pdf",
+        "extract from pdf",
+        "summarise this pdf",
+        "parse the pdf",
+        "pdf content",
+        "open this pdf"
+      ],
+      "description": "Read/extract PDF content via pypdf and pdfplumber",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
     {
       "name": "concept-distill",
       "triggers": [
@@ -195,6 +554,23 @@
     }
   ],
   "mew-planner": [
+    {
+      "name": "doc-coauthoring",
+      "triggers": [
+        "help me write",
+        "draft a doc",
+        "write a spec",
+        "write a proposal",
+        "co-author",
+        "write a plan",
+        "help me write the plan",
+        "write this up"
+      ],
+      "description": "3-stage co-authoring for MewKing plans and proposals",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
     {
       "name": "risk-map",
       "triggers": [
@@ -233,9 +609,87 @@
         "design the system",
         "how should we build"
       ],
-      "description": "Produce a MewKing plan.md with phases, files, risks, and acceptance tests",
+      "description": "Produce plan.md with phases, files, risks, acceptance",
       "inject": "on-trigger",
       "chains_to": null,
+      "claude_code_skills": []
+    }
+  ],
+  "mew-researcher": [
+    {
+      "name": "browser-use",
+      "triggers": [
+        "browse this",
+        "open this url",
+        "read this page",
+        "scrape this",
+        "follow the links",
+        "multi-page research",
+        "navigate to",
+        "extract from website"
+      ],
+      "description": "Multi-page web research — pagination, extraction, sources",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "xlsx",
+      "triggers": [
+        "xlsx",
+        "spreadsheet",
+        "excel",
+        "build a model",
+        "market data table",
+        "create a spreadsheet",
+        "csv file",
+        "tabular data"
+      ],
+      "description": "Create/edit .xlsx/.csv for market sizing and research",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "competitor-map",
+      "triggers": [
+        "competitor map",
+        "who else does this",
+        "competitors",
+        "competitive landscape",
+        "market map"
+      ],
+      "description": "Competitive landscape — positioning, gaps, entry angle",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "effort-estimate",
+      "triggers": [
+        "effort estimate",
+        "how long",
+        "t-shirt size",
+        "how big is this",
+        "solo viable"
+      ],
+      "description": "T-shirt sizing, stack, phase count, solo-viable flag",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "feasibility-scan",
+      "triggers": [
+        "feasibility",
+        "is this viable",
+        "validate idea",
+        "research this",
+        "feasibility scan"
+      ],
+      "description": "Market size, competitors, tech complexity → feasibility.md",
+      "inject": "on-trigger",
+      "chains_to": [],
       "claude_code_skills": []
     }
   ]

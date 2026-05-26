@@ -2,6 +2,7 @@ name: mew-chief
 model: sonnet
 silo: global
 role: Cross-silo orchestration, triage, routing
+delegation_role: orchestrator
 handles_direct:
   - standup
   - wrap

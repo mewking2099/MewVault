@@ -2,6 +2,7 @@ name: mew-gamedev
 model: sonnet
 silo: game
 role: GDScript, game mechanics, Godot patterns
+delegation_role: leaf
 handles_direct: []
 routing_triggers:
   - game

@@ -29,6 +29,7 @@ function detectSilo(cwd, workspaceRoot) {
   if (rel.startsWith('design-studio')) return 'design';
   if (rel.startsWith('software-projects')) return 'code';
   if (rel.startsWith('game-lab')) return 'game';
+  if (rel.startsWith('idea-hub')) return 'idea';
   return null;
 }
 
@@ -46,10 +47,11 @@ function loadRules(workspaceRoot, silo) {
 }
 
 const AGENT_MAP = {
-  code:   { name: 'mew-coder',    model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
-  game:   { name: 'mew-gamedev',  model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
-  design: { name: 'mew-designer', model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
-  wiki:   { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
+  code:   { name: 'mew-coder',      model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
+  game:   { name: 'mew-gamedev',    model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
+  design: { name: 'mew-designer',   model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
+  wiki:   { name: 'mew-learner',    model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
+  idea:   { name: 'mew-ideator',    model: 'claude-sonnet-4-6', role: 'Idea capture, expansion, feasibility routing' },
 };
 const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-4-6', role: 'Cross-silo orchestration, triage, routing' };
 
@@ -62,6 +64,7 @@ const WHITELIST = {
   design: ['current_phase', 'figma_file_key', 'greenlit', 'tier'],
   game:   ['current_phase', 'concepts_count', 'mechanics_count', 'tier'],
   wiki:   ['inbox_count', 'orphan_concepts'],
+  idea:   ['active_ideas', 'seed_count', 'exploring_count', 'validated_count', 'tier'],
 };
 
 function loadProjectStatus(cwd, workspaceRoot, silo) {
@@ -86,7 +89,7 @@ function loadProjectStatus(cwd, workspaceRoot, silo) {
 
 function findUnwrapped(workspaceRoot) {
   const results = [];
-  for (const silo of ['software-projects', 'game-lab', 'design-studio']) {
+  for (const silo of ['software-projects', 'game-lab', 'design-studio', 'idea-hub']) {
     const siloPath = path.join(workspaceRoot, silo);
     if (!fs.existsSync(siloPath)) continue;
     try {
@@ -356,6 +359,24 @@ function loadMewWikiBrief(workspaceRoot) {
   }
 
   return parts.length ? parts.join('\n') : null;
+}
+
+function loadMemoryRecall(silo, workspaceRoot) {
+  try {
+    const { spawnSync } = require('child_process');
+    const mewPy = path.join(workspaceRoot, 'mewvault', 'mew.py');
+    if (!fs.existsSync(mewPy)) return null;
+    const spawnArgs = [mewPy, 'memory', 'recall', '--limit', '5'];
+    if (silo) spawnArgs.push('--silo', silo);
+    const r = spawnSync('python', spawnArgs, {
+      cwd: workspaceRoot,
+      encoding: 'utf8',
+      timeout: 3000,
+    });
+    const out = r.stdout && r.stdout.trim();
+    if (!out || r.status !== 0 || out.startsWith('No entries') || out.startsWith('Error')) return null;
+    return out;
+  } catch { return null; }
 }
 
 async function loadSemanticContext(silo, workspaceRoot) {
@@ -719,6 +740,10 @@ async function main() {
   // 7: Semantic context from vector stores (Phase 4 — graceful degradation)
   const semantic = await loadSemanticContext(silo, workspaceRoot);
   if (semantic) sections.push('## Relevant Context (semantic)\n\n' + semantic);
+
+  // 7b: MewVault memory recall (Phase 6 — SQLite FTS, graceful degradation)
+  const memRecall = loadMemoryRecall(silo, workspaceRoot);
+  if (memRecall) sections.push('## Recent Context (mew memory)\n\n' + memRecall);
 
   // 8: Open GitHub issues (Phase 6 — only when GITHUB_MCP_ENABLED=1 and github MCP configured)
   const githubIssues = await loadGithubIssues(silo, workspaceRoot, currentPhase);

@@ -2,6 +2,7 @@ name: mew-coder
 model: sonnet
 silo: code
 role: Implementation, refactoring, test generation
+delegation_role: leaf
 handles_direct: []
 routing_triggers:
   - implement
