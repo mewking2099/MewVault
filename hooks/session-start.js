@@ -30,6 +30,7 @@ function detectSilo(cwd, workspaceRoot) {
   if (rel.startsWith('software-projects')) return 'code';
   if (rel.startsWith('game-lab')) return 'game';
   if (rel.startsWith('idea-hub')) return 'idea';
+  if (rel.startsWith('mewvault') || rel === '') return 'mewvault';
   return null;
 }
 
@@ -47,11 +48,12 @@ function loadRules(workspaceRoot, silo) {
 }
 
 const AGENT_MAP = {
-  code:   { name: 'mew-coder',      model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
-  game:   { name: 'mew-gamedev',    model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
-  design: { name: 'mew-designer',   model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
-  wiki:   { name: 'mew-learner',    model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
-  idea:   { name: 'mew-ideator',    model: 'claude-sonnet-4-6', role: 'Idea capture, expansion, feasibility routing' },
+  code:     { name: 'mew-coder',    model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
+  game:     { name: 'mew-gamedev',  model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
+  design:   { name: 'mew-designer', model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
+  wiki:     { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
+  idea:     { name: 'mew-ideator',  model: 'claude-sonnet-4-6', role: 'Idea capture, expansion, feasibility routing' },
+  mewvault: { name: 'mew-chief',    model: 'claude-sonnet-4-6', role: 'CLI engine, hooks, skills, agent array' },
 };
 const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-4-6', role: 'Cross-silo orchestration, triage, routing' };
 

@@ -86,6 +86,7 @@ Each silo has its own rules and Claude persona:
 | `design-studio/` | Figma (via MCP) | `mew-designer` | Figma node reads; never manually transcribe measurements |
 | `game-lab/` | GDScript / Godot | `mew-gamedev` | `_experiments/` bypasses MewKing gate — prototype freely |
 | `wiki/` | Markdown | `mew-learner` | Research, concept distillation, learning tracks |
+| `mewvault/` | Python · Node.js | `mew-chief` | CLI engine, hooks, agent array, skills |
 
 **Project promotion** — moving work between silos when it's ready:
 
@@ -157,7 +158,7 @@ Every project has a `tier` in `Project_Status.md`. This is enforced at the OS le
 
 ## Core concepts
 
-MewVault is built on four interconnected systems. Each one solves a specific problem with long-running AI-assisted work.
+MewVault is built on five interconnected systems. Each one solves a specific problem with long-running AI-assisted work.
 
 <br>
 
@@ -180,7 +181,7 @@ The context block that fires on every prompt is structured so the cached static 
 └─────────────────────────────────────────────────┘
 ┌─ live (dynamic) ────────────────────────────────┐
 │  project status · active instincts · wiki brief  │  ← fresh each turn
-│  trigger workflow instructions (if matched)      │
+│  recent memory context · trigger instructions   │
 └─────────────────────────────────────────────────┘
 ```
 
@@ -188,7 +189,7 @@ The context block that fires on every prompt is structured so the cached static 
 
 ### 2 · Agent array
 
-Seven specialist agents, no proxy required. `mew-chief` acts as a live dispatcher — it reads every prompt, classifies the intent, announces its routing decision, and spawns the right sub-agent as a native Claude Code agent with the correct model already selected. You never route manually.
+Nine specialist agents, no proxy required. `mew-chief` acts as a live dispatcher — it reads every prompt, classifies the intent, announces its routing decision, and spawns the right sub-agent as a native Claude Code agent with the correct model already selected. You never route manually.
 
 ```
 you: "plan the auth refactor"
@@ -206,28 +207,52 @@ you: "plan the auth refactor"
 |---|---|---|---|---|
 | `mew-chief` | Sonnet 4.6 | global | dispatcher | Classifies every request, announces routing, spawns sub-agents |
 | `mew-planner` | **Opus 4.7** | any | 3 | Architecture, MewKing plans, risk maps, tier analysis |
-| `mew-coder` | Sonnet 4.6 | software | 3 | TDD workflow, implementation, code review, refactor |
+| `mew-coder` | Sonnet 4.6 | software | 8 | TDD workflow, implementation, code review, refactor, webapp testing, MCP building |
 | `mew-designer` | Sonnet 4.6 | design | 2 | Figma MCP reads, component specs, token audit |
 | `mew-learner` | Sonnet 4.6 | wiki | 2 | Concept distillation, PDF ingest, knowledge routing |
 | `mew-gamedev` | Sonnet 4.6 | game | 2 | GDScript review, mechanic design, Godot patterns |
 | `mew-archivist` | **Haiku 4.5** | any | 3 | Session wrap, log writes, commit message generation |
+| `mew-researcher` | Sonnet 4.6 | any | 4 | Web research, competitive analysis, feasibility assessment |
+| `mew-ideator` | Sonnet 4.6 | idea | 3 | Idea capture, expansion, feasibility routing, lifecycle management |
 
-**Skill plugin system** — each agent has a `skills/` directory of plain markdown files. Drop a new `.md` skill file and run `mew agent sync`; the routing index rebuilds and the skill is live from the next session. No code changes needed.
+**44 skills across 9 agents.** Each agent has a `skills/` directory of plain markdown files. Drop a new `.md` skill file and run `mew agent sync`; the routing index rebuilds and the skill is live from the next session. No code changes needed.
 
 ```
 agents/mew-coder/skills/
   tdd-workflow.md        ← drop new .md here
   code-review.md         ← mew agent sync → live
   refactor.md
+  webapp-testing.md
+  mcp-builder.md
+  ...
 ```
 
-Skills declare their own triggers in YAML frontmatter (`triggers: [...]`), their inject mode (`always` / `on-trigger` / `manual`), and optional chains (`chains_to: mew-archivist/log-write`). Cycle detection is built in.
+Skills declare their own triggers in YAML frontmatter (`triggers: [...]`), their inject mode (`always` / `on-trigger` / `manual`), optional MCP server requirements (`requires_mcp: [doobidoo]`), and optional chains (`chains_to: mew-archivist/log-write`). Cycle detection is built in.
+
+**Hermes delegation** — agents can further delegate to other sub-agents mid-task. `mew-chief` may spawn `mew-planner`, which may in turn spawn `mew-archivist` to log its output. The delegation chain resolves through the routing index; no hardcoded wiring.
 
 > No proxy, no separate API key needed. The agent array runs entirely on your Claude Code subscription via native sub-agent spawning.
 
 <br>
 
-### 3 · Instinct system
+### 3 · SQLite memory layer
+
+Cross-session context that persists between conversations. `mew memory sync` indexes every markdown file across all silos into a local SQLite FTS5 database. At session start, the `loadMemoryRecall` function queries the store and injects the most recently-updated documents into the context banner as `## Recent Context (mew memory)`.
+
+```
+mew memory sync           → indexes all silos into .mew-memory.db
+mew memory search "auth"  → full-text search across the store
+mew memory recall         → recent docs for the current silo (session-start uses this)
+mew memory purge          → remove entries older than N days
+```
+
+Unlike the in-session `@modelcontextprotocol/server-memory` knowledge graph (which resets between conversations), the SQLite store is durable — it survives across sessions, machine restarts, and context compactions. It gives Claude a "what was I working on?" answer without relying on git log or flat memory files.
+
+The store is silo-aware: `recall --silo mewvault` surfaces vault tooling docs, `recall --silo software-projects` surfaces code project context. Session-start auto-selects the right silo based on the detected working directory.
+
+<br>
+
+### 4 · Instinct system
 
 Most AI setups treat corrections as ephemeral — you fix something, Claude gets it right, and the next session starts from zero. The instinct system makes corrections permanent.
 
@@ -250,7 +275,7 @@ Each instinct carries a **confidence score** (0–1). Instincts decay if they st
 
 <br>
 
-### 4 · Semantic command system
+### 5 · Semantic command system
 
 MewVault has no slash commands. All workflows are triggered by plain sentences. The `session-start.js` hook runs a regex matcher against every prompt before it reaches Claude — if a trigger fires, the full workflow instructions are appended to the context block in the same turn.
 
@@ -275,7 +300,8 @@ The trigger system is entirely in `hooks/session-start.js` as a `TRIGGERS` array
 | CLI | Python 3.11+ · `pathlib` throughout · editable install via `pip install -e .` |
 | Hooks | Node.js · five Claude Code lifecycle hooks · `hooks/*.js` |
 | Agent routing | `mew-chief` dispatcher · `agents/.routing-index.json` · rebuilt via `mew agent sync` |
-| Agent skills | Markdown plugin files · `agents/<name>/skills/*.md` · auto-discovered |
+| Agent skills | 44 markdown plugin files · `agents/<name>/skills/*.md` · auto-discovered · MCP-scoped |
+| Persistent memory | SQLite FTS5 · `.mew-memory.db` · silo-aware · cross-session |
 | Semantic search | doobidoo (mcp-memory-service) · SQLite-vec · Ollama `nomic-embed-text` (local) |
 | In-session memory | `@modelcontextprotocol/server-memory` · knowledge graph · resets between sessions |
 | Wiki layer | Obsidian · Bases plugin · auto-synced via `mew wiki sync` |
@@ -295,7 +321,7 @@ Five Claude Code lifecycle hooks fire automatically. Install once with `mew harn
 
 | Hook | Event | What it does |
 |---|---|---|
-| `session-start.js` | `UserPromptSubmit` | Injects vault rules, project status, Brain brief, instincts, semantic context — detects conversational triggers |
+| `session-start.js` | `UserPromptSubmit` | Injects vault rules, project status, Brain brief, instincts, memory recall — detects conversational triggers |
 | `session-end.js` | `Stop` | Writes auto-wrap log entry, runs `mew wiki sync`, appends to Brain/Memories |
 | `pre-tool-use.js` | `PreToolUse` | MewKing gate, secrets guard, `raw/` lock, mewwiki write guard, TDD warning |
 | `post-tool-use.js` | `PostToolUse` | Accumulates session activity, detects rapid-rewrite signals for instinct candidates |
@@ -309,12 +335,12 @@ The `UserPromptSubmit` hook prepends a context block to every prompt. To keep it
 
 - Hard cap of **6,000 tokens** (configurable via `MEW_SESSION_START_MAX_TOKENS`)
 - Static content (vault rules, agent persona) comes first — hits Anthropic's **prompt cache**, costs nothing after the first call
-- Dynamic content (project status, instincts, wiki brief) comes after the cache boundary
+- Dynamic content (project status, instincts, memory recall) comes after the cache boundary
 - `Project_Status.md` fields are **whitelisted per silo** — a game session never gets code-silo fields
 
 ```
 [static — cached]     vault rules + agent persona
-[dynamic — live]      project status + instincts + wiki brief + trigger
+[dynamic — live]      project status + instincts + memory recall + trigger
 ```
 
 <br>
@@ -335,6 +361,20 @@ instincts/promoted/<id>.json    ← injected every session
 mew instinct status          # review pending candidates
 mew instinct promote <id>    # make one permanent
 mew instinct prune           # clean up stale entries
+```
+
+<br>
+
+### SQLite memory store
+
+An FTS5-indexed SQLite database (`workspace/.mew-memory.db`) that persists context across sessions. Session-start queries the store for the current silo and injects the most recently-updated documents. Fully offline — no external API.
+
+```bash
+mew memory sync              # index all silos
+mew memory sync --silo code  # re-index one silo after a big session
+mew memory search "auth"     # full-text search
+mew memory recall --days 7   # recent context, last 7 days
+mew memory purge --days 90   # remove stale entries
 ```
 
 <br>
@@ -399,7 +439,7 @@ Open Obsidian → **Open folder as vault** → select `~/Jan/mewwiki`.
 **4 — First session**
 
 ```bash
-cd ~/Jan && claude
+cd ~/Jan/mewvault && claude
 ```
 
 Then say: **standup**
@@ -479,6 +519,25 @@ bash <(curl -fsSL https://raw.githubusercontent.com/mewking2099/MewVault/main/bo
 | `mew sync --commit "message"` | Interactively commit each repo |
 | `mew sync --pr` | Create GitHub PR from session message |
 
+**Memory**
+
+| Command | Description |
+|---|---|
+| `mew memory sync` | Index all silos into SQLite store |
+| `mew memory sync --silo NAME` | Re-index one silo |
+| `mew memory search QUERY` | Full-text search across the store |
+| `mew memory recall` | Recent context for the current silo |
+| `mew memory recall --silo NAME --days 7` | Recent context for a specific silo |
+| `mew memory purge --days 90` | Remove entries older than N days |
+
+**Agents & Skills**
+
+| Command | Description |
+|---|---|
+| `mew agent sync` | Rebuild routing index from agent manifests and skills |
+| `mew agent fetch-skills` | Pull skills from remote skill registries |
+| `mew agent invoke <name>` | Manually invoke a named agent |
+
 **Secrets**
 
 | Command | Description |
@@ -500,6 +559,24 @@ bash <(curl -fsSL https://raw.githubusercontent.com/mewking2099/MewVault/main/bo
 | `mew instinct prune` | Remove stale instincts |
 
 </details>
+
+---
+
+## Inspiration
+
+MewVault draws on patterns and ideas from several open-source projects. None of these are dependencies — they informed the design.
+
+**[affaan-m/everything-claude-code](https://github.com/affaan-m/everything-claude-code)**
+The primary reference for the hook architecture, token budget structure, and skill injection model. The three-pillar framing (token optimisation · memory persistence · subagent orchestration) comes directly from the ECC integration analysis. Many of MewVault's 44 skills were seeded from the ECC skill library.
+
+**[obra/superpowers](https://github.com/obra/superpowers)**
+Additional hook patterns and skill file conventions. The `always` / `on-trigger` / `manual` inject mode taxonomy is modelled on the superpowers approach.
+
+**[nousresearch/hermes-agent](https://github.com/NousResearch/hermes-agent)**
+Hermes' sub-agent delegation pattern directly informed Phase 6 of the agent array — specifically the idea that agents can spawn further sub-agents mid-task rather than returning to the dispatcher. The `agentskills.io` skill format (YAML frontmatter + markdown body) is the same philosophy as MewVault's SKILL.md format, and future skill publishing to that registry is on the roadmap.
+
+**[bgreenwell/OctoAgent](https://github.com/bgreenwell/OctoAgent)**
+A 9-agent pipeline for automated GitHub issue resolution. MewVault doesn't use it (OpenAI-only, no MCP support), but the pipeline concept — triage → plan → fix → review → commit → comment — inspired the planned `github-issue-fix` skill for `mew-coder`.
 
 ---
 
