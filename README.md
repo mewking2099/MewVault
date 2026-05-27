@@ -57,7 +57,8 @@ workspace-root/
 ├── software-projects/  ← code (Next.js, Astro, SvelteKit)
 ├── design-studio/      ← UX & Figma-integrated design work
 ├── game-lab/           ← Godot games and low-commitment experiments
-└── wiki/               ← knowledge base, research, learning tracks
+├── wiki/               ← knowledge base, research, learning tracks
+└── idea-hub/           ← idea capture, feasibility, lifecycle management
 ```
 
 Each silo is an independent git repo. `mewvault/` is the only one Claude opens by default. The `mew wiki sync` command — triggered automatically at session end — mirrors all silo content into `mewwiki/`.
@@ -86,6 +87,7 @@ Each silo has its own rules and Claude persona:
 | `design-studio/` | Figma (via MCP) | `mew-designer` | Figma node reads; never manually transcribe measurements |
 | `game-lab/` | GDScript / Godot | `mew-gamedev` | `_experiments/` bypasses MewKing gate — prototype freely |
 | `wiki/` | Markdown | `mew-learner` | Research, concept distillation, learning tracks |
+| `idea-hub/` | Markdown | `mew-ideator` | Idea capture, feasibility, lifecycle — no code zone |
 | `mewvault/` | Python · Node.js | `mew-chief` | CLI engine, hooks, agent array, skills |
 
 **Project promotion** — moving work between silos when it's ready:
