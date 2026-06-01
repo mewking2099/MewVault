@@ -58,7 +58,11 @@ def _promote_ux_to_code(args, workspace_root, silos) -> None:
 
     fm, body = parse_frontmatter(status_file)
     greenlit = fm.get("greenlit", False)
-    current_phase = int(fm.get("current_phase", 0))
+    raw_phase = fm.get("current_phase", 0)
+    try:
+        current_phase = int(str(raw_phase).split("-")[1]) if isinstance(raw_phase, str) and "-" in str(raw_phase) else int(raw_phase)
+    except (ValueError, IndexError):
+        current_phase = 0
 
     if not greenlit and current_phase < 5:
         print(f"Error: {ux_name} is not ready for promotion.")
