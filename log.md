@@ -2,6 +2,214 @@
 
 ## Entries
 
+- **2026-06-04** — `mew usage` command: shows Claude auth status + usage dashboard links; `--open` opens claude.ai/settings in browser. Multi-model routing plan saved to `proposals/active/multi-model-routing/plan.md` (pending DeepSeek API key).
+
+- **2026-06-04 04:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:25** — auto-wrap: modified usage.py, cli.py [auto-wrap]
+
+- **2026-06-04 04:23** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:21** — auto-wrap: modified plan.md, project_mewvault_backlog.md [auto-wrap]
+
+- **2026-06-04 04:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:06** — auto-wrap: modified project_mewvault_backlog.md [auto-wrap]
+
+- **2026-06-04 04:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 04:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:55** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:53** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:51** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 03:48** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-04 03:46** — auto-wrap: modified tailwind.config.js [auto-wrap]
+
+- **2026-06-03 16:22** — auto-wrap: modified .env.local [auto-wrap]
+
+- **2026-06-03 16:16** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt +1 more [auto-wrap]
+
+- **2026-06-03 16:01** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 15:50** — auto-wrap: modified DropdownMenu.tsx, Tooltip.tsx [auto-wrap]
+
+- **2026-06-03 15:47** — auto-wrap: modified Dialog.tsx [auto-wrap]
+
+- **2026-06-03 15:45** — auto-wrap: modified Dialog.tsx [auto-wrap]
+
+- **2026-06-03 15:40** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 15:38** — auto-wrap: modified Dialog.tsx [auto-wrap]
+
+- **2026-06-03 15:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 15:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 15:18** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 15:17** — auto-wrap: modified apply_story_defs.py, Table.stories.tsx, Label.stories.tsx +5 more [auto-wrap]
+
+- **2026-06-03 14:37** — auto-wrap: modified story-types.ts [auto-wrap]
+
+- **2026-06-03 14:30** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 14:27** — auto-wrap: modified project_dsaas_components_bug.md, MEMORY.md [auto-wrap]
+
+- **2026-06-03 14:23** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 14:14** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:53** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 13:45** — auto-wrap: modified Dialog.tsx, DropdownMenu.tsx, Tooltip.tsx [auto-wrap]
+
+- **2026-06-03 12:03** — auto-wrap: modified Tooltip.tsx, DropdownMenu.tsx, Toast.tsx +2 more [auto-wrap]
+
+- **2026-06-03 11:50** — auto-wrap: modified Dialog.tsx, Dialog.test.tsx [auto-wrap]
+
+- **2026-06-03 11:32** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 11:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 11:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 11:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-03 08:32** — auto-wrap: modified Project_Status.md, log.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-02 07:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-02 05:22** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-02 05:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-02 05:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 09:41** — auto-wrap: modified CustomCursor.tsx, globals.css, layout.tsx [auto-wrap]
+
+- **2026-06-01 09:11** — auto-wrap: modified InspirationSection.tsx [auto-wrap]
+
+- **2026-06-01 09:10** — auto-wrap: modified TypewriterText.tsx, DailyRhythmSection.tsx [auto-wrap]
+
+- **2026-06-01 09:05** — auto-wrap: modified FeaturesSection.tsx, WindStreaks.tsx [auto-wrap]
+
+- **2026-06-01 09:04** — auto-wrap: modified WindStreaks.tsx, FeaturesSection.tsx [auto-wrap]
+
+- **2026-06-01 09:01** — auto-wrap: modified InstallSection.tsx [auto-wrap]
+
+- **2026-06-01 08:57** — auto-wrap: modified CommandBlock.tsx, InstallSection.tsx [auto-wrap]
+
+- **2026-06-01 08:54** — auto-wrap: modified DailyRhythmSection.tsx, InstallSection.tsx [auto-wrap]
+
+- **2026-06-01 08:51** — auto-wrap: modified FloatingOrbs.tsx, FeaturesSection.tsx [auto-wrap]
+
+- **2026-06-01 08:48** — auto-wrap: modified FeaturesSection.tsx [auto-wrap]
+
+- **2026-06-01 08:46** — auto-wrap: modified FeaturesSection.tsx [auto-wrap]
+
+- **2026-06-01 08:44** — auto-wrap: modified ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:43** — auto-wrap: modified ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:41** — auto-wrap: modified ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:38** — auto-wrap: modified ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:35** — auto-wrap: modified MatrixRain.tsx [auto-wrap]
+
+- **2026-06-01 08:34** — auto-wrap: modified MatrixRain.tsx [auto-wrap]
+
+- **2026-06-01 08:33** — auto-wrap: modified MatrixRain.tsx [auto-wrap]
+
+- **2026-06-01 08:32** — auto-wrap: modified MatrixRain.tsx [auto-wrap]
+
+- **2026-06-01 08:31** — auto-wrap: modified MatrixRain.tsx, ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:24** — auto-wrap: modified MatrixRain.tsx, ArchitectureSection.tsx [auto-wrap]
+
+- **2026-06-01 08:16** — auto-wrap: modified layout.tsx, globals.css, ArchitectureSection.tsx +4 more [auto-wrap]
+
+- **2026-06-01 07:11** — auto-wrap: modified globals.css [auto-wrap]
+
+- **2026-06-01 07:08** — auto-wrap: modified layout.tsx, globals.css [auto-wrap]
+
+- **2026-06-01 07:04** — auto-wrap: modified globals.css, ArchitectureSection.tsx, FeaturesSection.tsx +3 more [auto-wrap]
+
+- **2026-06-01 07:00** — auto-wrap: modified globals.css [auto-wrap]
+
+- **2026-06-01 06:59** — auto-wrap: modified ArchitectureSection.tsx, FeaturesSection.tsx, DailyRhythmSection.tsx +2 more [auto-wrap]
+
+- **2026-06-01 06:57** — auto-wrap: modified ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:56** — auto-wrap: modified ProblemParticles.tsx [auto-wrap]
+
+- **2026-06-01 06:54** — auto-wrap: modified ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:50** — auto-wrap: modified RainbowSquiggle.tsx [auto-wrap]
+
+- **2026-06-01 06:48** — auto-wrap: modified RainbowSquiggle.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:42** — auto-wrap: modified ProblemSection.tsx, ProblemParticles.tsx [auto-wrap]
+
+- **2026-06-01 06:40** — auto-wrap: modified QuestionMark3D.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:36** — auto-wrap: modified ProblemParticles.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:33** — auto-wrap: modified QuestionParticles.tsx [auto-wrap]
+
+- **2026-06-01 06:28** — auto-wrap: modified QuestionParticles.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:26** — auto-wrap: modified QuestionParticles.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-01 06:18** — auto-wrap: modified SectionParticles.tsx, ProblemSection.tsx, ArchitectureSection.tsx +4 more [auto-wrap]
+
+- **2026-06-01 05:44** — auto-wrap: modified cat-paw.svg, globals.css [auto-wrap]
+
+- **2026-06-01 05:42** — auto-wrap: modified ProblemSection.tsx, ArchitectureSection.tsx, FeaturesSection.tsx +4 more [auto-wrap]
+
+- **2026-06-01 05:40** — auto-wrap: modified ProblemSection.tsx, ArchitectureSection.tsx, FeaturesSection.tsx +5 more [auto-wrap]
+
+- **2026-06-01 05:35** — auto-wrap: modified CloudBackground.tsx [auto-wrap]
+
+- **2026-06-01 05:34** — auto-wrap: modified CloudBackground.tsx, HeroSection.tsx [auto-wrap]
+
+- **2026-06-01 05:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 05:28** — auto-wrap: modified copy.md, HeroSection.tsx [auto-wrap]
+
+- **2026-06-01 05:11** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 05:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 05:03** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 05:02** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-01 05:02** — auto-wrap: session ended [auto-wrap]
+
 - **2026-06-01 05:02** — auto-wrap: session ended [auto-wrap]
 
 - **2026-05-27 10:08** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]

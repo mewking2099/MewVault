@@ -175,6 +175,10 @@ def main() -> None:
     p_mem_purge.add_argument("--before", metavar="DATE", help="ISO 8601 date cutoff")
     p_mem_purge.add_argument("--days", type=int, default=90, help="Delete entries older than N days (default: 90)")
 
+    # usage
+    p_usage = subparsers.add_parser("usage", help="Show Claude auth status and usage dashboard link")
+    p_usage.add_argument("--open", action="store_true", help="Open claude.ai/settings in browser")
+
     # help
     p_help = subparsers.add_parser("help", help="Show help")
     p_help.add_argument("topic", nargs="?", help="Command, 'slash', or 'triggers'")
@@ -207,6 +211,7 @@ def main() -> None:
         "compact":        lambda: _run("compact", args),
         "wiki":           lambda: _run("wiki", args),
         "memory":         lambda: _run("memory", args),
+        "usage":          lambda: _run("usage", args),
         "help":           lambda: _run("help", args),
     }
 
@@ -279,6 +284,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "memory":
         from mew.commands.memory import run_memory
         run_memory(args)
+    elif command == "usage":
+        from mew.commands.usage import run_usage
+        run_usage(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))
