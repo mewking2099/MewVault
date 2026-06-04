@@ -2,6 +2,8 @@
 
 ## Entries
 
+- **2026-06-04 04:27** — auto-wrap: modified log.md [auto-wrap]
+
 - **2026-06-04** — `mew usage` command: shows Claude auth status + usage dashboard links; `--open` opens claude.ai/settings in browser. Multi-model routing plan saved to `proposals/active/multi-model-routing/plan.md` (pending DeepSeek API key).
 
 - **2026-06-04 04:26** — auto-wrap: session ended [auto-wrap]
