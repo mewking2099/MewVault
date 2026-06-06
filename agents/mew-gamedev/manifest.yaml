@@ -1,7 +1,7 @@
 name: mew-gamedev
 model: sonnet
 silo: game
-role: GDScript, game mechanics, Godot patterns
+role: GDScript, game mechanics, Godot patterns, AI-led game development
 delegation_role: leaf
 handles_direct: []
 routing_triggers:
@@ -15,4 +15,14 @@ routing_triggers:
   - prototype
   - playtest
   - game loop
+  - game session
+  - debug godot
+  - godot error
+skills:
+  - godot-session-start   # always injected — reads state and leads the session
+  - godot-coder           # on-trigger — writes GDScript for mechanics
+  - godot-debug           # on-trigger — diagnoses Godot errors from paste
+  - gdscript-review       # on-trigger — reviews existing scripts
+  - mechanic-design       # on-trigger — designs mechanics before coding
+  - algorithmic-art       # on-trigger — generative/procedural art
 mcp_servers: []
