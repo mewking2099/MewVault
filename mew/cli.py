@@ -191,6 +191,9 @@ def main() -> None:
     task_group.add_argument("--task", metavar="PROMPT", help="Inline prompt string")
     task_group.add_argument("--task-file", metavar="PATH", help="Path to file containing the prompt")
     task_group.add_argument("--check", action="store_true", help="Test proxy availability only (exit 0=up, 3=down)")
+    p_dispatch.add_argument("--write", metavar="PATH", help="Write output directly to file instead of stdout")
+    p_dispatch.add_argument("--system", metavar="TEXT", help="Override system prompt (default: agent-tuned code prompt)")
+    p_dispatch.add_argument("--no-system", action="store_true", dest="no_system", help="Send no system prompt")
 
     # help
     p_help = subparsers.add_parser("help", help="Show help")

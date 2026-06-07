@@ -1,7 +1,7 @@
 """mew dispatch — send a pure-generation task to a LiteLLM proxy agent.
 
 Exit codes:
-  0 — success, response printed to stdout
+  0 — success, response printed to stdout (or written to --write path)
   1 — usage error (bad args, empty prompt, missing task file)
   3 — proxy unavailable; caller should fall back to Claude
 """
@@ -18,6 +18,24 @@ PROXY_URL = "http://localhost:4000/chat/completions"
 # Exit code 3 = proxy unavailable. Distinct from exit 1 (usage error) so
 # Claude's routing instinct can detect it and retake the task directly.
 EXIT_PROXY_UNAVAILABLE = 3
+
+# Default system prompts per agent class — tuned to each model's strengths.
+_SYSTEM_PROMPTS: dict[str, str] = {
+    "mew-coder-simple": (
+        "You are a precise code generator. Output ONLY the requested code. "
+        "No explanations, no markdown fences, no preamble or postamble. "
+        "Follow the spec exactly. Match the language, style, and constraints given. "
+        "If a function signature is provided, honour it exactly. "
+        "If examples are given, match their style. "
+        "Produce production-quality code: correct, clean, no debug prints."
+    ),
+    "mew-coder-reason": (
+        "You are a precise code generator with strong reasoning capabilities. "
+        "Reason through the problem step by step internally, then output ONLY the final code. "
+        "No markdown fences, no preamble. Output starts with the first line of code. "
+        "Match language, constraints, and signatures exactly as specified."
+    ),
+}
 
 
 def run_dispatch(args) -> None:
@@ -52,9 +70,17 @@ def run_dispatch(args) -> None:
     api_key = _load_proxy_key(workspace_root)
     agent = args.agent or "mew-coder-simple"
 
+    # Build message list — inject system prompt unless caller provides --no-system
+    messages = []
+    if not getattr(args, "no_system", False):
+        system_text = getattr(args, "system", None) or _SYSTEM_PROMPTS.get(agent)
+        if system_text:
+            messages.append({"role": "system", "content": system_text})
+    messages.append({"role": "user", "content": prompt})
+
     payload = json.dumps({
         "model": agent,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
         "stream": False,
     }).encode("utf-8")
 
@@ -68,8 +94,6 @@ def run_dispatch(args) -> None:
         with urllib.request.urlopen(req, timeout=120) as resp:
             body = json.loads(resp.read().decode("utf-8"))
     except urllib.error.URLError:
-        # Exit 3 = proxy unavailable. Claude's routing instinct treats this as
-        # "retake the task directly" rather than a hard error.
         print("DISPATCH_UNAVAILABLE: proxy not reachable — Claude should handle this task directly.", file=sys.stderr)
         print("To enable DeepSeek routing: bash proxy/start-proxy.sh (optional)", file=sys.stderr)
         sys.exit(EXIT_PROXY_UNAVAILABLE)
@@ -83,7 +107,15 @@ def run_dispatch(args) -> None:
         print(f"Error: malformed proxy response: {json.dumps(body, indent=2)}", file=sys.stderr)
         sys.exit(1)
 
-    print(content)
+    # --write: write output directly to a file instead of stdout
+    write_path = getattr(args, "write", None)
+    if write_path:
+        out = Path(write_path)
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(content, encoding="utf-8")
+        print(f"dispatch: wrote {len(content)} chars to {out}", file=sys.stderr)
+    else:
+        print(content)
 
 
 def _proxy_is_up() -> bool:

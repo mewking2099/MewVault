@@ -6,91 +6,132 @@
 
 ---
 
-## The Rule
+## The One Decision Rule
 
-Claude Sonnet does all tool-using work. DeepSeek handles pure-generation tasks only. Opus handles architecture and MewKing planning.
-
-**If a task requires any tool call — Read, Write, Bash, Edit, MCP — Claude does it. Full stop.**
+> If the task needs **design judgment, tool iteration, or cross-file context** → Claude.  
+> If the **spec is complete and the output contract is tight** → DeepSeek V3.  
+> If it needs to **reason through logic before writing** → DeepSeek R1.
 
 ---
 
 ## Routing Matrix
 
-| Task | Route | Command |
-|---|---|---|
-| File I/O, Read/Write/Edit/Bash | Claude Sonnet (default) | — |
-| Frontend / React / CSS | Claude Sonnet | — |
-| Debugging | Claude Sonnet | — |
-| Multi-file refactor | Claude Sonnet | — |
-| Architecture decision / MewKing proposal | Opus (`mew-planner`) | `mew dispatch --agent mew-planner` |
-| Isolated algorithm or function (no context needed) | DeepSeek V3 (`mew-coder-simple`) | `mew dispatch --agent mew-coder-simple` |
-| Simple boilerplate block | DeepSeek V3 (`mew-coder-simple`) | `mew dispatch --agent mew-coder-simple` |
-| Math / logic puzzle / reasoning chain | DeepSeek R1 (`mew-coder-reason`) | `mew dispatch --agent mew-coder-reason` |
+### Always Claude (Sonnet)
+
+| Task | Why |
+|---|---|
+| UI/UX components (React, animations, CSS) | Requires visual/design judgment, accessibility intuition, component API design |
+| Frontend state management | Multi-file context dependencies |
+| Debugging | Needs Read → Bash → fix iteration loop |
+| Multi-file refactor | Cross-file coordination |
+| Test writing | Requires behavioral understanding of the code under test |
+| TypeScript with complex generics | Type inference needs full codebase context |
+| Code review / PR feedback | Nuanced judgment |
+| Documentation | Contextual understanding |
+| Any task requiring tool calls | Claude is the only model with tool access |
+| Small fixes / patches (<15 lines) | Not worth serializing; faster direct |
+| Anything needing multi-turn iteration | DeepSeek has no conversation history |
+
+### DeepSeek V3 — `mew-coder-simple` (fast, spec-driven generation)
+
+| Task | Example |
+|---|---|
+| Pure backend functions | Given a signature, implement the function body |
+| API route handlers | Given a schema, write the handler |
+| Database queries / ORM | Given the schema, write the query |
+| Data transformation utilities | Pure functions with typed input/output |
+| Config and schema files | YAML, JSON, TOML with a known shape |
+| GDScript game mechanics | Given a spec, write a self-contained .gd script |
+| Python CLI commands | Following the established mewvault pattern |
+| Shell scripts | Low-ambiguity automation |
+| Type / interface definitions | Given a data shape, generate the types |
+| Boilerplate following a known pattern | When the shape is clear and repetitive |
+
+### DeepSeek R1 — `mew-coder-reason` (reasoning-then-generation)
+
+| Task | Example |
+|---|---|
+| Algorithms and data structures | Sorting, graph traversal, DP problems |
+| State machine implementation | Requires reasoning through all transitions |
+| Regex and complex parsing logic | Analytically derived before written |
+| Performance optimization | Trade-off analysis before the rewrite |
+| Mathematical / logic-heavy functions | Non-obvious correctness requirements |
+
+### Opus — reserved
+
+| Task | Why |
+|---|---|
+| Architecture decisions | High-stakes long-form reasoning |
+| MewKing proposals (plan.md) | Complex planning, multi-session scope |
 
 ---
 
-## How to Dispatch
+## Auto-Dispatch Protocol (mandatory when proxy is running)
 
-**Inline:**
+For any task that falls in the DeepSeek columns above, Claude MUST dispatch before writing. The steps:
+
+**1. Check proxy** (once per session, skip if already confirmed up):
 ```bash
-mew dispatch --agent mew-coder-simple --task "Write a Fisher-Yates shuffle in GDScript"
+mew dispatch --check
 ```
+If exit code 3 → proxy down → handle all tasks as Claude directly for this session.
 
-**From file (preferred for long prompts — avoids shell escaping):**
+**2. Gather context via tools first.** Read the relevant files, understand the interface. Do NOT skip this step — DeepSeek has no workspace access.
+
+**3. Serialize the full spec into a task file:**
 ```bash
-# Write context to temp file, then dispatch
 cat > /tmp/task.md << 'EOF'
-Write a pure function that merges two sorted arrays in Python.
-No imports. Return type annotated.
+Language: Python 3.11
+Task: Implement `merge_sorted_arrays(a: list[int], b: list[int]) -> list[int]`
+Constraints: no imports, O(n+m) time, type-annotated
+Example: merge_sorted_arrays([1,3,5], [2,4,6]) → [1,2,3,4,5,6]
 EOF
-mew dispatch --agent mew-coder-simple --task-file /tmp/task.md
 ```
-
-**Capture output for review before integrating:**
-```bash
-mew dispatch --agent mew-coder-simple --task-file /tmp/task.md > /tmp/result.md
-# Review /tmp/result.md, then integrate manually
-```
-
----
-
-## Context Serialisation
-
-When dispatching to DeepSeek, always serialise the full relevant context into the task file. DeepSeek has no conversation history.
 
 Include:
 - Language and framework
-- Function signature or interface required
-- Any constraints (no imports, typed, max lines, etc.)
-- Example input/output if the behaviour is non-obvious
+- Exact function signature / interface
+- File it will live in (one sentence of context)
+- Constraints (no imports, max lines, style rules)
+- Example input/output if non-obvious
 
-Do NOT include:
-- File paths from this workspace (DeepSeek can't read them)
-- Secrets or API keys
-- Conversation history
+Do NOT include: file paths from this workspace, secrets, conversation history.
+
+**4. Dispatch and capture:**
+```bash
+# To stdout (review before applying):
+mew dispatch --agent mew-coder-simple --task-file /tmp/task.md
+
+# Write directly to destination:
+mew dispatch --agent mew-coder-simple --task-file /tmp/task.md --write src/utils/merge.py
+```
+
+**5. Review and apply.** Read the output. If it matches the spec, apply it (Write/Edit). If it's wrong, fix it as Claude directly — do NOT re-dispatch in a loop.
 
 ---
 
 ## Fallback Rule
 
-DeepSeek routing is **optional**. If the proxy is unavailable, Claude handles all tasks directly. Never block on a failed dispatch.
+DeepSeek routing is **optional infrastructure**. If the proxy is unavailable, Claude handles all tasks. Never block on a failed dispatch.
 
-**Exit code convention for `mew dispatch`:**
-- Exit `0` — success, use the output
-- Exit `1` — usage error (bad args) — fix the command
-- Exit `3` — proxy unavailable (`DISPATCH_UNAVAILABLE`) — retake the task as Claude directly
+**Exit code convention:**
+- `0` — success, use the output
+- `1` — usage error — fix the command
+- `3` — proxy unavailable (`DISPATCH_UNAVAILABLE`) — retake the task as Claude directly
 
-When exit code is `3`, do NOT retry dispatch. Simply handle the task yourself and optionally note: "DeepSeek proxy not running — handled by Claude."
+When exit code is `3`, do NOT retry. Note "DeepSeek proxy not running — handled by Claude." and proceed.
 
-**Check proxy status:** `mew dispatch --check`  
-**Start proxy:** `bash proxy/start-proxy.sh` (requires `DEEPSEEK_API_KEY` in `secrets/workspace.env`)
+**Start proxy:** `bash proxy/start-proxy.sh` (requires `DEEPSEEK_API_KEY` in `secrets/workspace.env`)  
+**Check proxy:** `mew dispatch --check`
 
 ---
 
-## What Stays Claude-Only
+## What Never Goes to DeepSeek
 
-- All tool-using tasks (no exceptions)
-- Debugging sessions requiring Bash output
-- Frontend / React work (requires file reads + iteration)
-- Any task needing multi-turn conversation
+- UI/UX components and anything requiring visual judgment
+- Debugging sessions (no tool access)
+- Multi-file coordination
+- Frontend/React work (requires iteration against actual renders)
+- Tests (requires behavioral understanding of subject code)
 - Anything where correctness is hard to verify without running it
+- Tasks where the spec itself is unclear — clarify with the user first, then dispatch
