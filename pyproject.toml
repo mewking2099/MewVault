@@ -22,3 +22,14 @@ mew = "mew.cli:main"
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mew*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP"]
+# E/W = pycodestyle, F = pyflakes, I = isort, N = naming, UP = pyupgrade
+
+[tool.ruff.lint.per-file-ignores]
+"venv/*" = ["ALL"]

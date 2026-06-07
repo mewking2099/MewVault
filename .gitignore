@@ -30,3 +30,6 @@ proxy/.proxy-key
 
 # Obsidian — managed by Obsidian, not tracked
 .obsidian/
+
+# Graphify — generated knowledge graph output (re-run /graphify to rebuild)
+graphify-out/

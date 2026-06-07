@@ -1,52 +1,24 @@
 model_list:
-  # Anthropic — planning and orchestration
-  - model_name: mew-planner
+  # DeepSeek — pure-generation tasks dispatched by Claude via `mew dispatch`
+  # Claude itself runs via Claude Code subscription (no proxy needed)
+  - model_name: mew-coder-simple
     litellm_params:
-      model: anthropic/claude-opus-4-7
-      api_key: os.environ/ANTHROPIC_API_KEY
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
 
-  - model_name: mew-designer
+  - model_name: mew-coder-reason
     litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-  - model_name: mew-chief
-    litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-  - model_name: mew-learner
-    litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-  - model_name: mew-archivist
-    litellm_params:
-      model: anthropic/claude-haiku-4-5-20251001
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-  # Code and game work — swap back to MiMo-V2-Pro when OPENROUTER_API_KEY is available
-  - model_name: mew-coder
-    litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
-
-  - model_name: mew-gamedev
-    litellm_params:
-      model: anthropic/claude-sonnet-4-6
-      api_key: os.environ/ANTHROPIC_API_KEY
+      model: deepseek/deepseek-reasoner
+      api_key: os.environ/DEEPSEEK_API_KEY
 
 litellm_settings:
   drop_params: true
   set_verbose: false
 
 router_settings:
-  routing_strategy: simple-shuffle
   num_retries: 2
   timeout: 60
 
 general_settings:
-  # master_key secures the proxy endpoints. Set MEW_PROXY_KEY to enable auth,
-  # or remove this line for unauthenticated local-only use.
   master_key: os.environ/MEW_PROXY_KEY
   port: 4000

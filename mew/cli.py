@@ -179,6 +179,19 @@ def main() -> None:
     p_usage = subparsers.add_parser("usage", help="Show Claude auth status and usage dashboard link")
     p_usage.add_argument("--open", action="store_true", help="Open claude.ai/settings in browser")
 
+    # check
+    subparsers.add_parser("check", help="Sanity-check the MewVault installation")
+
+    # dispatch
+    p_dispatch = subparsers.add_parser("dispatch", help="Send pure-generation task to a proxy agent")
+    p_dispatch.add_argument("--agent", default="mew-coder-simple",
+                            choices=["mew-coder-simple", "mew-coder-reason"],
+                            help="Target agent (default: mew-coder-simple = DeepSeek V3, mew-coder-reason = DeepSeek R1)")
+    task_group = p_dispatch.add_mutually_exclusive_group(required=False)
+    task_group.add_argument("--task", metavar="PROMPT", help="Inline prompt string")
+    task_group.add_argument("--task-file", metavar="PATH", help="Path to file containing the prompt")
+    task_group.add_argument("--check", action="store_true", help="Test proxy availability only (exit 0=up, 3=down)")
+
     # help
     p_help = subparsers.add_parser("help", help="Show help")
     p_help.add_argument("topic", nargs="?", help="Command, 'slash', or 'triggers'")
@@ -212,6 +225,8 @@ def main() -> None:
         "wiki":           lambda: _run("wiki", args),
         "memory":         lambda: _run("memory", args),
         "usage":          lambda: _run("usage", args),
+        "check":          lambda: _run("check", args),
+        "dispatch":       lambda: _run("dispatch", args),
         "help":           lambda: _run("help", args),
     }
 
@@ -287,6 +302,12 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "usage":
         from mew.commands.usage import run_usage
         run_usage(args)
+    elif command == "check":
+        from mew.commands.check import run_check
+        run_check(args)
+    elif command == "dispatch":
+        from mew.commands.dispatch import run_dispatch
+        run_dispatch(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))

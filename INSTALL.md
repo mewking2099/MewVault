@@ -128,6 +128,31 @@ You should see a morning brief. The vault is live.
 
 ---
 
+## Optional: DeepSeek routing (multi-model)
+
+MewVault works entirely on Claude without this step. DeepSeek is an optional second model for pure-generation tasks (no file access, no tool calls) — things like isolated algorithms, boilerplate, or math problems.
+
+**Requirements:** A DeepSeek API key from [platform.deepseek.com](https://platform.deepseek.com).
+
+```bash
+# 1. Install the proxy dependency
+pip install 'litellm[proxy]'
+
+# 2. Store your DeepSeek key
+mew secret set DEEPSEEK_API_KEY
+
+# 3. Start the proxy (runs on localhost:4000)
+bash ~/Jan/mewvault/proxy/start-proxy.sh
+
+# 4. Test it
+mew dispatch --check
+mew dispatch --agent mew-coder-simple --task "Write a bubble sort in Python."
+```
+
+The proxy must be running for `mew dispatch` to work. If it isn't, Claude handles all tasks automatically — nothing breaks.
+
+---
+
 ## Optional: Back up your wiki
 
 Your wiki isn't connected to any remote yet. To back it up to GitHub:

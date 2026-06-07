@@ -1,9 +1,10 @@
 project: mewvault
 tier: mewking
 status: active
-current_phase: phase-6-complete
+current_phase: phase-7-multi-model
 plan_approved: true
 gate_block_count: 0
-last_session: 2026-05-26
-next_action: run mew memory sync at session start; test recall injection in session-start.js
+last_session: 2026-06-07
+last_wrap: 2026-06-07
+next_action: next session — mewmerge phase-1 (Main.tscn + walls + floor)
 open_threads: none

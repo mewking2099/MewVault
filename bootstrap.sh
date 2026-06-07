@@ -161,7 +161,16 @@ else
   fi
 fi
 
-# ── 8. Done ───────────────────────────────────────────────────────────────────
+# ── 8. Sanity check ──────────────────────────────────────────────────────────
+step "8. Sanity check"
+
+if command -v mew &>/dev/null; then
+  mew check || true   # warnings/optional failures don't abort the install
+else
+  warn "mew not in PATH yet — open a new terminal and run: mew check"
+fi
+
+# ── 9. Done ──────────────────────────────────────────────────────────────────
 echo ""
 echo -e "${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BOLD} Installation complete${NC}"

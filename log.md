@@ -2,6 +2,161 @@
 
 ## Entries
 
+- **2026-06-07 03:10** — auto-wrap: modified log.md, Project_Status.md [auto-wrap]
+
+- **2026-06-07** — Session wrap: multi-model routing + tooling + sanity checker
+
+  **Completed:**
+  - DeepSeek API wired via LiteLLM proxy — `mew-coder-simple` (V3) + `mew-coder-reason` (R1)
+  - `mew dispatch` command — POSTs to proxy, exit code 3 on unavailable (Claude auto-fallback)
+  - `instincts/promoted/model-routing.md` — routing matrix + exit code convention
+  - `proxy/start-proxy.sh` — now loads `secrets/workspace.env` before starting
+  - `proxy/litellm-config.yaml` — Anthropic models removed (Claude Code uses subscription)
+  - `mew status --quick` — proxy status line added
+  - `INSTALL.md` — optional DeepSeek section added
+  - Tooling: ruff (pyproject.toml), gdtoolkit (.gdlintrc), fallow docs, graphify integration
+  - `post-tool-use.js` — graphify auto-update hook (non-blocking, source files only)
+  - `mew check` — 14-check sanity checker, boxed UI, 3 tiers (required/recommend/optional)
+  - `bootstrap.sh` — `mew check` now runs automatically after fresh install
+  - MewMerge: PRD → GDD locked (`wiki/game-design.md`), scene-map updated, phase-1 started
+  - Game silo step-by-step discipline rules added to `godot-rules.md` + `game-lab/CLAUDE.md`
+
+  **Status:** 14/14 checks passing · proxy live · DeepSeek smoke test confirmed
+
+- **2026-06-07 03:09** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-07 03:09** — auto-wrap: modified check.py [auto-wrap]
+
+- **2026-06-07 03:07** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-07 03:06** — auto-wrap: modified check.py, cli.py, bootstrap.sh [auto-wrap]
+
+- **2026-06-07 03:02** — auto-wrap: modified dispatch.py, cli.py, model-routing.md +2 more [auto-wrap]
+
+- **2026-06-07 02:59** — auto-wrap: modified litellm-config.yaml, cli.py [auto-wrap]
+
+- **2026-06-07 02:58** — auto-wrap: modified start-proxy.sh [auto-wrap]
+
+- **2026-06-07 02:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-07 02:52** — auto-wrap: modified litellm-config.yaml, dispatch.py, cli.py +2 more [auto-wrap]
+
+- **2026-06-07 02:48** — auto-wrap: modified post-tool-use.js [auto-wrap]
+
+- **2026-06-07 02:46** — auto-wrap: modified .gitignore [auto-wrap]
+
+- **2026-06-07 02:43** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-07 02:43** — auto-wrap: modified tooling-linting.md, CLAUDE.md [auto-wrap]
+
+- **2026-06-07 02:41** — auto-wrap: modified pyproject.toml, .gdlintrc, requirements-dev.txt +2 more [auto-wrap]
+
+- **2026-06-07 02:36** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-07 02:27** — auto-wrap: modified log.md, Project_Status.md [auto-wrap]
+
+- **2026-06-06 15:53** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 15:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 15:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 15:49** — auto-wrap: modified godot-rules.md, CLAUDE.md [auto-wrap]
+
+- **2026-06-06 13:02** — auto-wrap: modified game-design.md, scene-map.md, Project_Status.md +1 more [auto-wrap]
+
+- **2026-06-06 12:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 12:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 12:47** — auto-wrap: modified CLAUDE.md, Project_Status.md, CLAUDE.md +5 more [auto-wrap]
+
+- **2026-06-06 12:43** — auto-wrap: modified godot-session-start.md, godot-debug.md, godot-coder.md +2 more [auto-wrap]
+
+- **2026-06-06 12:34** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 12:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 12:26** — auto-wrap: modified CustomCursor.tsx [auto-wrap]
+
+- **2026-06-06 12:25** — auto-wrap: modified CustomCursor.tsx [auto-wrap]
+
+- **2026-06-06 12:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-06 12:15** — auto-wrap: modified CustomCursor.tsx [auto-wrap]
+
+- **2026-06-06 11:50** — auto-wrap: modified DiscoAnim.tsx, FeaturesSection.tsx [auto-wrap]
+
+- **2026-06-06 11:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 18:06** — auto-wrap: modified ProblemSection.tsx [auto-wrap]
+
+- **2026-06-05 18:04** — auto-wrap: modified ProblemSection.tsx [auto-wrap]
+
+- **2026-06-05 18:03** — auto-wrap: modified ProblemSection.tsx [auto-wrap]
+
+- **2026-06-05 18:02** — auto-wrap: modified .gitignore [auto-wrap]
+
+- **2026-06-05 17:59** — auto-wrap: modified CatHide.tsx, ProblemSection.tsx [auto-wrap]
+
+- **2026-06-05 17:50** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-05 17:49** — auto-wrap: modified ComponentsPage.tsx, docs.tsx [auto-wrap]
+
+- **2026-06-05 15:30** — auto-wrap: modified index.ts, defs.tsx, index.tsx [auto-wrap]
+
+- **2026-06-05 15:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 12:56** — auto-wrap: modified DropdownMenu.stories.tsx, EmptyState.stories.tsx, FeaturedIcon.stories.tsx +1 more [auto-wrap]
+
+- **2026-06-05 11:45** — auto-wrap: modified DatePicker.stories.tsx [auto-wrap]
+
+- **2026-06-05 11:33** — auto-wrap: modified DatePicker.stories.tsx, Dialog.stories.tsx, DropdownMenu.stories.tsx [auto-wrap]
+
+- **2026-06-05 11:16** — auto-wrap: modified Checkbox.stories.tsx, DataCard.stories.tsx, DataTable.stories.tsx [auto-wrap]
+
+- **2026-06-05 10:59** — auto-wrap: modified Button.stories.tsx, Alert.stories.tsx [auto-wrap]
+
+- **2026-06-05 10:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 10:26** — auto-wrap: modified Badge.stories.tsx [auto-wrap]
+
+- **2026-06-05 10:24** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 10:23** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 10:23** — auto-wrap: modified Alert.stories.tsx, Avatar.stories.tsx, Badge.stories.tsx [auto-wrap]
+
+- **2026-06-05 09:59** — auto-wrap: modified Button.stories.tsx [auto-wrap]
+
+- **2026-06-05 09:54** — auto-wrap: modified Button.stories.tsx [auto-wrap]
+
+- **2026-06-05 09:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-05 09:47** — auto-wrap: modified Button.stories.tsx [auto-wrap]
+
+- **2026-06-05 09:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 18:49** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-04 18:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 18:31** — auto-wrap: modified CatHead.tsx [auto-wrap]
+
+- **2026-06-04 18:15** — auto-wrap: modified CatHead.tsx [auto-wrap]
+
+- **2026-06-04 18:13** — auto-wrap: modified CatHead.tsx, HeroSection.tsx [auto-wrap]
+
+- **2026-06-04 18:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-06-04 11:42** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-04 11:42** — auto-wrap: modified Badge.tsx, Progress.tsx, Item.tsx +6 more [auto-wrap]
+
+- **2026-06-04 08:34** — auto-wrap: modified Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-06-04 04:30** — auto-wrap: session ended [auto-wrap]
+
 - **2026-06-04 04:27** — auto-wrap: modified log.md [auto-wrap]
 
 - **2026-06-04** — `mew usage` command: shows Claude auth status + usage dashboard links; `--open` opens claude.ai/settings in browser. Multi-model routing plan saved to `proposals/active/multi-model-routing/plan.md` (pending DeepSeek API key).

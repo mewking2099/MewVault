@@ -4,6 +4,37 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const os = require('os');
+const { spawn } = require('child_process');
+
+const GRAPHIFY_SOURCE_EXTS = new Set([
+  '.py', '.js', '.ts', '.tsx', '.jsx', '.gd',
+  '.rs', '.go', '.java', '.rb', '.c', '.h', '.cpp', '.cs', '.kt', '.swift',
+]);
+
+function findGraphifyRoot(startDir) {
+  let dir = path.resolve(startDir);
+  for (let i = 0; i < 6; i++) {
+    if (fs.existsSync(path.join(dir, 'graphify-out', 'graph.json'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
+function runGraphifyUpdate(filePath, cwd) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (!GRAPHIFY_SOURCE_EXTS.has(ext)) return;
+  const searchBase = filePath ? path.dirname(path.resolve(filePath)) : cwd;
+  const root = findGraphifyRoot(searchBase) || findGraphifyRoot(cwd);
+  if (!root) return;
+  const child = spawn('graphify', ['update', '.'], {
+    cwd: root,
+    detached: true,
+    stdio: 'ignore',
+  });
+  child.unref();
+}
 
 const MEWVAULT_ROOT = process.env.MEWVAULT_ROOT || path.join(__dirname, '..');
 
@@ -125,6 +156,11 @@ function main() {
     accumulateActivity(workspaceRoot, filePath, silo);
     checkCorrectionSignal(workspaceRoot, filePath, cwd);
   } catch {}
+
+  // Graphify: update knowledge graph after source file changes (non-blocking)
+  if (filePath) {
+    try { runGraphifyUpdate(filePath, cwd); } catch {}
+  }
 
   process.exit(0);
 }

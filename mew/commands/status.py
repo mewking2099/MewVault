@@ -1,9 +1,18 @@
 """mew status — project status across all silos."""
 import sys
+import urllib.request
 from datetime import datetime, date
 from pathlib import Path
 from mew.workspace import find_workspace_root, get_silo_paths, find_project_status_files
 from mew.utils import parse_frontmatter
+
+
+def _proxy_status() -> str:
+    try:
+        with urllib.request.urlopen("http://localhost:4000/health", timeout=2):
+            return "running (DeepSeek routing active)"
+    except Exception:
+        return "offline (Claude handles all tasks)"
 
 
 def run_status(args) -> None:
@@ -90,6 +99,7 @@ def _print_vault_overview(root: Path, stale_days=None, blocked_only=False) -> No
     print(silo_line("software", "software"))
     print(silo_line("games", "games"))
     print(f"  {'learning':<10} • {learning_count} track{'s' if learning_count != 1 else ''} active")
+    print(f"  {'proxy':<10} • {_proxy_status()}")
     print()
     print("Drill in: name a silo. Or /wrap to leave.")
     print()
