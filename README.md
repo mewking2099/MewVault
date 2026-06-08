@@ -2,12 +2,14 @@
 
 <br>
 
+<img src="assets/git_cat.png" alt="MewVault" width="420">
+
 <h1>MewVault</h1>
 
 <p>
   <strong>A federated AI workspace for Claude Code.</strong><br>
-  Five independent silos. An Obsidian wiki that syncs itself.<br>
-  An instinct system that learns from how you work.
+  Seven independent silos. A CLI that learns from corrections.<br>
+  An agent array that routes itself.
 </p>
 
 <p>
@@ -27,7 +29,7 @@
 
 There are great patterns out there for working with AI on a codebase — the Karpathy wiki approach, community CLAUDE.md setups, various hook recipes for injecting context. They all solve the same core problem: *how do you give an AI the right context without burning your token budget?*
 
-MewVault does that too. But it's built around two structural ideas that those patterns don't address:
+MewVault does that too. But it's built around three structural ideas those patterns don't address:
 
 <br>
 
@@ -40,11 +42,11 @@ This means your notes and project status are always in Obsidian in a browseable,
 
 <br>
 
-**Five silos with separate git histories and separate workflows.** Code projects, design work, game prototypes, and your knowledge base each live in their own git repo with their own planning rules, hook context, and promotion paths. A code session injects different context than a design session. A game experiment doesn't need a MewKing plan; a production feature does.
+**Seven silos with separate git histories and separate workflows.** Code projects, design work, game prototypes, knowledge base, and raw idea capture each live in their own git repo with their own planning rules, hook context, and promotion paths. A code session injects different context than a design session. A game experiment doesn't need a MewKing plan; a production feature does.
 
 <br>
 
-**Projects promote between silos.** Research in `wiki/` can become a UX brief in `design-studio/`. A Figma-complete design can promote to a scaffolded code project in `software-projects/`. A `game-lab/` experiment can become a full game project. The `mew promote` command handles the cross-silo handoff with a single command.
+**Projects promote between silos.** Research in `wiki/` can become a UX brief in `design-studio/`. A Figma-complete design can promote to a scaffolded code project in `software-projects/`. A `game-lab/` experiment can become a full game project. An idea in `idea-hub/` can seed any of them. The `mew promote` command handles the cross-silo handoff with a single command.
 
 ---
 
@@ -56,7 +58,7 @@ workspace-root/
 ├── mewwiki/            ← Obsidian vault — auto-synced, read-only by convention
 ├── software-projects/  ← code (Next.js, Astro, SvelteKit)
 ├── design-studio/      ← UX & Figma-integrated design work
-├── game-lab/           ← Godot games and low-commitment experiments
+├── game-lab/           ← Godot 4 games and low-commitment experiments
 ├── wiki/               ← knowledge base, research, learning tracks
 └── idea-hub/           ← idea capture, feasibility, lifecycle management
 ```
@@ -72,7 +74,7 @@ Each silo is an independent git repo. `mewvault/` is the only one Claude opens b
   design-studio/            (injects context)        Projects/<name>/log.md
   game-lab/                        │                 Knowledge/concepts/
   wiki/                    session-end.js     ──▶   _inbox/ (new wiki pages)
-                            (mew wiki sync)          Brain/ · Operations/
+  idea-hub/                 (mew wiki sync)          Brain/ · Operations/
 ```
 
 ---
@@ -85,9 +87,9 @@ Each silo has its own rules and Claude persona:
 |---|---|---|---|
 | `software-projects/` | Next.js · Astro · SvelteKit | `mew-coder` | TDD warning on every new file; strict tier gates |
 | `design-studio/` | Figma (via MCP) | `mew-designer` | Figma node reads; never manually transcribe measurements |
-| `game-lab/` | GDScript / Godot | `mew-gamedev` | `_experiments/` bypasses MewKing gate — prototype freely |
+| `game-lab/` | GDScript / Godot 4 | `mew-gamedev` | `_experiments/` bypasses MewKing gate — prototype freely |
 | `wiki/` | Markdown | `mew-learner` | Research, concept distillation, learning tracks |
-| `idea-hub/` | Markdown | `mew-ideator` | Idea capture, feasibility, lifecycle — no code zone |
+| `idea-hub/` | Markdown | `mew-ideator` | Idea capture, feasibility, lifecycle — no-code zone |
 | `mewvault/` | Python · Node.js | `mew-chief` | CLI engine, hooks, agent array, skills |
 
 **Project promotion** — moving work between silos when it's ready:
@@ -101,6 +103,9 @@ mew promote my-ux-project --to my-code-project
 
 # Game experiment → full game project
 mew promote game-lab/_experiments/platformer
+
+# Validated idea → any silo
+mew promote idea-hub/ideas/my-idea --to software-projects
 ```
 
 Each promotion scaffolds the destination project with the source artefacts already in place — no copy-pasting, no manual linking.
@@ -160,13 +165,11 @@ Every project has a `tier` in `Project_Status.md`. This is enforced at the OS le
 
 ## Core concepts
 
-MewVault is built on five interconnected systems. Each one solves a specific problem with long-running AI-assisted work.
+MewVault is built on five interconnected systems.
 
 <br>
 
 ### 1 · Token budget management
-
-The biggest friction in any AI workspace is context bloat — every session grows until the model loses track of what matters. MewVault approaches this at three levels:
 
 | Layer | Mechanism | How it helps |
 |---|---|---|
@@ -174,8 +177,6 @@ The biggest friction in any AI workspace is context bloat — every session grow
 | **Prompt cache** | Static content (rules, agent persona) is injected first | Anthropic caches it — repeated calls to this block are ~10× cheaper and faster |
 | **Per-silo whitelist** | `Project_Status.md` fields are filtered per silo | A game session never receives code-silo fields; a design session never gets game fields |
 | **Semantic search** | doobidoo MCP (SQLite-vec + Ollama) | On-demand retrieval instead of injecting everything upfront |
-
-The context block that fires on every prompt is structured so the cached static section comes before the dynamic one — meaning the cache boundary is at the same position on every call, maximising the cache hit rate.
 
 ```
 ┌─ cached (static) ──────────────────────────────┐
@@ -217,54 +218,39 @@ you: "plan the auth refactor"
 | `mew-researcher` | Sonnet 4.6 | any | 4 | Web research, competitive analysis, feasibility assessment |
 | `mew-ideator` | Sonnet 4.6 | idea | 3 | Idea capture, expansion, feasibility routing, lifecycle management |
 
-**44 skills across 9 agents.** Each agent has a `skills/` directory of plain markdown files. Drop a new `.md` skill file and run `mew agent sync`; the routing index rebuilds and the skill is live from the next session. No code changes needed.
-
-```
-agents/mew-coder/skills/
-  tdd-workflow.md        ← drop new .md here
-  code-review.md         ← mew agent sync → live
-  refactor.md
-  webapp-testing.md
-  mcp-builder.md
-  ...
-```
-
-Skills declare their own triggers in YAML frontmatter (`triggers: [...]`), their inject mode (`always` / `on-trigger` / `manual`), optional MCP server requirements (`requires_mcp: [doobidoo]`), and optional chains (`chains_to: mew-archivist/log-write`). Cycle detection is built in.
+**44 skills across 9 agents.** Drop a new `.md` skill file and run `mew agent sync`; the routing index rebuilds and the skill is live from the next session. No code changes needed.
 
 **Hermes delegation** — agents can further delegate to other sub-agents mid-task. `mew-chief` may spawn `mew-planner`, which may in turn spawn `mew-archivist` to log its output. The delegation chain resolves through the routing index; no hardcoded wiring.
 
-> No proxy, no separate API key needed. The agent array runs entirely on your Claude Code subscription via native sub-agent spawning.
+**Default:** the agent array runs entirely on your Claude Code subscription via native sub-agent spawning — no proxy needed.
+
+**With LiteLLM:** agents can be routed to alternative providers. DeepSeek (`deepseek-chat`, `deepseek-reasoner`) is configured as the cost-reduction fallback — `mew-researcher` and `mew-archivist` can run on DeepSeek for high-volume or long-running tasks where Opus/Sonnet budget matters. LiteLLM handles the provider translation; agent skill files stay unchanged.
 
 <br>
 
 ### 3 · SQLite memory layer
 
-Cross-session context that persists between conversations. `mew memory sync` indexes every markdown file across all silos into a local SQLite FTS5 database. At session start, the `loadMemoryRecall` function queries the store and injects the most recently-updated documents into the context banner as `## Recent Context (mew memory)`.
+Cross-session context that persists between conversations. `mew memory sync` indexes every markdown file across all silos into a local SQLite FTS5 database. At session start, the `loadMemoryRecall` function queries the store and injects the most recently-updated documents into the context banner.
 
-```
+```bash
 mew memory sync           → indexes all silos into .mew-memory.db
 mew memory search "auth"  → full-text search across the store
 mew memory recall         → recent docs for the current silo (session-start uses this)
 mew memory purge          → remove entries older than N days
 ```
 
-Unlike the in-session `@modelcontextprotocol/server-memory` knowledge graph (which resets between conversations), the SQLite store is durable — it survives across sessions, machine restarts, and context compactions. It gives Claude a "what was I working on?" answer without relying on git log or flat memory files.
-
-The store is silo-aware: `recall --silo mewvault` surfaces vault tooling docs, `recall --silo software-projects` surfaces code project context. Session-start auto-selects the right silo based on the detected working directory.
+Unlike the in-session knowledge graph (which resets between conversations), the SQLite store is durable — it survives across sessions, machine restarts, and context compactions.
 
 <br>
 
 ### 4 · Instinct system
 
-Most AI setups treat corrections as ephemeral — you fix something, Claude gets it right, and the next session starts from zero. The instinct system makes corrections permanent.
-
-When `post-tool-use.js` detects the same file was rewritten within 60 seconds (the *rapid-rewrite signal*), it logs a candidate to `instincts/pending/`. You review it, decide if it's worth keeping, and promote the ones that are. Promoted instincts are injected into every future session start as the `## Active Vault Instincts` block.
+When `post-tool-use.js` detects the same file was rewritten within 60 seconds (the *rapid-rewrite signal*), it logs a candidate to `instincts/pending/`. You review it, decide if it's worth keeping, and promote the ones that are. Promoted instincts are injected into every future session start.
 
 ```
 you correct Claude → same file rewritten within 60s
                               ↓
               instincts/pending/<hash>.json
-              { signal, context, suggested_rule, confidence }
                               ↓
                   mew instinct status
                               ↓
@@ -273,7 +259,7 @@ you correct Claude → same file rewritten within 60s
               instincts/promoted/<id>.json    ← injected every session
 ```
 
-Each instinct carries a **confidence score** (0–1). Instincts decay if they stop being triggered — `mew instinct prune` removes the stale ones so the injected block stays tight.
+Each instinct carries a **confidence score** (0–1) and decays if it stops being triggered. `mew instinct prune` removes the stale ones so the injected block stays tight.
 
 <br>
 
@@ -281,15 +267,14 @@ Each instinct carries a **confidence score** (0–1). Instincts decay if they st
 
 MewVault has no slash commands. All workflows are triggered by plain sentences. The `session-start.js` hook runs a regex matcher against every prompt before it reaches Claude — if a trigger fires, the full workflow instructions are appended to the context block in the same turn.
 
-| You say | Trigger pattern | What gets injected |
-|---|---|---|
-| `standup` / `morning brief` | `/^(standup\|stand[\s-]?up\|morning brief)/i` | Full standup workflow: parallel reads of North Star, all Project_Status.md files, open PRs, calendar |
-| `wrap up` / `done for the day` | `/^(wrap[\s-]?up\|done for the day)/i` | Wrap workflow: log write, status update, wiki sync, commit suggestion |
-| `dump — <content>` | `/^dump[\s—–-]/i` | Classification + routing workflow: type detection, destination proposal, confirmation |
-| `new project <name>` | `/^new project\b/i` | Scaffolding workflow: questions → `mew new` → mewwiki mirror |
-| `meeting prep <name>` | `/^(meeting[\s-]?prep\|prepare for)/i` | Loads attendee profiles + last meeting notes + agenda suggestions |
-| `capture the meeting` | `/^capture (the )?meeting/i` | Decision + action item extraction → Operations/ |
-| `ingest <file>` | `/^ingest\s/i` | Concept page proposal → approval → wiki write |
+| You say | What gets injected |
+|---|---|
+| `standup` / `morning brief` | Full standup workflow: parallel reads of North Star, all Project_Status.md files, open PRs, calendar |
+| `wrap up` / `done for the day` | Wrap workflow: log write, status update, wiki sync, commit suggestion |
+| `dump — <content>` | Classification + routing workflow: type detection, destination proposal, confirmation |
+| `new project <name>` | Scaffolding workflow: questions → `mew new` → mewwiki mirror |
+| `meeting prep <name>` | Loads attendee profiles + last meeting notes + agenda suggestions |
+| `ingest <file>` | Concept page proposal → approval → wiki write |
 
 The trigger system is entirely in `hooks/session-start.js` as a `TRIGGERS` array of `{ pattern, name, instructions }` objects — easy to add new commands without touching Claude's config.
 
@@ -306,9 +291,10 @@ The trigger system is entirely in `hooks/session-start.js` as a `TRIGGERS` array
 | Persistent memory | SQLite FTS5 · `.mew-memory.db` · silo-aware · cross-session |
 | Semantic search | doobidoo (mcp-memory-service) · SQLite-vec · Ollama `nomic-embed-text` (local) |
 | In-session memory | `@modelcontextprotocol/server-memory` · knowledge graph · resets between sessions |
+| LiteLLM | Provider abstraction layer · DeepSeek API · cost-optimised routing for select agents |
 | Wiki layer | Obsidian · Bases plugin · auto-synced via `mew wiki sync` |
 | Secrets | File-based · `secrets/*.env` · gitignored · `chmod 0600` on Unix · `icacls` on Windows |
-| Models | Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5 · Claude Code subscription · no proxy |
+| Models | Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5 · DeepSeek via LiteLLM · Claude Code subscription |
 
 ---
 
@@ -333,8 +319,6 @@ Five Claude Code lifecycle hooks fire automatically. Install once with `mew harn
 
 ### Token budget
 
-The `UserPromptSubmit` hook prepends a context block to every prompt. To keep it efficient:
-
 - Hard cap of **6,000 tokens** (configurable via `MEW_SESSION_START_MAX_TOKENS`)
 - Static content (vault rules, agent persona) comes first — hits Anthropic's **prompt cache**, costs nothing after the first call
 - Dynamic content (project status, instincts, memory recall) comes after the cache boundary
@@ -344,50 +328,6 @@ The `UserPromptSubmit` hook prepends a context block to every prompt. To keep it
 [static — cached]     vault rules + agent persona
 [dynamic — live]      project status + instincts + memory recall + trigger
 ```
-
-<br>
-
-### Instinct system
-
-MewVault learns from corrections. When `post-tool-use.js` detects the same file was rewritten within 60 seconds, it writes a candidate to `instincts/pending/`. You review and promote the ones worth keeping. Promoted instincts are injected at every session start.
-
-```
-rapid rewrite detected
-       ↓
-instincts/pending/<id>.json     ← candidate, not yet active
-       ↓  mew instinct promote <id>
-instincts/promoted/<id>.json    ← injected every session
-```
-
-```bash
-mew instinct status          # review pending candidates
-mew instinct promote <id>    # make one permanent
-mew instinct prune           # clean up stale entries
-```
-
-<br>
-
-### SQLite memory store
-
-An FTS5-indexed SQLite database (`workspace/.mew-memory.db`) that persists context across sessions. Session-start queries the store for the current silo and injects the most recently-updated documents. Fully offline — no external API.
-
-```bash
-mew memory sync              # index all silos
-mew memory sync --silo code  # re-index one silo after a big session
-mew memory search "auth"     # full-text search
-mew memory recall --days 7   # recent context, last 7 days
-mew memory purge --days 90   # remove stale entries
-```
-
-<br>
-
-### Semantic search (doobidoo)
-
-An MCP server backed by **SQLite-vec** and Ollama embeddings for persistent semantic search across wiki notes and source files. Runs via MCP stdio transport, auto-started by Claude Code.
-
-- Backend: SQLite-vec at `~/.mewvault/chroma-wiki/memory.db`
-- Embeddings: Ollama `nomic-embed-text` (local, no API cost)
-- Re-index after significant changes: `python scripts/ingest_wiki.py`
 
 <br>
 
@@ -512,6 +452,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/mewking2099/MewVault/main/bo
 | `mew promote <ux-name> --to <code-name>` | Design → code project |
 | `mew promote game-lab/_experiments/<name>` | Experiment → full game |
 | `mew promote wiki/ --topic <tag>` | Research → UX project |
+| `mew promote idea-hub/ideas/<slug> --to <silo>` | Idea → any silo |
 
 **Git**
 
