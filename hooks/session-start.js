@@ -111,17 +111,22 @@ function findUnwrapped(workspaceRoot) {
 
 function loadInstincts(silo) {
   const promotedDir = path.join(MEWVAULT_ROOT, 'instincts', 'promoted');
-  if (!fs.existsSync(promotedDir)) return [];
-  const instincts = [];
+  if (!fs.existsSync(promotedDir)) return { json: [], md: [] };
+  const json = [];
+  const md = [];
   try {
-    for (const f of fs.readdirSync(promotedDir).filter(f => f.endsWith('.json'))) {
+    for (const f of fs.readdirSync(promotedDir)) {
       try {
-        const d = JSON.parse(fs.readFileSync(path.join(promotedDir, f), 'utf8'));
-        if (!silo || d.silo === silo || d.silo === 'global') instincts.push(d);
+        if (f.endsWith('.json')) {
+          const d = JSON.parse(fs.readFileSync(path.join(promotedDir, f), 'utf8'));
+          if (!silo || d.silo === silo || d.silo === 'global') json.push(d);
+        } else if (f.endsWith('.md')) {
+          md.push({ name: f.replace(/\.md$/, ''), content: fs.readFileSync(path.join(promotedDir, f), 'utf8') });
+        }
       } catch {}
     }
   } catch {}
-  return instincts.sort((a, b) => (b.confidence || 0) - (a.confidence || 0)).slice(0, 5);
+  return { json: json.sort((a, b) => (b.confidence || 0) - (a.confidence || 0)).slice(0, 5), md };
 }
 
 function loadAgentDispatcher(workspaceRoot) {
@@ -734,9 +739,13 @@ async function main() {
 
   // 6: Promoted instincts
   const instincts = loadInstincts(silo);
-  if (instincts.length) {
+  if (instincts.json.length) {
     sections.push('## Active Vault Instincts\n\n' +
-      instincts.map(i => `- [${i.silo || 'global'}] ${i.correct_behavior} (${i.confidence})`).join('\n'));
+      instincts.json.map(i => `- [${i.silo || 'global'}] ${i.correct_behavior} (${i.confidence})`).join('\n'));
+  }
+  if (instincts.md.length) {
+    sections.push('## Routing Rules\n\n' +
+      instincts.md.map(i => `### ${i.name}\n\n${i.content}`).join('\n\n---\n\n'));
   }
 
   // 7: Semantic context from vector stores (Phase 4 — graceful degradation)

@@ -1,6 +1,6 @@
 # Multi-Model Routing — MewVault Plan
 
-**Status:** Pending — waiting on DeepSeek API key  
+**Status:** Complete — routing instinct live as of 2026-06-19  
 **Tier:** Stalk (one focused session once key is available)  
 **Drafted:** 2026-06-04  
 
@@ -86,9 +86,9 @@ Markdown rule loaded at session start that tells Claude:
 
 ## Pre-conditions
 
-- [ ] DeepSeek API key obtained
-- [ ] LiteLLM proxy tested locally (`start-proxy.sh`)
-- [ ] `DEEPSEEK_API_KEY` stored via `mew secret set`
+- [x] DeepSeek API key obtained
+- [x] LiteLLM proxy tested locally (`start-proxy.sh`) — confirmed reachable 2026-06-19
+- [x] `DEEPSEEK_API_KEY` stored via `mew secret set`
 
 ---
 
