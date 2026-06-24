@@ -66,19 +66,15 @@
 
 ---
 
-## Auto-Dispatch Protocol (mandatory when proxy is running)
+## Auto-Dispatch Protocol (mandatory — fires mid-session on every qualifying task)
 
-For any task that falls in the DeepSeek columns above, Claude MUST dispatch before writing. The steps:
+**Before writing any task that falls in the DeepSeek columns, always attempt dispatch.** This check is per-task, not per-session — a proxy that was down at session start may be running now.
 
-**1. Check proxy** (once per session, skip if already confirmed up):
-```bash
-mew dispatch --check
-```
-If exit code 3 → proxy down → handle all tasks as Claude directly for this session.
+**Step 1 — Attempt dispatch directly.** Do not pre-check; just dispatch. If the proxy is down, the command exits 3 in under 3 seconds and you retake the task as Claude.
 
-**2. Gather context via tools first.** Read the relevant files, understand the interface. Do NOT skip this step — DeepSeek has no workspace access.
+**Step 2 — Gather context via tools first.** Read the relevant files, understand the interface. Do NOT skip this — DeepSeek has no workspace access.
 
-**3. Serialize the full spec into a task file:**
+**Step 3 — Serialize the full spec into a task file:**
 ```bash
 cat > /tmp/task.md << 'EOF'
 Language: Python 3.11
@@ -95,31 +91,55 @@ Include:
 - Constraints (no imports, max lines, style rules)
 - Example input/output if non-obvious
 
-Do NOT include: file paths from this workspace, secrets, conversation history.
+Do NOT include: workspace file paths, secrets, conversation history.
 
-**4. Dispatch and capture:**
+**Step 4 — Dispatch and capture:**
 ```bash
-# To stdout (review before applying):
+# Review before applying:
 mew dispatch --agent mew-coder-simple --task-file /tmp/task.md
 
 # Write directly to destination:
 mew dispatch --agent mew-coder-simple --task-file /tmp/task.md --write src/utils/merge.py
+
+# For logic-heavy tasks:
+mew dispatch --agent mew-coder-reason --task-file /tmp/task.md
 ```
 
-**5. Review and apply.** Read the output. If it matches the spec, apply it (Write/Edit). If it's wrong, fix it as Claude directly — do NOT re-dispatch in a loop.
+**Step 5 — Review and apply.** Read the output. If it matches the spec, apply it. If it's wrong, fix it as Claude directly — do NOT re-dispatch in a loop.
+
+---
+
+## Mid-Session Trigger (automatic)
+
+This fires every time you are about to write code. Run through it before reaching for Write or Edit:
+
+```
+Is this task in the DeepSeek V3 or R1 column?
+  YES → attempt dispatch (Step 3–5 above)
+        exit 3? → handle as Claude directly, note "proxy down for this task"
+  NO  → handle as Claude directly
+```
+
+Qualifying task types that MUST trigger this check mid-session:
+- Any pure backend function or utility (not UI, not debugging)
+- Any API route handler where the interface is already known
+- Any GDScript game mechanic with a clear spec
+- Any data transformation, config file, type definition, or shell script
+- Any boilerplate following an established pattern in the project
 
 ---
 
 ## Fallback Rule
 
-DeepSeek routing is **optional infrastructure**. If the proxy is unavailable, Claude handles all tasks. Never block on a failed dispatch.
+DeepSeek routing is **optional infrastructure**. If the proxy is unavailable for a task, Claude handles that task directly. Never block.
 
 **Exit code convention:**
 - `0` — success, use the output
 - `1` — usage error — fix the command
-- `3` — proxy unavailable (`DISPATCH_UNAVAILABLE`) — retake the task as Claude directly
+- `3` — proxy unavailable — retake the task as Claude directly, tell the user "proxy down — handled by Claude"
 
-When exit code is `3`, do NOT retry. Note "DeepSeek proxy not running — handled by Claude." and proceed.
+If exit code 3 appears repeatedly in a session, surface this to the user:
+> "DeepSeek proxy is not running. Run `bash proxy/start-proxy.sh` in the mewvault directory to enable cheaper model routing for backend tasks."
 
 **Start proxy:** `bash proxy/start-proxy.sh` (requires `DEEPSEEK_API_KEY` in `secrets/workspace.env`)  
 **Check proxy:** `mew dispatch --check`
