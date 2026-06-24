@@ -19,15 +19,39 @@ When spawning subagents via the Agent tool, select the cheapest model that can h
 
 ## MewVault Agent Defaults
 
-| Agent | Default model | Override when |
-|-------|--------------|---------------|
-| mew-chief | Sonnet | Complex cross-silo orchestration → Opus |
-| mew-planner | Opus | Always — architecture is high-stakes |
-| mew-coder | Sonnet | Simple 1-2 file changes → Haiku |
-| mew-designer | Sonnet | — |
-| mew-gamedev | Sonnet | — |
-| mew-learner | Haiku | Deep concept analysis → Sonnet |
-| mew-archivist | Haiku | Session wrap is mechanical |
+| Agent | Default model | Override when | Dispatch via |
+|-------|--------------|---------------|--------------|
+| mew-chief | Sonnet | Complex cross-silo orchestration → Opus | Agent tool |
+| mew-planner | Opus | Always — architecture is high-stakes | Agent tool |
+| mew-coder | Sonnet | Simple 1-2 file changes → Haiku | Agent tool |
+| mew-designer | Sonnet | — | Agent tool |
+| mew-gamedev | Sonnet | — | Agent tool |
+| mew-learner | Sonnet | — | Agent tool |
+| mew-researcher | Sonnet | Architecture-level feasibility → Opus | Agent tool |
+| mew-archivist | Haiku | Session wrap is mechanical | Agent tool |
+| **mew-coder-simple** | **DeepSeek V3** | Pure generation, tight spec | **`mew dispatch`** |
+| **mew-coder-reason** | **DeepSeek R1** | Logic-heavy, reasoning-first | **`mew dispatch`** |
+
+## DeepSeek Dispatch Agents
+
+`mew-coder-simple` and `mew-coder-reason` are **proxy agents** — they are NOT spawned via the Agent tool. They are called via `mew dispatch` through the LiteLLM proxy at localhost:4000.
+
+**When to use mew-coder-simple (DeepSeek V3):**
+Pure functions, API route handlers, DB queries, type definitions, config files, GDScript mechanics, shell/Python scripts, boilerplate following an established pattern. Anything where the spec is complete and the output contract is tight.
+
+**When to use mew-coder-reason (DeepSeek R1):**
+Algorithms, state machines, scoring/ranking logic, regex/parsers, performance optimization, math-heavy functions. Anything where the correctness must be derived before the code can be written.
+
+**Dispatch pattern:**
+```bash
+cat > /tmp/task.md << 'EOF'
+Language: TypeScript
+Task: implement X with signature Y
+Constraints: ...
+Example: ...
+EOF
+mew dispatch --agent mew-coder-simple --task-file /tmp/task.md
+```
 
 ## Rules
 

@@ -1,0 +1,55 @@
+name: mew-coder-reason
+model: deepseek-r1
+dispatch_via: "mew dispatch --agent mew-coder-reason --task-file /tmp/task.md"
+silo: code
+role: Reasoning-first code generation — logic-heavy tasks where correctness must be derived
+delegation_role: leaf
+proxy: true  # accessed via LiteLLM proxy, NOT via Agent tool
+
+# Fire when the task requires reasoning through correctness BEFORE writing.
+# The spec must still be complete — R1 reasons about HOW, not WHAT.
+routing_triggers:
+  - algorithm
+  - sorting algorithm
+  - search algorithm
+  - data structure
+  - tree
+  - graph traversal
+  - dynamic programming
+  - state machine
+  - finite state machine
+  - transitions
+  - optimize
+  - performance optimization
+  - reduce complexity
+  - regex
+  - regular expression
+  - parser
+  - parsing logic
+  - tokenizer
+  - complex logic
+  - scoring logic
+  - score calculation
+  - ranking algorithm
+  - probability
+  - weighted random
+  - distribution
+  - math
+  - calculation
+  - formula
+  - non-obvious correctness
+  - edge cases
+
+dispatch_condition: >
+  Task requires reasoning through all transitions, edge cases, or mathematical
+  correctness before the code can be written correctly. The spec is complete but
+  the implementation path is non-obvious.
+
+never_dispatch:
+  - UI components
+  - anything requiring tool access or iteration
+  - multi-file coordination
+  - unclear specs (clarify first, then dispatch)
+  - auth or security-sensitive code
+
+mcp_servers: []

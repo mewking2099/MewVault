@@ -1,5 +1,8 @@
 name: mew-researcher
-model: opus
+model: sonnet
+model_override_opus:
+  - "architecture-level feasibility for a MewKing proposal"
+  - "multi-system risk analysis spanning 3+ silos"
 silo: idea-hub
 role: Feasibility analysis, market research, competitive intelligence
 delegation_role: leaf

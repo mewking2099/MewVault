@@ -1,0 +1,57 @@
+name: mew-coder-simple
+model: deepseek-v3
+dispatch_via: "mew dispatch --agent mew-coder-simple --task-file /tmp/task.md"
+silo: code
+role: Spec-driven pure code generation — fast, cheap, no tool access
+delegation_role: leaf
+proxy: true  # accessed via LiteLLM proxy, NOT via Agent tool
+
+# Fire when the spec is complete: interface + constraints + examples are known.
+# Do NOT dispatch if: UI/React, debugging, multi-file coordination, spec unclear.
+routing_triggers:
+  - pure function
+  - utility function
+  - helper function
+  - write a function
+  - implement this function
+  - api route
+  - route handler
+  - endpoint handler
+  - database query
+  - sql query
+  - orm query
+  - supabase query
+  - data transformation
+  - transform function
+  - map function
+  - type definition
+  - interface definition
+  - schema definition
+  - zod schema
+  - config file
+  - gdscript
+  - game script
+  - game mechanic script
+  - shell script
+  - python script
+  - python command
+  - boilerplate
+  - scaffold this
+  - following this pattern
+  - same pattern as
+  - add this to the existing pattern
+
+dispatch_condition: >
+  Spec is complete — function signature, language, constraints, and at least one
+  example are all known. The output contract is tight enough that a model with no
+  workspace access can write it correctly.
+
+never_dispatch:
+  - UI components (React, Svelte, HTML/CSS)
+  - anything requiring tool iteration (debugging, read-fix loops)
+  - multi-file coordination
+  - tasks where the spec is still unclear
+  - tests (requires behavioral understanding of subject code)
+  - auth, crypto, or security-sensitive code
+
+mcp_servers: []
