@@ -28,6 +28,16 @@ Use `/plan <feature>` — Claude proposes Pounce / Stalk / MewKing.
 
 **✋ = approval gate.** Nothing proceeds past Plan without explicit sign-off.
 
+## Key files for active work
+
+> Update at every session wrap. This is the first thing read at session start — keeps token cost low.
+
+<!-- List 3–5 files most likely needed next session. Example:
+- `src/app/(panel)/[feature]/Shell.tsx` — main shell component
+- `src/lib/store.ts` — state management
+- `src/app/api/[resource]/route.ts` — API handler
+-->
+
 ## Rules
 
 - Never write code before `plan.md` is approved (MewKing).
