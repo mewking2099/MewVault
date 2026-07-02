@@ -292,6 +292,54 @@ function loadPriorSession(cwd, workspaceRoot) {
   return null;
 }
 
+function checkServiceHealth(host, port, path) {
+  const http = require('http');
+  return new Promise((resolve) => {
+    const req = http.request(
+      { hostname: host, port, path, method: 'GET' },
+      (res) => { resolve(res.statusCode < 500); }
+    );
+    req.on('error', () => resolve(false));
+    req.setTimeout(1500, () => { req.destroy(); resolve(false); });
+    req.end();
+  });
+}
+
+async function checkServices(workspaceRoot) {
+  const checks = [
+    {
+      name: 'LiteLLM proxy',
+      port: 4000,
+      path: '/health',
+      hint: 'bash proxy/start-proxy.sh',
+      detail: 'DeepSeek dispatch unavailable',
+    },
+  ];
+
+  const mcps = loadActiveMcps(workspaceRoot);
+  if (mcps.chromadb) {
+    checks.push({
+      name: 'ChromaDB',
+      port: 8000,
+      path: '/api/v1/heartbeat',
+      hint: null,
+      detail: 'Semantic context unavailable',
+    });
+  }
+
+  const results = await Promise.all(
+    checks.map(async (c) => ({ ...c, up: await checkServiceHealth('localhost', c.port, c.path) }))
+  );
+
+  const lines = results.map(r =>
+    r.up
+      ? `- ${r.name} (localhost:${r.port}): ✓ running`
+      : `- ${r.name} (localhost:${r.port}): ✗ offline — ${r.detail}${r.hint ? ` · start: \`${r.hint}\`` : ''}`
+  );
+
+  return lines.join('\n');
+}
+
 function getMcpToolCount(workspaceRoot) {
   try {
     const s = JSON.parse(fs.readFileSync(path.join(workspaceRoot, '.claude', 'settings.json'), 'utf8'));
@@ -747,6 +795,10 @@ async function main() {
     sections.push('## Routing Rules\n\n' +
       instincts.md.map(i => `### ${i.name}\n\n${i.content}`).join('\n\n---\n\n'));
   }
+
+  // 6b: Service health check
+  const services = await checkServices(workspaceRoot);
+  sections.push('## Services\n\n' + services);
 
   // 7: Semantic context from vector stores (Phase 4 — graceful degradation)
   const semantic = await loadSemanticContext(silo, workspaceRoot);

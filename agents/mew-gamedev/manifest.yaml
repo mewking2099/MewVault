@@ -1,5 +1,5 @@
 name: mew-gamedev
-model: sonnet
+model: claude-sonnet-5
 silo: game
 role: GDScript, game mechanics, Godot patterns, AI-led game development
 delegation_role: leaf

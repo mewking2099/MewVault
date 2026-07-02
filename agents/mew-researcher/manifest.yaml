@@ -1,5 +1,5 @@
 name: mew-researcher
-model: sonnet
+model: claude-sonnet-5
 model_override_opus:
   - "architecture-level feasibility for a MewKing proposal"
   - "multi-system risk analysis spanning 3+ silos"

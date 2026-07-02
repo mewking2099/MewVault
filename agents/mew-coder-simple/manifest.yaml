@@ -9,6 +9,18 @@ proxy: true  # accessed via LiteLLM proxy, NOT via Agent tool
 # Fire when the spec is complete: interface + constraints + examples are known.
 # Do NOT dispatch if: UI/React, debugging, multi-file coordination, spec unclear.
 routing_triggers:
+  - implement
+  - build
+  - write the code
+  - fix
+  - bug
+  - feature
+  - refactor
+  - function
+  - component
+  - endpoint
+  - api
+  - migration
   - pure function
   - utility function
   - helper function
@@ -42,9 +54,8 @@ routing_triggers:
   - add this to the existing pattern
 
 dispatch_condition: >
-  Spec is complete — function signature, language, constraints, and at least one
-  example are all known. The output contract is tight enough that a model with no
-  workspace access can write it correctly.
+  DEFAULT for all coding tasks. Attempt dispatch unless the task is in never_dispatch.
+  Gather context via Claude tools first, then serialize a complete spec into the task file.
 
 never_dispatch:
   - UI components (React, Svelte, HTML/CSS)

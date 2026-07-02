@@ -1,5 +1,5 @@
 name: mew-ideator
-model: sonnet
+model: claude-sonnet-5
 silo: idea-hub
 role: Idea capture, expansion, and brief generation
 delegation_role: leaf

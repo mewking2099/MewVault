@@ -8,31 +8,17 @@
 
 ## The One Decision Rule
 
-> If the task needs **design judgment, tool iteration, or cross-file context** → Claude.  
-> If the **spec is complete and the output contract is tight** → DeepSeek V3.  
+> **Default for all coding tasks: DeepSeek V3 (`mew-coder-simple`).**  
+> Fall back to Claude only if the task is in the **Never Dispatch** list below.  
 > If it needs to **reason through logic before writing** → DeepSeek R1.
 
 ---
 
 ## Routing Matrix
 
-### Always Claude (Sonnet)
+### DeepSeek V3 — `mew-coder-simple` (DEFAULT for all coding tasks)
 
-| Task | Why |
-|---|---|
-| UI/UX components (React, animations, CSS) | Requires visual/design judgment, accessibility intuition, component API design |
-| Frontend state management | Multi-file context dependencies |
-| Debugging | Needs Read → Bash → fix iteration loop |
-| Multi-file refactor | Cross-file coordination |
-| Test writing | Requires behavioral understanding of the code under test |
-| TypeScript with complex generics | Type inference needs full codebase context |
-| Code review / PR feedback | Nuanced judgment |
-| Documentation | Contextual understanding |
-| Any task requiring tool calls | Claude is the only model with tool access |
-| Small fixes / patches (<15 lines) | Not worth serializing; faster direct |
-| Anything needing multi-turn iteration | DeepSeek has no conversation history |
-
-### DeepSeek V3 — `mew-coder-simple` (fast, spec-driven generation)
+Attempt dispatch for any coding task unless it is in the Claude-only list below.
 
 | Task | Example |
 |---|---|
@@ -46,6 +32,25 @@
 | Shell scripts | Low-ambiguity automation |
 | Type / interface definitions | Given a data shape, generate the types |
 | Boilerplate following a known pattern | When the shape is clear and repetitive |
+| Feature implementation | Implement a well-understood feature |
+| Bug fix (isolated, known root cause) | Fix a single function or file |
+| Refactor (single file, clear goal) | Rename, extract, simplify |
+| New component (spec known) | React or Svelte component with clear props |
+
+### Always Claude (Sonnet 5) — fallback only
+
+| Task | Why |
+|---|---|
+| Debugging (root cause unknown) | Needs Read → Bash → fix iteration loop |
+| Multi-file coordination / refactor | Cross-file context dependencies |
+| Test writing | Requires behavioral understanding of code under test |
+| TypeScript with complex generics | Type inference needs full codebase context |
+| Code review / PR feedback | Nuanced judgment |
+| Documentation | Contextual understanding |
+| Any task requiring tool calls | Claude is the only model with tool access |
+| Small patches (<10 lines, obvious fix) | Not worth serializing; faster direct |
+| Spec is still unclear | Clarify first, then dispatch |
+| Auth, crypto, security-sensitive code | Correctness too high-stakes for blind generation |
 
 ### DeepSeek R1 — `mew-coder-reason` (reasoning-then-generation)
 

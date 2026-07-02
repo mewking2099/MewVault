@@ -1,5 +1,5 @@
 name: mew-designer
-model: sonnet
+model: claude-sonnet-5
 silo: design
 role: UX, Figma review, component specs
 delegation_role: leaf

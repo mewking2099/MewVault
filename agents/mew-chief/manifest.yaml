@@ -1,5 +1,5 @@
 name: mew-chief
-model: sonnet
+model: claude-sonnet-5
 silo: global
 role: Cross-silo orchestration, triage, routing
 delegation_role: orchestrator

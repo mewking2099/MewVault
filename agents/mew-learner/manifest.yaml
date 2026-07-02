@@ -1,5 +1,5 @@
 name: mew-learner
-model: sonnet
+model: claude-sonnet-4-6
 silo: wiki
 role: Concept distillation, research ingest
 delegation_role: leaf

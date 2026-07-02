@@ -1,5 +1,5 @@
 name: mew-coder
-model: sonnet
+model: claude-sonnet-5
 silo: code
 role: Implementation, refactoring, test generation
 delegation_role: leaf
