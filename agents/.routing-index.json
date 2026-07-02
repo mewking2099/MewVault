@@ -1,18 +1,14 @@
 {
   "mew-archivist": [
     {
-      "name": "notify",
+      "name": "commit-suggest",
       "triggers": [
-        "notify me",
-        "send me a message",
-        "telegram",
-        "slack notification",
-        "notify when done",
-        "send notification",
-        "ping me",
-        "alert me"
+        "commit message",
+        "suggest commit",
+        "git commit",
+        "what should i commit"
       ],
-      "description": "Notify via Telegram or Slack — wraps, milestones, blockers",
+      "description": "Generate a conventional commit message from session activity",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -29,7 +25,7 @@
         "write a report",
         "structured document"
       ],
-      "description": "3-stage co-authoring: context → structure → reader test",
+      "description": "Guide users through a structured 3-stage workflow for co-authoring any substantial document \u2014 session summaries, reports, specs, or decision docs. Use when the user wants structured writing help beyond a simple log entry.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -46,20 +42,7 @@
         "incident report",
         "weekly update"
       ],
-      "description": "Write 3P updates, status reports, incident reports, FAQs",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
-    {
-      "name": "commit-suggest",
-      "triggers": [
-        "commit message",
-        "suggest commit",
-        "git commit",
-        "what should i commit"
-      ],
-      "description": "Generate a conventional commit message from session activity",
+      "description": "Write internal communications \u2014 status reports, project updates, 3P updates (Progress/Plans/Problems), incident reports, FAQs, session wraps. Use whenever the user needs structured written communication about project state.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -78,6 +61,23 @@
       "claude_code_skills": []
     },
     {
+      "name": "notify",
+      "triggers": [
+        "notify me",
+        "send me a message",
+        "telegram",
+        "slack notification",
+        "notify when done",
+        "send notification",
+        "ping me",
+        "alert me"
+      ],
+      "description": "Send notifications via Telegram or Slack. Use at session wrap, when a milestone is hit, or when a blocker is found. Handles message formatting and API delivery.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
       "name": "session-wrap",
       "triggers": [
         "wrap",
@@ -86,13 +86,21 @@
         "done for the day",
         "finishing up"
       ],
-      "description": "Session-end: log, status, sync, commit suggestion",
+      "description": "Full session-end sequence \u2014 log, status, sync, commit suggestion",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-chief": [
+    {
+      "name": "dispatcher",
+      "triggers": [],
+      "description": "Classify every request and route to the right sub-agent",
+      "inject": "always",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
     {
       "name": "schedule",
       "triggers": [
@@ -106,104 +114,30 @@
         "set up a schedule",
         "remind me to"
       ],
-      "description": "Schedule recurring/one-shot prompts with CronCreate",
+      "description": "Schedule recurring or one-shot prompts using CronCreate. Use for session wrap reminders, daily standups, recurring research checks, or any timed task. Durable jobs persist across Claude restarts.",
       "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
-    {
-      "name": "dispatcher",
-      "triggers": [],
-      "description": "Classify every request and route to the right sub-agent",
-      "inject": "always",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-coder": [
     {
-      "name": "github-issue-fix",
-      "triggers": [
-        "fix this github issue",
-        "triage issue",
-        "work on this issue",
-        "github issue",
-        "issue number",
-        "resolve issue",
-        "close issue"
-      ],
-      "description": "Triage, fix, review, and PR a GitHub issue",
-      "inject": "on-trigger",
-      "chains_to": [
-        "code-review"
-      ],
-      "claude_code_skills": []
-    },
-    {
       "name": "claude-api",
       "triggers": [
-        "claude api",
-        "call claude",
-        "anthropic api",
-        "integrate claude",
-        "use claude in code",
-        "build with claude"
+        "claude API",
+        "anthropic SDK",
+        "claude integration",
+        "add claude",
+        "build with claude",
+        "claude feature",
+        "prompt caching"
       ],
-      "description": "Integrate Claude API — tool use, streaming, caching",
+      "description": "Build, debug, and optimize Claude API / Anthropic SDK apps. Use when code imports anthropic or @anthropic-ai/sdk, or when adding/tuning any Claude feature (caching, tool use, streaming, batch). Skip for OpenAI or other providers.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": [
         "claude-api"
       ]
-    },
-    {
-      "name": "mcp-builder",
-      "triggers": [
-        "build an mcp",
-        "mcp server",
-        "model context protocol",
-        "create mcp",
-        "mcp tool"
-      ],
-      "description": "Scaffold MCP servers with tools and transport setup",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": [
-        "mcp-builder"
-      ]
-    },
-    {
-      "name": "webapp-testing",
-      "triggers": [
-        "test this app",
-        "write tests",
-        "e2e test",
-        "test coverage",
-        "browser test",
-        "playwright"
-      ],
-      "description": "Write and run unit, integration, and e2e web tests",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": [
-        "webapp-testing"
-      ]
-    },
-    {
-      "name": "xlsx",
-      "triggers": [
-        "xlsx",
-        "spreadsheet",
-        "excel",
-        "edit the xlsx",
-        "create a spreadsheet",
-        "csv file",
-        "tabular data"
-      ],
-      "description": "Create, read, edit .xlsx/.csv with formulas and formatting",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
     },
     {
       "name": "code-review",
@@ -223,6 +157,39 @@
       ]
     },
     {
+      "name": "github-issue-fix",
+      "triggers": [
+        "fix this github issue",
+        "triage issue",
+        "work on this issue",
+        "github issue",
+        "issue number",
+        "resolve issue",
+        "close issue"
+      ],
+      "description": "6-step pipeline to triage, fix, review, and PR a GitHub issue",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "mcp-builder",
+      "triggers": [
+        "build an MCP",
+        "create MCP server",
+        "MCP server",
+        "new MCP tool",
+        "add MCP",
+        "MCP integration"
+      ],
+      "description": "Guide for creating high-quality MCP (Model Context Protocol) servers that connect external services to Claude. Use when building or extending any MCP server in mewvault/ or software-projects/.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "mcp-builder"
+      ]
+    },
+    {
       "name": "refactor",
       "triggers": [
         "refactor",
@@ -232,7 +199,7 @@
         "extract",
         "rename"
       ],
-      "description": "Safe refactor with verification gate — no behaviour changes",
+      "description": "Safe refactor with verification gate \u2014 no behaviour changes",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -248,13 +215,100 @@
         "new feature",
         "add"
       ],
-      "description": "Test-first cycle for any new src/ or lib/ file",
+      "description": "Test-first implementation cycle for any new src/ or lib/ file",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "webapp-testing",
+      "triggers": [
+        "test the app",
+        "playwright test",
+        "test this page",
+        "UI test",
+        "browser test",
+        "e2e test",
+        "test this UI"
+      ],
+      "description": "Test local web applications using Playwright \u2014 verify frontend functionality, debug UI behavior, capture screenshots, view browser logs. Use when testing any web app in software-projects/ or when the user wants to verify UI behaviour.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "webapp-testing"
+      ]
+    },
+    {
+      "name": "xlsx",
+      "triggers": [
+        "xlsx",
+        "spreadsheet",
+        "excel",
+        "open this spreadsheet",
+        "edit the xlsx",
+        "create a spreadsheet",
+        "csv file",
+        "tsv file",
+        "tabular data"
+      ],
+      "description": "Create, read, edit, or fix .xlsx/.csv/.tsv files. Use whenever a spreadsheet file is the primary input or output \u2014 adding columns, computing formulas, formatting, cleaning data, financial models. Trigger when the user references a spreadsheet file by name or path, even casually.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
+  "mew-coder-reason": [],
+  "mew-coder-simple": [],
   "mew-designer": [
+    {
+      "name": "canvas-design",
+      "triggers": [
+        "create a poster",
+        "design this",
+        "piece of art",
+        "visual design",
+        "make art",
+        "canvas design",
+        "generate a design"
+      ],
+      "description": "Create original visual art as .png or .pdf \u2014 posters, abstract compositions, editorial graphics. Two-step workflow: design philosophy then canvas execution. Use when the user wants a designed visual artifact, not a wireframe or UI component.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "figma-spec",
+      "triggers": [
+        "figma",
+        "design spec",
+        "component spec",
+        "get the design",
+        "check figma",
+        "figma file"
+      ],
+      "description": "Extract component specs from Figma via MCP and produce handoff notes",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "frontend-design",
+      "triggers": [
+        "design this UI",
+        "make this look good",
+        "frontend design",
+        "style this",
+        "UI design",
+        "build this component",
+        "make it beautiful"
+      ],
+      "description": "Create distinctive, production-grade frontend interfaces with high design quality. Use when building web components, pages, or apps that need polished styling \u2014 even if the user doesn't say \"design\" explicitly.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "frontend-design"
+      ]
+    },
     {
       "name": "image-gen",
       "triggers": [
@@ -269,43 +323,10 @@
         "stability ai",
         "generate artwork"
       ],
-      "description": "Generate AI images via FAL/Flux, Stability, or DALL-E",
+      "description": "Generate images via AI APIs (FAL/Flux, Stability AI, DALL-E 3). Use when the user wants an AI-generated image as a design asset \u2014 concept art, mockup backgrounds, icons, textures. Handles prompt engineering, API call, and saving to assets/.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
-    },
-    {
-      "name": "canvas-design",
-      "triggers": [
-        "create a poster",
-        "design this",
-        "piece of art",
-        "visual design",
-        "make art",
-        "canvas design",
-        "generate a design"
-      ],
-      "description": "Create visual art as .png/.pdf — philosophy + execution",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
-    {
-      "name": "frontend-design",
-      "triggers": [
-        "design the ui",
-        "style this component",
-        "make it look good",
-        "improve the design",
-        "ui design",
-        "component design"
-      ],
-      "description": "Design and implement polished frontend UI components",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": [
-        "frontend-design"
-      ]
     },
     {
       "name": "theme-factory",
@@ -318,38 +339,7 @@
         "pick a theme",
         "theme factory"
       ],
-      "description": "Apply color+font themes to slides, docs, HTML pages",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
-    {
-      "name": "web-artifacts-builder",
-      "triggers": [
-        "build a web artifact",
-        "interactive demo",
-        "html artifact",
-        "self-contained html",
-        "web prototype"
-      ],
-      "description": "Build self-contained interactive HTML artifacts",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": [
-        "web-artifacts-builder"
-      ]
-    },
-    {
-      "name": "figma-spec",
-      "triggers": [
-        "figma",
-        "design spec",
-        "component spec",
-        "get the design",
-        "check figma",
-        "figma file"
-      ],
-      "description": "Extract Figma component specs and produce handoff notes",
+      "description": "Apply consistent professional themes (colors + fonts) to any artifact \u2014 slides, docs, HTML pages, reports. Has 10 preset themes or can generate a custom one on request.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -363,10 +353,28 @@
         "token inconsistency",
         "token coverage"
       ],
-      "description": "Audit design tokens — aliases, unused, coverage gaps",
+      "description": "Audit design token usage \u2014 missing aliases, unused tokens, coverage gaps",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
+    },
+    {
+      "name": "web-artifacts-builder",
+      "triggers": [
+        "react artifact",
+        "web artifact",
+        "shadcn artifact",
+        "complex dashboard",
+        "multi-component UI",
+        "build a dashboard",
+        "interactive component"
+      ],
+      "description": "Build elaborate multi-component React artifacts using React 18 + Tailwind + shadcn/ui. Use for complex UIs requiring state management, routing, or shadcn components \u2014 not for simple single-file HTML.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "web-artifacts-builder"
+      ]
     }
   ],
   "mew-gamedev": [
@@ -381,7 +389,7 @@
         "make generative art",
         "p5.js"
       ],
-      "description": "Generative art with p5.js — philosophy + interactive HTML",
+      "description": "Create algorithmic/generative art using p5.js with seeded randomness and interactive parameter controls. Two-step workflow: algorithmic philosophy then interactive HTML artifact. Use when the user wants living, code-driven visual art \u2014 not static design.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -389,32 +397,17 @@
     {
       "name": "frontend-design",
       "triggers": [
-        "game ui design",
-        "style the hud",
+        "game UI design",
+        "design the game UI",
+        "UI for the game",
         "game menu design",
-        "ui for the game",
-        "title screen"
+        "game HUD design"
       ],
-      "description": "Design polished game UI — HUDs, menus, title screens",
+      "description": "Create production-grade UI for game menus, HUDs, and overlays. Use when designing any visual interface for a game project in game-lab/.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": [
         "frontend-design"
-      ]
-    },
-    {
-      "name": "webapp-testing",
-      "triggers": [
-        "test the game export",
-        "test the web build",
-        "browser test",
-        "e2e test game"
-      ],
-      "description": "Test web game exports with Playwright",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": [
-        "webapp-testing"
       ]
     },
     {
@@ -431,6 +424,52 @@
       "claude_code_skills": []
     },
     {
+      "name": "godot-coder",
+      "triggers": [
+        "write the script",
+        "code the mechanic",
+        "implement in godot",
+        "write gdscript",
+        "add to player.gd",
+        "write the scene"
+      ],
+      "description": "Write production-ready GDScript for Godot 4 mechanics \u2014 character movement, physics, signals, state machines, UI.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "godot-debug",
+      "triggers": [
+        "error in godot",
+        "godot crash",
+        "script error",
+        "invalid call",
+        "nil reference",
+        "node not found",
+        "godot isn't working",
+        "broken in godot"
+      ],
+      "description": "Troubleshoot Godot runtime errors and GDScript bugs from pasted error output.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "godot-session-start",
+      "triggers": [
+        "start game session",
+        "continue game",
+        "pick up from last session",
+        "what's next in the game",
+        "resume game dev"
+      ],
+      "description": "Session-start ritual for Godot projects \u2014 reads project state and proposes the next mechanic to build.",
+      "inject": "always",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
       "name": "mechanic-design",
       "triggers": [
         "mechanic",
@@ -439,29 +478,30 @@
         "design the",
         "prototype"
       ],
-      "description": "Design a mechanic with feel notes and Godot sketch",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    }
-  ],
-  "mew-ideator": [
-    {
-      "name": "pptx",
-      "triggers": [
-        "pitch deck",
-        "slide deck",
-        "presentation",
-        "slides",
-        "pptx",
-        "make slides",
-        "create a deck"
-      ],
-      "description": "Build pitch decks from idea briefs using pptxgenjs",
+      "description": "Design a game mechanic with feel notes and Godot implementation sketch",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     },
+    {
+      "name": "webapp-testing",
+      "triggers": [
+        "test the game",
+        "browser test",
+        "test this web game",
+        "playwright test",
+        "test the UI",
+        "verify the game works"
+      ],
+      "description": "Test web-based game builds using Playwright \u2014 verify game UI, browser rendering, and interactive behaviour. Use for game-lab projects with a web frontend or browser-based prototype.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": [
+        "webapp-testing"
+      ]
+    }
+  ],
+  "mew-ideator": [
     {
       "name": "idea-brief",
       "triggers": [
@@ -471,7 +511,7 @@
         "summarise idea",
         "summarize idea"
       ],
-      "description": "One-page pitch summary from a populated idea folder",
+      "description": "Produce a one-page pitch summary (brief.md) from an idea folder. Use when the user wants to present, share, or pitch an idea \u2014 even if they just say \"summarise this idea\" or \"give me a one-pager for X\".",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -485,7 +525,7 @@
         "i have an idea",
         "quick idea"
       ],
-      "description": "Scaffold a structured idea.md from a rough brain dump",
+      "description": "Take a rough prompt or brain dump and scaffold a structured idea.md in idea-hub/ideas/<slug>/. Use whenever the user describes a new idea, mentions wanting to capture something, or dumps raw thoughts \u2014 even if they don't say \"capture idea\" explicitly.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -499,28 +539,29 @@
         "deepen",
         "explore angles"
       ],
-      "description": "Deepen a seed idea — pivots, analogues, moats",
+      "description": "Deepen a seed idea by surfacing the real problem, specific user pain, pivot angles, analogous products, and moats. Modifies idea.md in-place. Use when an idea is captured but thin \u2014 user wants to think it through before validating.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "pptx",
+      "triggers": [
+        "pitch deck",
+        "slide deck",
+        "presentation",
+        "slides",
+        "pptx",
+        "make slides",
+        "create a deck"
+      ],
+      "description": "Create, edit, or extract content from .pptx presentations. Use whenever the user mentions deck, slides, presentation, or a .pptx file \u2014 even if pptx isn't the final goal. For idea-hub, this produces pitch decks from idea briefs.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
     }
   ],
   "mew-learner": [
-    {
-      "name": "pdf",
-      "triggers": [
-        "read this pdf",
-        "extract from pdf",
-        "summarise this pdf",
-        "parse the pdf",
-        "pdf content",
-        "open this pdf"
-      ],
-      "description": "Read/extract PDF content via pypdf and pdfplumber",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
     {
       "name": "concept-distill",
       "triggers": [
@@ -551,6 +592,23 @@
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
+    },
+    {
+      "name": "pdf",
+      "triggers": [
+        "pdf",
+        "extract from PDF",
+        "read this PDF",
+        "PDF file",
+        "merge PDFs",
+        "split PDF",
+        "OCR",
+        "scanned document"
+      ],
+      "description": "Use whenever the user wants to do anything with PDF files \u2014 read, extract text/tables, merge, split, rotate, create, OCR scanned pages. If the user mentions a .pdf file or asks to produce one, use this skill.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
     }
   ],
   "mew-planner": [
@@ -566,7 +624,7 @@
         "help me write the plan",
         "write this up"
       ],
-      "description": "3-stage co-authoring for MewKing plans and proposals",
+      "description": "Guide users through a structured 3-stage workflow for co-authoring documentation \u2014 proposals, specs, MewKing plans, decision docs. Use when the user wants to write any substantial structured document.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -609,7 +667,7 @@
         "design the system",
         "how should we build"
       ],
-      "description": "Produce plan.md with phases, files, risks, acceptance",
+      "description": "Produce a MewKing plan.md with phases, files, risks, and acceptance tests",
       "inject": "on-trigger",
       "chains_to": null,
       "claude_code_skills": []
@@ -628,24 +686,7 @@
         "navigate to",
         "extract from website"
       ],
-      "description": "Multi-page web research — pagination, extraction, sources",
-      "inject": "on-trigger",
-      "chains_to": [],
-      "claude_code_skills": []
-    },
-    {
-      "name": "xlsx",
-      "triggers": [
-        "xlsx",
-        "spreadsheet",
-        "excel",
-        "build a model",
-        "market data table",
-        "create a spreadsheet",
-        "csv file",
-        "tabular data"
-      ],
-      "description": "Create/edit .xlsx/.csv for market sizing and research",
+      "description": "Systematic multi-page web research \u2014 traverse paginated results, extract structured data, track sources. Use when WebSearch alone isn't enough and you need to read full pages, follow links, or extract data across multiple URLs.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -659,7 +700,7 @@
         "competitive landscape",
         "market map"
       ],
-      "description": "Competitive landscape — positioning, gaps, entry angle",
+      "description": "Structured competitive landscape for an idea or market \u2014 positioning, gaps, entry angle. Use whenever the user wants to understand who already plays in a space, even outside the idea-hub lifecycle.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -673,7 +714,7 @@
         "how big is this",
         "solo viable"
       ],
-      "description": "T-shirt sizing, stack, phase count, solo-viable flag",
+      "description": "T-shirt size an idea or feature \u2014 S/M/L/XL, phase count, stack recommendation, solo-viable flag. Use when the user wants to know how much work something is before committing.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []
@@ -687,7 +728,27 @@
         "research this",
         "feasibility scan"
       ],
-      "description": "Market size, competitors, tech complexity → feasibility.md",
+      "description": "Research and assess an idea's market size, competitors, tech complexity, and effort. Writes feasibility.md with a green/amber/red verdict. Use when the user wants to know if an idea is worth building \u2014 even if they just ask \"is this viable?\" or \"should I build this?\".",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
+      "name": "xlsx",
+      "triggers": [
+        "xlsx",
+        "spreadsheet",
+        "excel",
+        "open this spreadsheet",
+        "edit the xlsx",
+        "create a spreadsheet",
+        "csv file",
+        "tsv file",
+        "tabular data",
+        "build a model",
+        "market data table"
+      ],
+      "description": "Create, read, edit, or fix .xlsx/.csv/.tsv files. Use whenever a spreadsheet file is the primary input or output \u2014 market sizing tables, competitor comparison grids, feasibility data, research exports. Trigger when the user references a spreadsheet file by name or path, even casually.",
       "inject": "on-trigger",
       "chains_to": [],
       "claude_code_skills": []

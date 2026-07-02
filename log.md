@@ -2,6 +2,24 @@
 
 ## Entries
 
+- **2026-07-02 06:35** — auto-wrap: modified com.mewvault.chromadb.plist, install-chromadb-daemon.sh, uninstall-chromadb-daemon.sh +2 more [auto-wrap]
+
+- **2026-07-02 06:17** — auto-wrap: modified Project_Status.md, Project_Status.md [auto-wrap]
+
+- **2026-07-02 06:03** — auto-wrap: modified Project_Status.md, plan.md [auto-wrap]
+
+- **2026-07-02 05:58** — auto-wrap: modified Project_Status.md, plan.md [auto-wrap]
+
+- **2026-07-02 05:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-02 05:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-02 05:50** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-02** — Session card + Headroom daemon integration. Added `buildSessionCard()` to `session-start.js` (first-prompt-only flag via `/tmp/mew-shown-<session_id>.flag`) showing agent/phase/tier/services. Added Headroom health check alongside LiteLLM in `checkServices()`. Fixed all agent manifests: main agents → `claude-sonnet-5`, mew-planner → `claude-opus-4-8`, mew-learner stays `claude-sonnet-4-6`. Created Headroom launchd daemon (`proxy/com.mewvault.headroom.plist`, install/uninstall scripts) — auto-starts at login, `KeepAlive=true`. Added `ANTHROPIC_BASE_URL=http://localhost:8787` to `~/.zshrc`. Created `.mcp.json` for Headroom MCP server registration. Proxy confirmed healthy (`{"status":"healthy","ready":true,"version":"0.28.0"}`). All committed and pushed (4 commits).
+
+- **2026-07-02 05:46** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-02 05:45** — auto-wrap: session ended [auto-wrap]
 
 - **2026-07-02 05:45** — auto-wrap: modified com.mewvault.headroom.plist, install-headroom-daemon.sh, uninstall-headroom-daemon.sh [auto-wrap]

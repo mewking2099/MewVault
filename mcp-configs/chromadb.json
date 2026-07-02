@@ -8,13 +8,13 @@
         "chroma-mcp",
         "--client-type", "http",
         "--host", "localhost",
-        "--port", "8000",
+        "--port", "8001",
         "--ssl", "false"
       ],
       "env": {}
     }
   },
-  "http_endpoint": "http://localhost:8000",
+  "http_endpoint": "http://localhost:8001",
   "collections": {
     "code": "mewvault-code",
     "game": "mewvault-game"

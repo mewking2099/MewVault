@@ -324,15 +324,13 @@ async function checkServices(workspaceRoot) {
   ];
 
   const mcps = loadActiveMcps(workspaceRoot);
-  if (mcps.chromadb) {
-    checks.push({
-      name: 'ChromaDB',
-      port: 8000,
-      path: '/api/v1/heartbeat',
-      hint: null,
-      detail: 'Semantic context unavailable',
-    });
-  }
+  checks.push({
+    name: 'ChromaDB',
+    port: 8001,
+    path: '/api/v2/heartbeat',
+    hint: 'bash proxy/install-chromadb-daemon.sh',
+    detail: 'Semantic context unavailable',
+  });
 
   const results = await Promise.all(
     checks.map(async (c) => ({ ...c, up: await checkServiceHealth('localhost', c.port, c.path) }))
