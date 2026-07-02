@@ -44,14 +44,19 @@
       "mcp__webflow__data_sites_tool",
       "mcp__webflow__data_element_tool",
       "mcp__webflow__data_element_builder",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(headroom *)",
+      "mcp__headroom__headroom_compress",
+      "mcp__headroom__headroom_retrieve",
+      "mcp__headroom__headroom_stats"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "memory",
     "doobidoo",
-    "webflow"
+    "webflow",
+    "headroom"
   ],
   "hooks": {
     "UserPromptSubmit": [

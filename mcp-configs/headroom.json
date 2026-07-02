@@ -1,0 +1,18 @@
+{
+  "description": "Headroom — context compression proxy with CCR (Compress-Cache-Retrieve). Exposes headroom_compress, headroom_retrieve, headroom_stats tools. Proxy at localhost:8787 intercepts Claude API calls and compresses context before it reaches the model.",
+  "silo_scope": ["global"],
+  "mcpServers": {
+    "headroom": {
+      "command": "headroom",
+      "args": ["mcp", "serve"],
+      "env": {
+        "HEADROOM_PROXY_URL": "http://localhost:8787"
+      }
+    }
+  },
+  "http_endpoint": "http://localhost:8787",
+  "health_path": "/health",
+  "install": "pip install 'headroom-ai[proxy,mcp]'",
+  "start_proxy": "bash proxy/start-headroom.sh",
+  "usage": "Launch Claude Code with: ANTHROPIC_BASE_URL=http://localhost:8787 claude"
+}

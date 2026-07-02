@@ -308,6 +308,13 @@ function checkServiceHealth(host, port, path) {
 async function checkServices(workspaceRoot) {
   const checks = [
     {
+      name: 'Headroom',
+      port: 8787,
+      path: '/health',
+      hint: 'bash proxy/start-headroom.sh',
+      detail: 'Context compression unavailable · launch with ANTHROPIC_BASE_URL=http://localhost:8787',
+    },
+    {
       name: 'LiteLLM proxy',
       port: 4000,
       path: '/health',
