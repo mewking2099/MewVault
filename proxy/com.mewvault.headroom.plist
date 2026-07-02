@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.mewvault.headroom</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/Users/Mohabbat/Jan/mewvault/venv/bin/headroom</string>
+        <string>proxy</string>
+        <string>--port</string>
+        <string>8787</string>
+        <string>--protect-tool-results</string>
+        <string>Bash,Read,Edit,Write,MultiEdit</string>
+        <string>--no-telemetry</string>
+    </array>
+
+    <!-- Load secrets so ANTHROPIC_API_KEY is available for API-key users.    -->
+    <!-- Subscription users: no key needed; proxy routes via Claude Code auth. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/Mohabbat/Jan/mewvault/venv/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>/Users/Mohabbat</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <!-- Wait 10s before restarting after a crash -->
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/Mohabbat/.mewvault/logs/headroom.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/Mohabbat/.mewvault/logs/headroom.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/Mohabbat/Jan/mewvault</string>
+</dict>
+</plist>
