@@ -29,12 +29,29 @@
       "Bash(pnpm --filter @yaana/react-ui typecheck)",
       "Bash(python3 *)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(pnpm --filter @dsaas/panel exec tsc --noEmit)",
+      "Bash(pnpm dev *)",
+      "Bash(zsh *)",
+      "Bash(xargs cat *)",
+      "Bash(git *)",
+      "Bash(node *)",
+      "Bash(open *)",
+      "Read(//Users/Mohabbat/.mcp-auth/mcp-remote-0.1.37/**)",
+      "Read(//Users/Mohabbat/Library/Caches/**)",
+      "Read(//Users/Mohabbat/.mcp-auth/**)",
+      "mcp__webflow__webflow_guide_tool",
+      "mcp__webflow__data_sites_tool",
+      "mcp__webflow__data_element_tool",
+      "mcp__webflow__data_element_builder",
+      "Bash(npx tsc *)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "memory",
-    "doobidoo"
+    "doobidoo",
+    "webflow"
   ],
   "hooks": {
     "UserPromptSubmit": [

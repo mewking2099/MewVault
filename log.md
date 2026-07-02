@@ -2,6 +2,22 @@
 
 ## Entries
 
+- **2026-07-02 04:59** — auto-wrap: modified session-start.js [auto-wrap]
+
+- **2026-07-02 04:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-02 04:51** — auto-wrap: modified session-start.js [auto-wrap]
+
+- **2026-07-02 04:42** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-02 04:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-02 04:37** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-02** — Upgraded all agents to Sonnet 5 / Opus 4.8; mew-learner kept on Sonnet 4.6; promoted mew-coder-simple (DeepSeek V3) to default coding agent; flipped model-routing instinct to DeepSeek-first; added checkServices() to session-start hook for LiteLLM + ChromaDB health on every session start. All committed. [auto-wrap]
+
+- **2026-07-02 04:33** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-02 04:32** — auto-wrap: modified session-start.js [auto-wrap]
 
 - **2026-07-02 04:30** — auto-wrap: modified model-routing.md, manifest.yaml [auto-wrap]

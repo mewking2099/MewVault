@@ -48,14 +48,14 @@ function loadRules(workspaceRoot, silo) {
 }
 
 const AGENT_MAP = {
-  code:     { name: 'mew-coder',    model: 'claude-sonnet-4-6', role: 'Implementation, refactoring, test generation' },
-  game:     { name: 'mew-gamedev',  model: 'claude-sonnet-4-6', role: 'GDScript, game mechanics, Godot patterns' },
-  design:   { name: 'mew-designer', model: 'claude-sonnet-4-6', role: 'UX, Figma review, component specs' },
+  code:     { name: 'mew-coder',    model: 'claude-sonnet-5',   role: 'Implementation, refactoring, test generation' },
+  game:     { name: 'mew-gamedev',  model: 'claude-sonnet-5',   role: 'GDScript, game mechanics, Godot patterns' },
+  design:   { name: 'mew-designer', model: 'claude-sonnet-5',   role: 'UX, Figma review, component specs' },
   wiki:     { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
-  idea:     { name: 'mew-ideator',  model: 'claude-sonnet-4-6', role: 'Idea capture, expansion, feasibility routing' },
-  mewvault: { name: 'mew-chief',    model: 'claude-sonnet-4-6', role: 'CLI engine, hooks, skills, agent array' },
+  idea:     { name: 'mew-ideator',  model: 'claude-sonnet-5',   role: 'Idea capture, expansion, feasibility routing' },
+  mewvault: { name: 'mew-chief',    model: 'claude-sonnet-5',   role: 'CLI engine, hooks, skills, agent array' },
 };
-const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-4-6', role: 'Cross-silo orchestration, triage, routing' };
+const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-5', role: 'Cross-silo orchestration, triage, routing' };
 
 function getAgent(silo) {
   return AGENT_MAP[silo] || DEFAULT_AGENT;
@@ -331,13 +331,7 @@ async function checkServices(workspaceRoot) {
     checks.map(async (c) => ({ ...c, up: await checkServiceHealth('localhost', c.port, c.path) }))
   );
 
-  const lines = results.map(r =>
-    r.up
-      ? `- ${r.name} (localhost:${r.port}): ✓ running`
-      : `- ${r.name} (localhost:${r.port}): ✗ offline — ${r.detail}${r.hint ? ` · start: \`${r.hint}\`` : ''}`
-  );
-
-  return lines.join('\n');
+  return results;
 }
 
 function getMcpToolCount(workspaceRoot) {
@@ -729,6 +723,62 @@ type: concept
   },
 ];
 
+function buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief) {
+  const date = new Date().toISOString().slice(0, 10);
+
+  const getField = (key) => {
+    if (!status) return null;
+    const m = status.match(new RegExp(`^${key}\\s*:\\s*(.+)$`, 'm'));
+    return m ? m[1].trim() : null;
+  };
+
+  const tier = (getField('tier') || '—').toLowerCase();
+  const phase = getField('current_phase') || '—';
+  const planApproved = getField('plan_approved');
+  const tierLabel = tier === 'mewking'
+    ? `MewKing · plan ${planApproved === 'true' ? '✓ approved' : '✗ NEEDED'}`
+    : tier.charAt(0).toUpperCase() + tier.slice(1);
+
+  const svcLines = (serviceResults || []).map(r =>
+    `  ${r.up ? '✓' : '✗'}  ${r.name}${r.up ? '' : ' — offline'}`
+  );
+
+  const flags = [];
+  if (unwrapped && unwrapped.length) {
+    const preview = unwrapped.slice(0, 2).join(', ') + (unwrapped.length > 2 ? `… +${unwrapped.length - 2}` : '');
+    flags.push(`  ⚠  ${unwrapped.length} unwrapped session(s): ${preview}`);
+  }
+  if (wikibrief) {
+    const inboxM = wikibrief.match(/Inbox:\s*(\d+)/);
+    if (inboxM && parseInt(inboxM[1]) > 0) flags.push(`  ○  ${inboxM[1]} wiki inbox items pending`);
+    const staleM = wikibrief.match(/Stale[^:]*:\s*(.+)/);
+    if (staleM) {
+      const count = staleM[1].split(',').length;
+      flags.push(`  ○  ${count} stale project(s) (>14d idle)`);
+    }
+  }
+
+  const allUp = (serviceResults || []).every(r => r.up);
+  const statusBullet = allUp ? '● Ready' : '● Services offline — DeepSeek dispatch unavailable';
+
+  const SEP = '══════════════════════════════════════════';
+  return [
+    SEP,
+    ` MewVault  ·  ${silo || 'global'}  ·  ${date}`,
+    SEP,
+    ` Agent   ${agent.name} (${agent.model})`,
+    ` Phase   ${phase}`,
+    ` Tier    ${tierLabel}`,
+    '',
+    ' Services',
+    ...(svcLines.length ? svcLines : ['  (none configured)']),
+    ...(flags.length ? ['', ' Flags', ...flags] : []),
+    '',
+    ` ${statusBullet}`,
+    SEP,
+  ].join('\n');
+}
+
 function detectTrigger(prompt) {
   if (!prompt) return null;
   const trimmed = prompt.trim();
@@ -754,6 +804,11 @@ async function main() {
 
   const sections = [];
   const agent = getAgent(silo);
+
+  const sessionId = (input.session_id || '').replace(/[^a-zA-Z0-9-]/g, '') || 'nosession';
+  const SESSION_FLAG = path.join(os.tmpdir(), `mew-shown-${sessionId}.flag`);
+  const isFirstPrompt = !fs.existsSync(SESSION_FLAG);
+  if (isFirstPrompt) { try { fs.writeFileSync(SESSION_FLAG, new Date().toISOString()); } catch {} }
 
   // 1+2: Static rules (cache-eligible — always first)
   const rules = loadRules(workspaceRoot, silo);
@@ -797,8 +852,13 @@ async function main() {
   }
 
   // 6b: Service health check
-  const services = await checkServices(workspaceRoot);
-  sections.push('## Services\n\n' + services);
+  const serviceResults = await checkServices(workspaceRoot);
+  const servicesDisplay = serviceResults.map(r =>
+    r.up
+      ? `- ${r.name} (localhost:${r.port}): ✓ running`
+      : `- ${r.name} (localhost:${r.port}): ✗ offline — ${r.detail}${r.hint ? ` · start: \`${r.hint}\`` : ''}`
+  ).join('\n');
+  sections.push('## Services\n\n' + servicesDisplay);
 
   // 7: Semantic context from vector stores (Phase 4 — graceful degradation)
   const semantic = await loadSemanticContext(silo, workspaceRoot);
@@ -835,6 +895,16 @@ async function main() {
   // 13: Conversational trigger — inject workflow instructions if prompt matches
   const trigger = detectTrigger(input.prompt);
   if (trigger) sections.push(trigger.instructions);
+
+  // Session card — only on first prompt of each session
+  if (isFirstPrompt) {
+    const card = buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief);
+    sections.push(
+      '## Session Card\n\n' +
+      'Display this status card verbatim as the very first thing in your response, before answering the user:\n\n' +
+      '```\n' + card + '\n```'
+    );
+  }
 
   let brief = sections.join('\n\n---\n\n');
   if (brief.length > MAX_CHARS) {
