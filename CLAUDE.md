@@ -41,6 +41,44 @@ These are helpful but not required. MewVault works without them. Full setup guid
 | `fallow` | software-projects | TS/JS dead code + duplication | `npx fallow` |
 | `graphifyy` | all silos | Knowledge graph + `/graphify` skill | `pip install graphifyy` |
 
+## Agent dispatch — mandatory rules
+
+When spawning any mew agent via the Agent tool, you MUST pass the `model` parameter explicitly. The `.claude/agents/` frontmatter only enforces models when the user invokes agents natively (e.g. `@mew-planner`). When you call the Agent tool programmatically, you are responsible for passing the correct model — otherwise every agent silently runs on the session default.
+
+**Model lookup table — never deviate from this:**
+
+| Agent | model param |
+|---|---|
+| mew-planner | `opus` |
+| fable | `opus` |
+| mew-chief | `sonnet` |
+| mew-coder | `sonnet` |
+| mew-researcher | `sonnet` |
+| mew-designer | `sonnet` |
+| mew-ideator | `sonnet` |
+| mew-gamedev | `sonnet` |
+| mew-learner | `haiku` |
+| mew-archivist | `haiku` |
+
+**Correct pattern:**
+```
+Agent({
+  description: "mew-planner: ...",
+  model: "opus",          ← required, always
+  prompt: "..."
+})
+```
+
+**Wrong pattern (silent Sonnet fallback — never do this):**
+```
+Agent({
+  description: "mew-planner: ...",
+  prompt: "..."           ← model omitted = always Sonnet regardless of .claude/agents/
+})
+```
+
+DeepSeek agents (mew-coder-simple, mew-coder-reason) cannot be dispatched via the Agent tool — use `mew dispatch` + LiteLLM proxy instead.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
