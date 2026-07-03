@@ -1,0 +1,21 @@
+name: fable
+model: claude-fable-5
+silo: global
+role: Deep codebase analysis, MVP-to-production planning, architecture audit reports
+delegation_role: analyst
+handles_direct:
+  - audit
+  - scale plan
+  - production plan
+  - architecture report
+routing_triggers:
+  - audit codebase
+  - code audit
+  - technical debt
+  - architecture review
+  - mvp to production
+  - production ready
+  - scalability report
+  - refactor plan
+  - scale this
+mcp_servers: []

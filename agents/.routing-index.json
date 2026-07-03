@@ -1,4 +1,22 @@
 {
+  "fable": [
+    {
+      "name": "audit",
+      "triggers": null,
+      "description": "Full codebase audit \u2014 reads the entire project, produces a structured report covering architecture, P0/P1/P2 issues, security surface, deps, observability, and test coverage. Output saved to wiki/audit-<date>.md.",
+      "inject": "on-trigger",
+      "chains_to": null,
+      "claude_code_skills": []
+    },
+    {
+      "name": "scale-plan",
+      "triggers": null,
+      "description": "Converts a fable audit into a phased, sprint-ready production roadmap. Phases work into Phase 0 (pre-launch blockers), Phase 1 (first sprint), Phase 2 (stability), Phase 3 (scale). Output saved to wiki/scale-plan.md.",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    }
+  ],
   "mew-archivist": [
     {
       "name": "commit-suggest",
