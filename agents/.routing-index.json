@@ -329,6 +329,43 @@
       "claude_code_skills": []
     },
     {
+      "name": "impeccable",
+      "triggers": [
+        "typography",
+        "typeset",
+        "color",
+        "colorize",
+        "layout",
+        "spacing",
+        "animate",
+        "motion",
+        "polish",
+        "critique",
+        "audit",
+        "bolder",
+        "quieter",
+        "distill",
+        "harden",
+        "clarify",
+        "adapt",
+        "optimize",
+        "delight",
+        "craft",
+        "shape",
+        "design review",
+        "anti-pattern",
+        "ai slop",
+        "responsive",
+        "accessibility",
+        "production ready",
+        "ui quality"
+      ],
+      "description": "Invoke Impeccable design vocabulary commands for UI/UX work on frontend code",
+      "inject": "on-trigger",
+      "chains_to": [],
+      "claude_code_skills": []
+    },
+    {
       "name": "theme-factory",
       "triggers": [
         "apply a theme",

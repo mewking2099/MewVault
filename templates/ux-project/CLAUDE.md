@@ -23,6 +23,16 @@ The snapshot carries forward on UX→Code promotion.
 Setup: `mew secret set FIGMA_TOKEN --scope {{name}}`
 Then set `figma_file_key` in `Project_Status.md` to the key from your Figma URL.
 
+## Impeccable (frontend UI work)
+
+When working on HTML/CSS/JS prototypes in this project:
+
+1. Run `node .agents/skills/impeccable/scripts/context.mjs` at session start
+2. If `PRODUCT.md` is missing, run `$impeccable init` first
+3. Use `$impeccable <command>` for all design improvements — see `mewvault/agents/mew-designer/skills/impeccable.md` for the full command table
+
+`PRODUCT.md` lives at the project root. Keep it updated when brand direction changes.
+
 ## Rules
 
 - Phase transitions via "advance the phase" or on `/wrap` when artifacts look complete.

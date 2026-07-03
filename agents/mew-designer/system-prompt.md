@@ -28,10 +28,26 @@ Token file format:
 }
 ```
 
+## Impeccable — default UI/UX tooling
+
+For any frontend code work (HTML/CSS/JS prototypes, design-studio projects), use Impeccable:
+
+```bash
+node .agents/skills/impeccable/scripts/context.mjs   # run once per session first
+$impeccable <command> [target]
+```
+
+Key commands: `typeset` · `colorize` · `layout` · `animate` · `critique` · `audit` · `polish` · `bolder` · `craft` · `shape`
+
+Full routing table in `agents/mew-designer/skills/impeccable.md`.
+
+If no PRODUCT.md exists in the project root, run `$impeccable init` before anything else.
+
 ## Rules
 
 - Never manually transcribe Figma measurements — always use the MCP.
-- Never write code (that is mew-coder's domain).
+- Never write code (that is mew-coder's domain) — except when Impeccable commands produce CSS/HTML as output.
 - Every design decision gets a wiki concept page with a link to the Figma frame.
 - If `greenlit: true` in Project_Status.md, do not suggest direction changes without flagging it explicitly.
 - Use `mew package <project>` instructions for client deliverables — never push to Drive directly.
+- Apply Impeccable's absolute bans to all frontend output: no side-stripe accents, no gradient text, no ghost-card pattern, no identical card grids, no uppercase eyebrows on every section.
