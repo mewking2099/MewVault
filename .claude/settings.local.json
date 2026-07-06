@@ -48,7 +48,11 @@
       "Bash(headroom *)",
       "mcp__headroom__headroom_compress",
       "mcp__headroom__headroom_retrieve",
-      "mcp__headroom__headroom_stats"
+      "mcp__headroom__headroom_stats",
+      "WebFetch(domain:astryx.atmeta.com)",
+      "mcp__webflow__data_whtml_builder",
+      "mcp__webflow__data_pages_tool",
+      "mcp__webflow__data_component_tool"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -2,6 +2,278 @@
 
 ## Entries
 
+- **2026-07-06 09:54** — auto-wrap: modified project_golddiamond_state.md, log.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-06 07:15** — GoldDiamond: custom div dropdown replaces native select; dark mode text visibility fixed; font synced to search box [auto-wrap]
+
+- **2026-07-06 07:13** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 07:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:51** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:44** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:40** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:39** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:36** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:35** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:33** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:23** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 06:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 05:53** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 05:28** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 05:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 04:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 04:44** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 04:40** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:39** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:18** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 18:17** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:30** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:28** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:25** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:17** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:14** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:12** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:08** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 17:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 14:43** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 14:41** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 14:36** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 14:01** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 13:58** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 13:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 13:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 07:22** — auto-wrap: modified scan-component-tokens.mjs [auto-wrap]
+
+- **2026-07-05 07:17** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 07:13** — auto-wrap: modified code.ts [auto-wrap]
+
+- **2026-07-05 07:09** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 07:05** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 07:01** — auto-wrap: modified build.ts, dsaas.config.json, TenantTheme.tsx +11 more [auto-wrap]
+
+- **2026-07-05 06:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 06:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:44** — auto-wrap: modified zip.ts, export-guard.ts [auto-wrap]
+
+- **2026-07-05 05:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:30** — auto-wrap: modified package.json, main.tsx [auto-wrap]
+
+- **2026-07-05 05:14** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:05** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:05** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 05:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:59** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:58** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:41** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:37** — auto-wrap: modified PRD_SaaS_Pivot_v1.md, investor-deck-brief-v1.md [auto-wrap]
+
+- **2026-07-05 04:25** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:22** — auto-wrap: modified com.mewvault.headroom.plist, start-headroom.sh [auto-wrap]
+
+- **2026-07-05 04:17** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-05 04:16** — auto-wrap: modified session-start.js [auto-wrap]
+
+- **2026-07-05 04:14** — auto-wrap: modified build-tokens-css.mjs, package.json, main.tsx [auto-wrap]
+
+- **2026-07-05 04:03** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 19:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 19:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:59** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:40** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:25** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:16** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 18:10** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:41** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:39** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:29** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:28** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:05** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:02** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:01** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 17:00** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 16:59** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-03 16:58** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 16:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 16:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 16:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 16:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 15:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 13:10** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:52** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:45** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:44** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:43** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-03** — Session wrap. Model routing enforcement closed (Option A): created 10 `.claude/agents/` native subagent files with correct model frontmatter (fable/mew-planner → opus, mew-learner/mew-archivist → haiku, all others → sonnet). Added mandatory Agent tool dispatch table to `mewvault/CLAUDE.md` — all programmatic Agent calls must now pass explicit `model` param or they're wrong. Updated `proposals/active/model-routing-enforcement/ISSUE.md` status to partially resolved (Claude-family fixed; DeepSeek pending Option B). DSaaS: ran mew-planner with opus model on Astryx adoption plan — plan is 9 patterns, 1,327 lines, PENDING APPROVAL. GoldDiamond: added Webflow MCP server to `~/.mcp.json` (restart required for it to load).
+
+- **2026-07-03 11:42** — auto-wrap: modified .mcp.json [auto-wrap]
+
+- **2026-07-03 11:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 11:35** — auto-wrap: modified plan.md [auto-wrap]
+
+- **2026-07-03 11:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 10:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 10:36** — auto-wrap: modified plan.md [auto-wrap]
+
+- **2026-07-03 09:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:55** — auto-wrap: modified CLAUDE.md [auto-wrap]
+
+- **2026-07-03 09:53** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:53** — auto-wrap: modified plan.md [auto-wrap]
+
+- **2026-07-03 09:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:30** — auto-wrap: modified mew-chief.md, mew-coder.md, mew-learner.md +8 more [auto-wrap]
+
+- **2026-07-03 09:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:16** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 09:12** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 06:53** — auto-wrap: modified ISSUE.md, project_agent_model_routing_gap.md, MEMORY.md +1 more [auto-wrap]
+
+- **2026-07-03** — CRITICAL ISSUE LOGGED: Agent model routing is not enforced. All agents (fable, mew-coder-simple, mew-coder-reason, mew-learner, etc.) run on Sonnet 4.6 regardless of their manifest.yaml `model:` spec. The Agent tool only accepts "sonnet"/"opus"/"haiku" shortcuts — arbitrary model IDs are ignored. Full issue + fix options documented at `proposals/active/model-routing-enforcement/ISSUE.md`. Must fix before agent array has real value.
+
+- **2026-07-03 06:49** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 06:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 06:46** — auto-wrap: modified audit-2026-07-03.md, scale-plan.md, Project_Status.md [auto-wrap]
+
+- **2026-07-03 06:38** — auto-wrap: modified manifest.yaml, system-prompt.md, audit.md +1 more [auto-wrap]
+
+- **2026-07-03 06:34** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 06:32** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-03 06:32** — auto-wrap: modified log.md, log.md, index.html +2 more [auto-wrap]
+
 - **2026-07-03** — Session wrap. Wellness check: stamped agent-array-v2 + phase-3-memory plans as COMPLETE (both were fully built in prior sessions). Fixed brac-uni-usis + mew-merge Project_Status.md schema errors (0 errors after fix). ChromaDB was not running — created launchd daemon (com.mewvault.chromadb, port 8001, /api/v2/heartbeat), updated session-start.js + mcp-configs/chromadb.json. Committed + pushed (3eb58e7). Installed Impeccable design tooling (23 commands via npx skills add pbakaus/impeccable → .agents/skills/impeccable/): wired into mew-designer skill, system prompt, design-rules.md, ux-project template + PRODUCT.md scaffold. Agent sync: 48 skills total. GoldDiamond: parked pending client decision on Webflow CMS upgrade (wrote client note). BRAC Connect: full gap analysis from 11 web screenshots — identified 2 missing features (Service Request, Advising) + data field gaps across 5 screens. Phase A+B update plan written and approved in session.
 
 - **2026-07-02 15:18** — auto-wrap: modified impeccable.md, system-prompt.md, design-rules.md +2 more [auto-wrap]

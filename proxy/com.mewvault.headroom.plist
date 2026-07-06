@@ -24,6 +24,10 @@
         <string>/Users/Mohabbat/Jan/mewvault/venv/bin:/usr/local/bin:/usr/bin:/bin</string>
         <key>HOME</key>
         <string>/Users/Mohabbat</string>
+        <key>HEADROOM_COMPRESS_USER_MESSAGES</key>
+        <string>true</string>
+        <key>HEADROOM_COMPRESS_SYSTEM_MESSAGES</key>
+        <string>true</string>
     </dict>
 
     <key>RunAtLoad</key>

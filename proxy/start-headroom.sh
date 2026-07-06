@@ -37,6 +37,8 @@ echo "  Then launch Claude Code with:"
 echo "  ANTHROPIC_BASE_URL=http://localhost:8787 claude"
 echo ""
 
+HEADROOM_COMPRESS_USER_MESSAGES=true \
+HEADROOM_COMPRESS_SYSTEM_MESSAGES=true \
 exec headroom proxy \
   --port 8787 \
   --protect-tool-results "Bash,Read,Edit,Write,MultiEdit" \

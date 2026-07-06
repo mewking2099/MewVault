@@ -815,6 +815,14 @@ async function main() {
   const isFirstPrompt = !fs.existsSync(SESSION_FLAG);
   if (isFirstPrompt) { try { fs.writeFileSync(SESSION_FLAG, new Date().toISOString()); } catch {} }
 
+  // On subsequent prompts, only emit conversational trigger instructions (if matched).
+  // All context (rules, status, instincts, services) is already in the model's context window.
+  if (!isFirstPrompt) {
+    const trigger = detectTrigger(input.prompt);
+    if (trigger) process.stdout.write(trigger.instructions + '\n');
+    return;
+  }
+
   // 1+2: Static rules (cache-eligible — always first)
   const rules = loadRules(workspaceRoot, silo);
   if (rules) sections.push('## Vault Rules\n\n' + rules);
