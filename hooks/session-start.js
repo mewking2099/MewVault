@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 const MEWVAULT_ROOT = process.env.MEWVAULT_ROOT || path.join(__dirname, '..');
-const MAX_TOKENS = parseInt(process.env.MEW_SESSION_START_MAX_TOKENS || '6000', 10);
+const MAX_TOKENS = parseInt(process.env.MEW_SESSION_START_MAX_TOKENS || '3000', 10);
 const MAX_CHARS = MAX_TOKENS * 4;
 
 function readStdin() {

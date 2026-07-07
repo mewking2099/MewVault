@@ -144,9 +144,26 @@ function checkCorrectionSignal(workspaceRoot, filePath, cwd) {
   try { fs.writeFileSync(signalFile, JSON.stringify(signals), 'utf8'); } catch {}
 }
 
+const LARGE_FILE_BYTES = 10240; // 10 KB — ~200+ lines
+
+function checkHeadroomNudge(toolName, filePath) {
+  if (toolName !== 'Read' || !filePath) return;
+  try {
+    const stat = fs.statSync(filePath);
+    if (stat.size >= LARGE_FILE_BYTES) {
+      const lines = Math.round(stat.size / 50); // rough estimate
+      process.stdout.write(
+        `[headroom] Large file read: ${path.basename(filePath)} (~${lines} lines, ${Math.round(stat.size / 1024)}KB). ` +
+        `Call mcp__headroom__headroom_compress on this content now to free context.\n`
+      );
+    }
+  } catch {}
+}
+
 function main() {
   const input = readStdin();
   const cwd = input.cwd || process.cwd();
+  const toolName = input.tool_name || '';
   const toolInput = input.tool_input || {};
   const filePath = toolInput.file_path || toolInput.path || '';
 
@@ -161,6 +178,9 @@ function main() {
   if (filePath) {
     try { runGraphifyUpdate(filePath, cwd); } catch {}
   }
+
+  // Headroom nudge: remind Claude to compress large file reads
+  checkHeadroomNudge(toolName, filePath);
 
   process.exit(0);
 }
