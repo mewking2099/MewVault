@@ -2,6 +2,10 @@
 
 ## Entries
 
+- **2026-07-08** — `mew update`: safe one-command engine update (autostash personal files, pull --ff-only, pip reinstall, harness re-register, doctor verify) + 'update the vault' trigger; instincts/_archive gitignored and untracked (942 junk files kept out of the repo); README upgrade section rewritten.
+
+- **2026-07-08 12:52** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-08 12:50** — auto-wrap: session ended [auto-wrap]
 
 - **2026-07-08 12:49** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]

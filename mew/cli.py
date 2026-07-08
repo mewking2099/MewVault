@@ -206,6 +206,9 @@ def main() -> None:
     p_dash.add_argument("--watch", type=int, metavar="SECONDS", help="Regenerate every N seconds")
     p_dash.add_argument("--no-open", action="store_true", dest="no_open", help="Don't open in browser")
 
+    # update
+    subparsers.add_parser("update", help="Safe one-command engine update (pull + reinstall + re-register hooks + doctor)")
+
     # doctor
     p_doctor = subparsers.add_parser("doctor", help="Automated health monitor (token safety, hooks, indexes)")
     p_doctor.add_argument("--quiet", action="store_true", help="Print only problems")
@@ -263,6 +266,7 @@ def main() -> None:
         "dashboard":      lambda: _run("dashboard", args),
         "ci":             lambda: _run("ci", args),
         "design":         lambda: _run("design", args),
+        "update":         lambda: _run("update", args),
         "dispatch":       lambda: _run("dispatch", args),
         "help":           lambda: _run("help", args),
     }
@@ -354,6 +358,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "design":
         from mew.commands.design import run_design
         run_design(args)
+    elif command == "update":
+        from mew.commands.update import run_update
+        run_update(args)
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)

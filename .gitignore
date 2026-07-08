@@ -33,3 +33,13 @@ proxy/.proxy-key
 
 # Graphify — generated knowledge graph output (re-run /graphify to rebuild)
 graphify-out/
+
+# Archived instinct candidates — machine-local, never push
+instincts/_archive/
+
+# macOS + session junk — never commit
+.DS_Store
+**/.DS_Store
+.claude/last-session-message.txt
+.claude/worktrees/
+.claude/hook-test.tmp
