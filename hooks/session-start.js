@@ -63,7 +63,7 @@ function getAgent(silo) {
 
 const WHITELIST = {
   code:   ['current_phase', 'stack', 'open_threads', 'tier', 'plan_approved'],
-  design: ['current_phase', 'figma_file_key', 'greenlit', 'tier'],
+  design: ['current_phase', 'figma_file_key', 'greenlit', 'tier', 'last_audit', 'audit_scores', 'open_p0'],
   game:   ['current_phase', 'concepts_count', 'mechanics_count', 'tier'],
   wiki:   ['inbox_count', 'orphan_concepts'],
   idea:   ['active_ideas', 'seed_count', 'exploring_count', 'validated_count', 'tier'],
@@ -446,12 +446,16 @@ async function loadSemanticContext(silo, workspaceRoot) {
       const result = await queryChromaDb(collection, `${silo} recent session context`);
       if (result) return result;
     }
-    // For wiki/doobidoo: stdio-only, surface pending index as reminder
-    if (silo === 'wiki' && mcps.doobidoo) {
+    // doobidoo is stdio-only (an MCP tool Claude calls, not queryable from this
+    // hook) — so close the retrieval loop by instructing Claude to consult it.
+    if (mcps.doobidoo) {
       const pending = loadPendingVectorIndex(workspaceRoot);
-      if (pending && pending.silo === 'wiki') {
-        return `(doobidoo index pending from last session — ${pending.timestamp})`;
-      }
+      const pendingNote = (pending && pending.silo === silo)
+        ? ` (index pending from last session — ${pending.timestamp})` : '';
+      return 'Semantic memory (doobidoo) is active and indexes mewwiki — past decisions, ' +
+        'gotchas, and concept pages. Before starting substantive work on a project, call ' +
+        '`mcp__doobidoo__retrieve_memory` with 2-3 keywords from the task to surface ' +
+        'relevant prior decisions. Cite anything you use as (source: mewwiki).' + pendingNote;
     }
   } catch {}
   return null;
@@ -462,6 +466,146 @@ async function loadSemanticContext(silo, workspaceRoot) {
 // ---------------------------------------------------------------------------
 
 const TRIGGERS = [
+  // ── CLI command routing — plain English → mew commands (added 2026-07-08) ──
+  // Each runs the command via Bash and presents results conversationally.
+  {
+    pattern: /^(health check|vault health|is everything (ok|okay|working)|run doctor|doctor)\b/i,
+    name: 'doctor',
+    instructions: `## Command: mew doctor
+
+Run \`python3 mewvault/mew.py doctor\` via Bash from the workspace root. Present the results conversationally: all-ok gets one line; for each warn/fail explain what it means and give the exact fix. Offer to apply fixes that are file edits.`,
+  },
+  {
+    pattern: /^(dashboard|show (me )?(the )?dashboard|open (the )?dashboard|vault overview)\b/i,
+    name: 'dashboard',
+    instructions: `## Command: mew dashboard
+
+Run \`python3 mewvault/mew.py dashboard\` via Bash from the workspace root (opens in browser automatically). Then summarize in 2-3 lines: project count, anything stale, doctor status, open audit P0s.`,
+  },
+  {
+    pattern: /^(agent status|did (the )?agents? (run|work)|agent activity|show agents)\b/i,
+    name: 'agent-status',
+    instructions: `## Command: mew agent status
+
+Run \`python3 mewvault/mew.py agent status\` via Bash. Report: dispatches this week, any blocked dispatches (missing model param — explain that means the model table was ignored), and whether the ledger looks healthy. An empty ledger after sessions with expected agent work means dispatch is broken; say so plainly.`,
+  },
+  {
+    pattern: /^(token (usage|report|burn)|usage report|how (many|much) tokens|burn rate|cache hit)\b/i,
+    name: 'usage-report',
+    instructions: `## Command: mew usage --report
+
+Run \`python3 mewvault/mew.py usage --report\` via Bash. Highlight the cache-hit ratio: above 80% is healthy; below 50% means prompt-prefix invalidation (see wiki/headroom-postmortem.md) — flag it and investigate.`,
+  },
+  {
+    pattern: /^(install ci|set ?up ci|add ci)\b/i,
+    name: 'ci-install',
+    instructions: `## Command: mew ci install
+
+Run \`python3 mewvault/mew.py ci install\` via Bash. Then remind the user: each project needs a commit+push for the workflow to activate, and results are read as green/red checks on GitHub — no code reading required.`,
+  },
+  {
+    pattern: /^(token drift|check (design |figma )?tokens|tokens? diff)\b/i,
+    name: 'token-drift',
+    instructions: `## Command: mew design tokens --diff
+
+Determine the design project (from cwd, or ask). Run \`python3 mewvault/mew.py design tokens --diff --project <name>\` via Bash. If it asks for a Figma variables snapshot, fetch \`get_variable_defs\` via the Figma MCP yourself, save the JSON to <project>/assets/figma-variables.json, and re-run. Present drift as matched / value drift / missing, with suggested fixes.`,
+  },
+  {
+    pattern: /^(prepare handoff( for)?|handoff package( for)?)\s+(.+)/i,
+    name: 'design-handoff',
+    args: (p) => p.replace(/^(prepare handoff( for)?|handoff package( for)?)\s+/i, '').trim(),
+    instructions: (project) => `## Command: mew package --design
+
+Run \`python3 mewvault/mew.py package ${project || '<project>'} --design\` via Bash. Report what was assembled and what's missing (e.g. no PRODUCT.md, no audit scores — suggest running the design-session gauntlet first). Never push to Drive without explicit confirmation.`,
+  },
+  {
+    pattern: /^(sync (the )?wiki|wiki sync)\b/i,
+    name: 'wiki-sync',
+    instructions: `## Command: mew wiki sync
+
+Run \`python3 mewvault/mew.py wiki sync\` via Bash from the workspace root. Report projects synced, inbox count, and whether the semantic re-index kicked off.`,
+  },
+  {
+    pattern: /^spec\s+(.+)/i,
+    name: 'spec',
+    args: (p) => p.replace(/^spec\s+/i, '').trim(),
+    instructions: (feature) => `## Workflow: Spec — ${feature || '<feature>'}
+
+Spec-driven development. No implementation happens in this workflow — only the spec.
+
+**1. Source** — find the brief: check \`raw/\` for a matching document; if none, interview the user (problem, who it's for, what "working" looks like).
+
+**2. Draft** — write \`specs/${(feature || 'feature').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md\` from \`mewvault/templates/spec.md.tmpl\`. The acceptance criteria are the contract: numbered AC-n, Given/When/Then, each one independently testable. Include edge cases (empty, long input, errors, offline) and an explicit out-of-scope list.
+
+**3. Review gate** — present the spec and STOP. The user reviews acceptance criteria in product language. Do not write any code, tests included, until they approve. On approval set \`status: approved\` in the spec.
+
+**4. Hand-off note** — after approval, update Project_Status.md next_action to "implement specs/<feature>.md — tests first, from AC-1..AC-n". The TDD gate enforces tests-before-code on stalk/mewking projects.
+
+This is the workflow that lets a non-coding product lead control quality: you approve the criteria, the tests enforce them, CI verifies them.`,
+  },
+  {
+    pattern: /^critique\s+(.+)/i,
+    name: 'critique',
+    args: (p) => p.replace(/^critique\s+/i, '').trim(),
+    instructions: (target) => `## Workflow: Critique — ${target || '<target>'}
+
+Structured design critique from pixels. Works on Figma frames, local builds, and competitor pages.
+
+**1. Capture** — get a screenshot of the target:
+- Figma URL → Figma MCP \`get_screenshot\`
+- Local/live URL → Claude-in-Chrome navigate + screenshot, or ask the user to paste one
+- Pasted image → use directly
+
+**2. Context** — read the project's PRODUCT.md (audience, voice, lane, anti-references) if this is our project. Competitor targets get critiqued against OUR product's positioning.
+
+**3. Critique** — assess against: visual hierarchy (can the eye find the primary action in 3s?), typography (scale, rhythm, pairing), color and contrast (a11y + intent), density and spacing for the lane, copy tone vs PRODUCT.md voice, states visible (empty/error/loading implied?), and the Impeccable anti-patterns list.
+
+**4. Findings** — severity-ranked (P0 blocks shipping → P3 nitpick), each with: what, where, why it matters, concrete fix. End with the two strongest things — critique that only finds faults is half a critique.
+
+**5. File it** — offer to write \`wiki/critique-<slug>-<date>.md\` in the current design project (flows to mewwiki on sync). For competitor critiques, offer \`mewwiki/Knowledge/competitors/<name>-<date>.md\` instead.`,
+  },
+  {
+    pattern: /^(design session|start design|ui session|design work on)\b/i,
+    name: 'design-session',
+    instructions: `## Workflow: Design Session
+
+Act as mew-designer. Set up the Impeccable loop before touching any file.
+
+**1. Context** — run \`node mewvault/.agents/skills/impeccable/scripts/context.mjs\` (once per session).
+
+**2. Product context** — check the project root for PRODUCT.md and DESIGN.md. Missing PRODUCT.md → run \`/impeccable init\` (short interview: audience, lane, voice, anti-references) before anything else.
+
+**3. Lane** — state whether this is **brand** work (landing/campaign/editorial: distinctive type, committed palette) or **product** work (app UI/dashboard: density, semantic states, components). Confirm with the user if ambiguous.
+
+**4. Figma** — if the project's Project_Status.md has a figma_file_key, offer to pull current frames via the Figma MCP before proposing changes. Never transcribe measurements manually.
+
+**5. Iterate** — use named Impeccable commands (/impeccable typeset|layout|colorize|polish|bolder|quieter <target>), not ad-hoc CSS edits.
+
+**6. Before calling anything done** — pre-ship gauntlet: /impeccable audit → clarify → harden. Report the audit scores to the user, then persist them in Project_Status.md:
+\`last_audit: <YYYY-MM-DD>\`, \`audit_scores: a11y=<n> perf=<n> theming=<n> responsive=<n> antipatterns=<n>\`, \`open_p0: <count>\`.
+The phase gate blocks moving to handoff/delivery while open_p0 > 0.
+
+Absolute bans are hook-enforced on every UI file write. Design decisions go to wiki/ as concept pages linking the Figma frame that informed them.`,
+  },
+  {
+    pattern: /^(weekly review|week(ly)? wrap|review the week)\b/i,
+    name: 'weekly-review',
+    instructions: `## Workflow: Weekly Review
+
+Act as mew-archivist (dispatch with model haiku if using the Agent tool). Digest the week.
+
+**1. Gather** — read the last 7 days of \`log.md\` entries across all silo projects, plus \`.claude/agent-dispatches.jsonl\` (agent activity) and \`.claude/doctor-status.json\` (health).
+
+**2. Digest** — write a weekly note to \`mewwiki/Brain/Memories/<YYYY>-W<week>.md\` with: what shipped, decisions made (link Operations/Decisions pages), what stalled and why, agent/model usage summary, one lesson worth keeping.
+
+**3. Stale nudges** — list projects with no log entry in 14+ days; for each, ask: continue, archive, or abandon? Do not act without an answer.
+
+**4. Inbox** — count \`mewwiki/_inbox/\`; if items are older than 7 days, propose routing for each (wait for confirmation).
+
+**5. Sync** — run \`mew wiki sync\` so the weekly note reaches Obsidian, then suggest a commit message.
+
+Keep the note under 40 lines. Facts with sources, no filler.`,
+  },
   {
     pattern: /^(standup|stand[\s-]?up|morning brief|good morning)\b/i,
     name: 'standup',
@@ -478,6 +622,8 @@ Morning brief. Run these steps in parallel, then format the output.
 **4. Open PRs** — run \`gh pr list --state open --json number,title,headRefName,isDraft\` for each silo that has a GitHub remote. Skip silos with no remote.
 
 **5. Google Calendar** (skip gracefully if not connected) — if a Google Calendar MCP is available, call it for today's events.
+
+**5b. Figma comments** (skip gracefully if Figma MCP unavailable) — for each active design project whose Project_Status.md has a \`figma_file_key\`, fetch unresolved comments via the Figma MCP. Report per project: \`<project>: <N> unresolved comment(s) (oldest <age>)\`. Omit projects with zero.
 
 Output format:
 \`\`\`
@@ -514,9 +660,15 @@ End the session cleanly.
 
 **2. Gather summary** — ask: "What happened this session? (one sentence to a few bullet points)"
 
+**2b. Definition of Done (code projects only)** — before writing the log, run the project's checks and capture pass/fail:
+\`npm run typecheck --if-present && npm run lint --if-present && npm test --if-present && npm run build --if-present\`
+All pass → log entry is normal. Any fail → tag the entry \`[incomplete]\`, set \`next_action\` to the first failure, and tell the user plainly: the session's work is NOT verified. Never claim "done" over a red check. If the session implemented a spec, reference its criteria: "AC-1 ✓ AC-2 ✓ AC-3 deferred".
+
 **3. Write log entry** — append to the project's \`log.md\` under \`## Entries\` (newest on top):
 \`- **<today YYYY-MM-DD>** — <summary> [auto-wrap]\`
 Update \`Project_Status.md\`: \`last_session\`, \`last_wrap\` = today; \`next_action\` = ask if not obvious.
+
+**3b. Visual snapshots (design/frontend projects only)** — if \`snapshot.routes.json\` exists in the project root and the dev server or build is runnable, run \`node mewvault/scripts/snapshot.mjs <project-root>\` and report changed routes. Skip silently if Playwright is not installed.
 
 **4. Check orphaned notes** — scan \`mewwiki/_inbox/\` for files older than today. List any unrouted items.
 
@@ -554,6 +706,8 @@ Content to route: "${args || '(see user message)'}"
 | \`api-note\` | API behaviour, endpoint quirk | current silo's \`wiki/<slug>.md\` |
 | \`gotcha\` | something that burned time, non-obvious bug | current silo's \`wiki/<slug>.md\` |
 | \`concept\` | definition, architecture decision | current silo's \`wiki/<slug>.md\` |
+
+Design-silo \`decision\` dumps carry provenance: add frontmatter \`figma: <figma_file_key from Project_Status.md>\` plus the specific frame link if one was discussed this session. If the decision is visual and no frame is known, ask for the link before writing.
 
 **2. Propose routing** — print in one block:
 \`\`\`
@@ -808,12 +962,29 @@ async function main() {
   const silo = detectSilo(cwd, workspaceRoot);
 
   const sections = [];
+  const droppable = []; // section indexes safe to drop when over token budget (least important first)
   const agent = getAgent(silo);
 
   const sessionId = (input.session_id || '').replace(/[^a-zA-Z0-9-]/g, '') || 'nosession';
   const SESSION_FLAG = path.join(os.tmpdir(), `mew-shown-${sessionId}.flag`);
   const isFirstPrompt = !fs.existsSync(SESSION_FLAG);
   if (isFirstPrompt) { try { fs.writeFileSync(SESSION_FLAG, new Date().toISOString()); } catch {} }
+
+  // Auto health check: run `mew doctor` detached on first prompt (never blocks the
+  // session). Notifies via macOS notification on warn/fail and caches status for
+  // the Vault Health section below. Skipped for doctor's own probe sessions.
+  const isDoctorProbe = sessionId.startsWith('doctor-');
+  if (isFirstPrompt && !isDoctorProbe) {
+    try {
+      const { spawn } = require('child_process');
+      const child = spawn(
+        process.platform === 'win32' ? 'python' : 'python3',
+        [path.join(MEWVAULT_ROOT, 'mew.py'), 'doctor', '--quiet', '--notify'],
+        { cwd: workspaceRoot, detached: true, stdio: 'ignore' }
+      );
+      child.unref();
+    } catch {}
+  }
 
   // On subsequent prompts, only emit conversational trigger instructions (if matched).
   // All context (rules, status, instincts, services) is already in the model's context window.
@@ -873,13 +1044,31 @@ async function main() {
   ).join('\n');
   sections.push('## Services\n\n' + servicesDisplay);
 
+  // 6c: Vault health — cached result of the last `mew doctor` run (issues only)
+  try {
+    const docFile = path.join(workspaceRoot, '.claude', 'doctor-status.json');
+    if (fs.existsSync(docFile)) {
+      const doc = JSON.parse(fs.readFileSync(docFile, 'utf8'));
+      if (doc.overall && doc.overall !== 'ok') {
+        const issues = (doc.results || [])
+          .filter(r => r.status !== 'ok')
+          .map(r => `- [${r.status}] ${r.check}: ${r.message}`)
+          .join('\n');
+        sections.push(
+          `## Vault Health — ${doc.overall.toUpperCase()} (mew doctor, ${doc.ran_at})\n\n` +
+          issues + '\n\nMention these issues to the user in your first response. Fix or run `mew doctor` for details.'
+        );
+      }
+    }
+  } catch {}
+
   // 7: Semantic context from vector stores (Phase 4 — graceful degradation)
   const semantic = await loadSemanticContext(silo, workspaceRoot);
-  if (semantic) sections.push('## Relevant Context (semantic)\n\n' + semantic);
+  if (semantic) { sections.push('## Relevant Context (semantic)\n\n' + semantic); droppable.push(sections.length - 1); }
 
   // 7b: MewVault memory recall (Phase 6 — SQLite FTS, graceful degradation)
   const memRecall = loadMemoryRecall(silo, workspaceRoot);
-  if (memRecall) sections.push('## Recent Context (mew memory)\n\n' + memRecall);
+  if (memRecall) { sections.push('## Recent Context (mew memory)\n\n' + memRecall); droppable.push(sections.length - 1); }
 
   // 8: Open GitHub issues (Phase 6 — only when GITHUB_MCP_ENABLED=1 and github MCP configured)
   const githubIssues = await loadGithubIssues(silo, workspaceRoot, currentPhase);
@@ -892,7 +1081,7 @@ async function main() {
   // 10: Prior session context (.tmp loaded from ~/.claude/sessions/)
   if (process.env.MEW_SESSION_CONTEXT !== 'off') {
     const prior = loadPriorSession(cwd, workspaceRoot);
-    if (prior) sections.push('## Prior Session\n\n' + prior);
+    if (prior) { sections.push('## Prior Session\n\n' + prior); droppable.push(sections.length - 1); }
   }
 
   // 11: MCP tool count warning
@@ -905,23 +1094,37 @@ async function main() {
   const modelHint = getModelHint(status);
   if (modelHint) sections.push(modelHint);
 
-  // 13: Conversational trigger — inject workflow instructions if prompt matches
+  // 13: Conversational trigger + Session Card are must-keep — assembled outside
+  // the truncatable brief so the budget can never sever them.
+  const mustKeep = [];
   const trigger = detectTrigger(input.prompt);
-  if (trigger) sections.push(trigger.instructions);
+  if (trigger) mustKeep.push(trigger.instructions);
 
-  // Session card — only on first prompt of each session
   if (isFirstPrompt) {
     const card = buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief);
-    sections.push(
+    mustKeep.push(
       '## Session Card\n\n' +
       'Display this status card verbatim as the very first thing in your response, before answering the user:\n\n' +
       '```\n' + card + '\n```'
     );
   }
 
+  // Over budget: drop least-important sections whole (semantic recall, mew memory,
+  // prior session) before falling back to a substring cut. Must-keep content is
+  // reserved out of the budget first.
+  const reserved = mustKeep.length ? mustKeep.join('\n\n---\n\n').length + 9 : 0;
+  const budget = Math.max(MAX_CHARS - reserved, 1000);
   let brief = sections.join('\n\n---\n\n');
-  if (brief.length > MAX_CHARS) {
-    brief = brief.substring(0, MAX_CHARS) + '\n\n[... truncated to token budget]';
+  for (const idx of droppable) {
+    if (brief.length <= budget) break;
+    sections[idx] = null;
+    brief = sections.filter(Boolean).join('\n\n---\n\n');
+  }
+  if (brief.length > budget) {
+    brief = brief.substring(0, budget) + '\n\n[... truncated to token budget]';
+  }
+  if (mustKeep.length) {
+    brief = (brief.trim() ? brief + '\n\n---\n\n' : '') + mustKeep.join('\n\n---\n\n');
   }
 
   if (brief.trim()) process.stdout.write(brief + '\n');

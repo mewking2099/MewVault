@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1780572763109",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "Progress",
+  "wrong_assumption": "First version of Progress.tsx was immediately revised",
+  "correct_behavior": "Review Progress.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-04T11:32:43.109Z",
+  "status": "pending"
+}

@@ -88,6 +88,49 @@ def run_package(args) -> None:
         else:
             missing.append(src_rel)
 
+    # --design mode: full handoff — PRODUCT.md, DESIGN.md, audit scores, decision log
+    if getattr(args, "design", False):
+        for extra in ("PRODUCT.md", "DESIGN.md"):
+            src = project_dir / extra
+            if src.exists():
+                shutil.copy(src, package_dir / extra)
+                copied.append(extra)
+            else:
+                missing.append(extra)
+
+        # Audit summary from Project_Status.md fields (written by the design-session gauntlet)
+        audit_lines = ["# Quality audit\n"]
+        for field in ("last_audit", "audit_scores", "open_p0"):
+            val = fm.get(field)
+            if val is not None:
+                audit_lines.append(f"- {field.replace('_', ' ')}: {val}")
+        if len(audit_lines) > 1:
+            (package_dir / "audit-summary.md").write_text("\n".join(audit_lines) + "\n", encoding="utf-8")
+            copied.append("audit-summary.md")
+
+        # Decision log from mewwiki, filtered by project slug
+        decisions_dir = workspace_root / "mewwiki" / "Operations" / "Decisions"
+        if decisions_dir.exists():
+            slug = project_dir.name.lower()
+            hits = [p for p in sorted(decisions_dir.glob("*.md"))
+                    if slug in p.name.lower() or slug in p.read_text(encoding="utf-8", errors="ignore").lower()]
+            if hits:
+                out = ["# Decision log\n"]
+                for p in hits:
+                    out.append(f"\n---\n\n<!-- {p.name} -->\n\n" + p.read_text(encoding="utf-8", errors="ignore").strip())
+                (package_dir / "decisions.md").write_text("\n".join(out) + "\n", encoding="utf-8")
+                copied.append(f"decisions.md ({len(hits)} decision(s))")
+
+        # Assets manifest (list, not copies — assets can be huge)
+        assets_dir = project_dir / "assets"
+        if assets_dir.exists():
+            listing = [f"- {p.relative_to(assets_dir)} ({p.stat().st_size // 1024} KB)"
+                       for p in sorted(assets_dir.rglob("*")) if p.is_file()]
+            if listing:
+                (package_dir / "assets-manifest.md").write_text(
+                    "# Assets manifest\n\n" + "\n".join(listing) + "\n", encoding="utf-8")
+                copied.append("assets-manifest.md")
+
     # Write manifest
     artifact_lines = "\n".join(f"  - {f}" for f in copied) or "  (none)"
     artifact_list = "\n".join(f"- {f}" for f in copied) or "(none copied)"

@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779210085280",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "aliases",
+  "wrong_assumption": "First version of aliases.css was immediately revised",
+  "correct_behavior": "Review aliases.css before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-19T17:01:25.280Z",
+  "status": "pending"
+}

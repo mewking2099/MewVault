@@ -1,0 +1,30 @@
+# MewVault CI — the non-coder's safety net.
+# Green check = typecheck, lint, tests, and build all pass. Red = not done.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck --if-present || npm run type-check --if-present
+      - name: Lint
+        run: npm run lint --if-present
+      - name: Tests
+        run: npm test --if-present -- --run 2>/dev/null || npm test --if-present
+      - name: Build
+        run: npm run build --if-present
+      - name: Dependency audit (high+)
+        run: npm audit --audit-level=high
+        continue-on-error: true

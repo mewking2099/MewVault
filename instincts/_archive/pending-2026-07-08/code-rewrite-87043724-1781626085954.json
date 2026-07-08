@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781626085954",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Drawer",
+  "wrong_assumption": "First version of Drawer.tsx was immediately revised",
+  "correct_behavior": "Review Drawer.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T16:08:05.954Z",
+  "status": "pending"
+}

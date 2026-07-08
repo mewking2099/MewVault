@@ -1,7 +1,7 @@
 ---
 name: mew-designer
 description: UX design, Figma review, component specs, design tokens, handoff notes for design-studio. Use for: design, figma, ux, ui, wireframe, component spec, layout, token, style guide, colour, typography.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Read, Write, Edit, Bash
 ---
 

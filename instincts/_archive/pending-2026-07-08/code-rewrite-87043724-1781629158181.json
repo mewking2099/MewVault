@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781629158181",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Datepicker",
+  "wrong_assumption": "First version of Datepicker.tsx was immediately revised",
+  "correct_behavior": "Review Datepicker.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T16:59:18.181Z",
+  "status": "pending"
+}

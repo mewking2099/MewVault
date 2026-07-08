@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781624484264",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Input",
+  "wrong_assumption": "First version of Input.tsx was immediately revised",
+  "correct_behavior": "Review Input.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T15:41:24.264Z",
+  "status": "pending"
+}

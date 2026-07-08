@@ -2,6 +2,8 @@
 
 This silo contains the `mew` CLI: entry point, commands, templates, and secrets.
 
+> **What's new (2026-07-08):** major overhaul — token/caching fixes (Headroom removed), `mew doctor` auto health checks, agent dispatch ledger + model gate, `mew dashboard`, wiki retrieval loop, spec-driven development (TDD hard gate, `spec` trigger, CI safety net), design silo v2 (Impeccable enforcement, audit gate, token drift, handoff packager), and natural-language command triggers. Full details: `wiki/whats-new-2026-07-08.md`.
+
 ## Structure
 
 - `mew.py` — entry point (`python mew.py <command>`)
@@ -49,14 +51,14 @@ When spawning any mew agent via the Agent tool, you MUST pass the `model` parame
 
 | Agent | model param |
 |---|---|
-| mew-planner | `opus` |
-| fable | `opus` |
-| mew-chief | `sonnet` |
-| mew-coder | `sonnet` |
-| mew-researcher | `sonnet` |
-| mew-designer | `sonnet` |
-| mew-ideator | `sonnet` |
-| mew-gamedev | `sonnet` |
+| mew-planner | `claude-sonnet-4-6` |
+| fable | `claude-sonnet-4-6` |
+| mew-chief | `claude-sonnet-4-6` |
+| mew-coder | `claude-sonnet-4-6` |
+| mew-researcher | `claude-sonnet-4-6` |
+| mew-designer | `claude-sonnet-4-6` |
+| mew-ideator | `claude-sonnet-4-6` |
+| mew-gamedev | `claude-sonnet-4-6` |
 | mew-learner | `haiku` |
 | mew-archivist | `haiku` |
 
@@ -64,7 +66,7 @@ When spawning any mew agent via the Agent tool, you MUST pass the `model` parame
 ```
 Agent({
   description: "mew-planner: ...",
-  model: "opus",          ← required, always
+  model: "claude-sonnet-4-6",   ← required, always — take the value from the table above
   prompt: "..."
 })
 ```

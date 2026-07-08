@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781459866582",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "code",
+  "wrong_assumption": "First version of code.ts was immediately revised",
+  "correct_behavior": "Review code.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-14T17:57:46.582Z",
+  "status": "pending"
+}

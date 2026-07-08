@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781493518584",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "ui",
+  "wrong_assumption": "First version of ui.html was immediately revised",
+  "correct_behavior": "Review ui.html before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-15T03:18:38.584Z",
+  "status": "pending"
+}

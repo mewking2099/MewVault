@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781629146684",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Avatar",
+  "wrong_assumption": "First version of Avatar.tsx was immediately revised",
+  "correct_behavior": "Review Avatar.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T16:59:06.684Z",
+  "status": "pending"
+}

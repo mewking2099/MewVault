@@ -1,7 +1,7 @@
 ---
 name: fable
 description: Deep codebase audits, MVP-to-production planning, architecture audit reports. Use for: audit codebase, code audit, technical debt, architecture review, mvp to production, production ready, scalability report, refactor plan.
-model: opus
+model: claude-sonnet-4-6
 tools: Bash, Read, Write, Glob, Grep
 ---
 

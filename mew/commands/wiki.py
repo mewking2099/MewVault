@@ -308,7 +308,50 @@ def _wiki_sync(args) -> None:
     print(f"\n  {synced} project(s) synced. Inbox: {inbox_count} item(s).")
     if inbox_count > 0:
         print(f"  Review _inbox/ in Obsidian and route notes to Knowledge/.")
+
+    # Retrieval loop: re-index mewwiki into doobidoo after every real sync, so
+    # decisions/gotchas resurface via the session-start semantic section.
+    if not dry_run and synced > 0:
+        _auto_ingest()
     print()
+
+
+def _auto_ingest() -> None:
+    """Spawn scripts/ingest_wiki.py detached (never blocks the sync).
+
+    Skips silently when Ollama is down or MEW_AUTO_INGEST=off. Output goes to
+    ~/.mewvault/logs/ingest.log. Keeping the semantic index current is what
+    makes mewwiki a retrieval system instead of a write-only archive.
+    """
+    import os
+    import urllib.request
+
+    if os.environ.get("MEW_AUTO_INGEST", "").lower() == "off":
+        return
+    try:
+        urllib.request.urlopen("http://localhost:11434/api/tags", timeout=1)
+    except Exception:
+        print("  Semantic index: skipped (Ollama not running — start: brew services start ollama)")
+        return
+
+    mewvault_dir = Path(__file__).parent.parent.parent.resolve()
+    script = mewvault_dir / "scripts" / "ingest_wiki.py"
+    if not script.exists():
+        return
+    log_dir = Path.home() / ".mewvault" / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        with open(log_dir / "ingest.log", "a", encoding="utf-8") as log:
+            log.write(f"\n--- auto-ingest {now_iso()} ---\n")
+            log.flush()
+            subprocess.Popen(
+                [sys.executable, str(script)],
+                cwd=mewvault_dir, stdout=log, stderr=log,
+                start_new_session=True,
+            )
+        print("  Semantic index: re-indexing in background (~/.mewvault/logs/ingest.log)")
+    except OSError:
+        pass
 
 
 def _resolve_wiki_path(args, workspace_root: Path) -> Path | None:

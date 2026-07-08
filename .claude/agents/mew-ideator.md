@@ -1,7 +1,7 @@
 ---
 name: mew-ideator
 description: Idea capture, expansion, and brief generation in idea-hub. Use for: new idea, capture idea, brain dump, expand this idea, what if, idea brief, flesh out, seed idea.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Read, Write, Edit
 ---
 

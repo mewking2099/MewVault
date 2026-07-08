@@ -33,5 +33,19 @@
     "matcher": "",
     "timeout": 15000,
     "description": "Runs semantic compact, writes context snapshots"
+  },
+  {
+    "event": "PreToolUse",
+    "script": "agent-track.js",
+    "matcher": "Task",
+    "timeout": 5000,
+    "description": "Agent dispatch ledger + model gate (blocks mew-* dispatches missing model param)"
+  },
+  {
+    "event": "SubagentStop",
+    "script": "agent-track.js",
+    "matcher": "",
+    "timeout": 5000,
+    "description": "Logs subagent completions to the dispatch ledger"
   }
 ]

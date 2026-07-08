@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781272196069",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "ScoreApi",
+  "wrong_assumption": "First version of ScoreApi.gd was immediately revised",
+  "correct_behavior": "Review ScoreApi.gd before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-12T13:49:56.069Z",
+  "status": "pending"
+}

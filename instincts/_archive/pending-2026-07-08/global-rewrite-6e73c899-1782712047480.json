@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1782712047480",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "App",
+  "wrong_assumption": "First version of App.tsx was immediately revised",
+  "correct_behavior": "Review App.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-29T05:47:27.480Z",
+  "status": "pending"
+}

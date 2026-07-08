@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1780573230365",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "defs",
+  "wrong_assumption": "First version of defs.tsx was immediately revised",
+  "correct_behavior": "Review defs.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-04T11:40:30.365Z",
+  "status": "pending"
+}

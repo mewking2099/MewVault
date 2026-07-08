@@ -87,7 +87,7 @@ def _create_code_project(software_silo: Path, name: str, stack: str) -> None:
     subs = {"name": name, "date": today_str(), "project": name, "stack": stack}
     _scaffold(template_dir, dest, subs)
 
-    for d in ["proposals/active", "proposals/archive", "decisions", "docs/ux"]:
+    for d in ["proposals/active", "proposals/archive", "decisions", "docs/ux", "specs", "tests", "raw"]:
         sub = dest / d
         sub.mkdir(parents=True, exist_ok=True)
         _gitkeep(sub)

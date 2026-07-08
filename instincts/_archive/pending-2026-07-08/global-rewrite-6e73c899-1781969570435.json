@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781969570435",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "figma-slot-manifest",
+  "wrong_assumption": "First version of figma-slot-manifest.mjs was immediately revised",
+  "correct_behavior": "Review figma-slot-manifest.mjs before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-20T15:32:50.435Z",
+  "status": "pending"
+}

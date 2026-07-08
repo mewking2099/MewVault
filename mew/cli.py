@@ -90,6 +90,8 @@ def main() -> None:
     p_package.add_argument("--format", choices=["client"], default="client")
     p_package.add_argument("--push-drive", action="store_true",
                            help="Print Drive push instructions (use Drive MCP in Claude Code)")
+    p_package.add_argument("--design", action="store_true",
+                           help="Full design handoff: + PRODUCT.md, DESIGN.md, audit scores, decision log, assets manifest")
 
     # process-inbox
     subparsers.add_parser("process-inbox", help="List wiki/_inbox/ and propose routing")
@@ -125,6 +127,8 @@ def main() -> None:
     p_agent_invoke.add_argument("name", help="Agent name (e.g. mew-planner)")
     p_agent_invoke.add_argument("--task", metavar="TEXT", help="Task description to pass")
     p_agent_sub.add_parser("sync", help="Rebuild the agent routing index from skills/")
+    p_agent_status = p_agent_sub.add_parser("status", help="Show recent agent dispatches from the ledger")
+    p_agent_status.add_argument("--limit", type=int, default=20, help="Rows to show (default 20)")
     p_fetch = p_agent_sub.add_parser("fetch-skills", help="Fetch skills from online sources")
     p_fetch.add_argument("--from", dest="from_source", metavar="SOURCE", help="Named source (e.g. awesome-claude)")
     p_fetch.add_argument("--url", metavar="URL", help="Direct URL to a skill file")
@@ -178,9 +182,35 @@ def main() -> None:
     # usage
     p_usage = subparsers.add_parser("usage", help="Show Claude auth status and usage dashboard link")
     p_usage.add_argument("--open", action="store_true", help="Open claude.ai/settings in browser")
+    p_usage.add_argument("--report", action="store_true", help="Per-day token report from Claude Code transcripts")
+    p_usage.add_argument("--days", type=int, default=7, help="Report window in days (default 7)")
 
     # check
     subparsers.add_parser("check", help="Sanity-check the MewVault installation")
+
+    # design
+    p_design = subparsers.add_parser("design", help="Design-silo utilities")
+    p_design_sub = p_design.add_subparsers(dest="design_action")
+    p_tokens = p_design_sub.add_parser("tokens", help="Diff Figma variables against DESIGN.md")
+    p_tokens.add_argument("--diff", action="store_true", help="(default behavior)")
+    p_tokens.add_argument("--project", metavar="NAME", help="Design project name (default: cwd)")
+
+    # ci
+    p_ci = subparsers.add_parser("ci", help="Install CI safety-net workflows into code projects")
+    p_ci_sub = p_ci.add_subparsers(dest="ci_action")
+    p_ci_install = p_ci_sub.add_parser("install", help="Copy ci.yml into projects missing it")
+    p_ci_install.add_argument("--project", metavar="NAME", help="Single project only")
+
+    # dashboard
+    p_dash = subparsers.add_parser("dashboard", help="Generate and open the vault HTML dashboard")
+    p_dash.add_argument("--watch", type=int, metavar="SECONDS", help="Regenerate every N seconds")
+    p_dash.add_argument("--no-open", action="store_true", dest="no_open", help="Don't open in browser")
+
+    # doctor
+    p_doctor = subparsers.add_parser("doctor", help="Automated health monitor (token safety, hooks, indexes)")
+    p_doctor.add_argument("--quiet", action="store_true", help="Print only problems")
+    p_doctor.add_argument("--json", action="store_true", help="Machine-readable output")
+    p_doctor.add_argument("--notify", action="store_true", help="macOS notification on warn/fail")
 
     # dispatch
     p_dispatch = subparsers.add_parser("dispatch", help="Send pure-generation task to a proxy agent")
@@ -229,6 +259,10 @@ def main() -> None:
         "memory":         lambda: _run("memory", args),
         "usage":          lambda: _run("usage", args),
         "check":          lambda: _run("check", args),
+        "doctor":         lambda: _run("doctor", args),
+        "dashboard":      lambda: _run("dashboard", args),
+        "ci":             lambda: _run("ci", args),
+        "design":         lambda: _run("design", args),
         "dispatch":       lambda: _run("dispatch", args),
         "help":           lambda: _run("help", args),
     }
@@ -308,6 +342,18 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "check":
         from mew.commands.check import run_check
         run_check(args)
+    elif command == "doctor":
+        from mew.commands.doctor import run_doctor
+        run_doctor(args)
+    elif command == "dashboard":
+        from mew.commands.dashboard import run_dashboard
+        run_dashboard(args)
+    elif command == "ci":
+        from mew.commands.ci import run_ci
+        run_ci(args)
+    elif command == "design":
+        from mew.commands.design import run_design
+        run_design(args)
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)

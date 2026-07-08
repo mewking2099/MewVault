@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1783496195840",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "home",
+  "wrong_assumption": "First version of home.js was immediately revised",
+  "correct_behavior": "Review home.js before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-07-08T07:36:35.840Z",
+  "status": "pending"
+}

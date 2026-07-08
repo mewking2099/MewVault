@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779519867307",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "stories",
+  "wrong_assumption": "First version of stories.tsx was immediately revised",
+  "correct_behavior": "Review stories.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-23T07:04:27.307Z",
+  "status": "pending"
+}

@@ -176,8 +176,39 @@ function main() {
     }
   }
 
-  // Sub-logic E: TDD gate (warning only)
-  if (filePath && ['Write', 'Edit'].includes(toolName)) {
+  // Sub-logic D2: Audit-score gate (design silo).
+  // A design project cannot move to handoff/delivery while open_p0 > 0.
+  // Same enforcement philosophy as the MewKing gate.
+  if (filePath && path.basename(filePath) === 'Project_Status.md' &&
+      normPath(filePath).includes('/design-studio/') &&
+      ['Write', 'Edit'].includes(toolName)) {
+    const newContent = toolInput.content || toolInput.new_string || '';
+    if (/current_phase\s*:\s*.*(handoff|delivery)/i.test(newContent)) {
+      let openP0 = 0;
+      // Prefer the value in the incoming content; fall back to the file on disk
+      const inNew = newContent.match(/^open_p0\s*:\s*(\d+)/m);
+      if (inNew) {
+        openP0 = parseInt(inNew[1], 10);
+      } else if (fs.existsSync(filePath)) {
+        const cur = fs.readFileSync(filePath, 'utf8').match(/^open_p0\s*:\s*(\d+)/m);
+        if (cur) openP0 = parseInt(cur[1], 10);
+      }
+      if (openP0 > 0) {
+        block(
+          `⛔ Audit gate: ${openP0} open P0 finding(s) — cannot move this design project to handoff/delivery.\n` +
+          `Fix the P0s, re-run /impeccable audit, update open_p0 in Project_Status.md, then advance the phase.`
+        );
+      }
+    }
+  }
+
+  // Sub-logic E: TDD gate.
+  // HARD BLOCK for stalk/mewking projects (audit 2026-07-08: the old stderr
+  // warning had 0% compliance — PreToolUse stderr never reaches Claude on exit 0).
+  // Warning-only for pounce. Opt out per project with `tdd: off` in Project_Status.md.
+  // UI component files (.tsx/.jsx/.vue/.svelte/.astro) are exempt — they're covered
+  // by the Impeccable gauntlet instead.
+  if (filePath && ['Write', 'Edit'].includes(toolName) && !/\.(test|spec)\./.test(filePath)) {
     const ext = path.extname(filePath);
     const inSrc = normPath(filePath).match(/\/(src|lib)\//);
     if (inSrc && ['.js', '.ts', '.py', '.go', '.rs'].includes(ext)) {
@@ -186,9 +217,27 @@ function main() {
       const testExists = [
         `${base}.test${ext}`, `${base}.spec${ext}`,
         `__tests__/${base}.test${ext}`, `tests/${base}${ext}`,
-      ].some(t => fs.existsSync(path.join(dir, t)) || fs.existsSync(path.join(dir, '..', t)));
+        `${base}.test.ts`, `${base}.spec.ts`,
+      ].some(t =>
+        fs.existsSync(path.join(dir, t)) ||
+        fs.existsSync(path.join(dir, '..', t)) ||
+        fs.existsSync(path.join(dir, '..', '..', 'tests', t)));
       if (!testExists) {
-        process.stderr.write(`⚠ TDD: No test file found for ${path.basename(filePath)}. Consider writing tests first.\n`);
+        const wsRoot = findWorkspaceRoot(input.cwd || process.cwd());
+        const status = findProjectStatus(path.dirname(filePath), wsRoot);
+        const tier = ((status && status.tier) || '').toLowerCase();
+        const tddOff = status && /^tdd:\s*off/m.test(status.content);
+        if (['stalk', 'mewking'].includes(tier) && !tddOff) {
+          block(
+            `⛔ TDD gate (${tier} tier): no test file exists for ${path.basename(filePath)}.\n` +
+            `Write the test FIRST — derive cases from the spec's acceptance criteria ` +
+            `(specs/<feature>.md), then implement until it passes.\n` +
+            `Expected: ${base}.test${ext} next to the file or in tests/.\n` +
+            `Project opt-out (owner decision only): add 'tdd: off' to Project_Status.md.`
+          );
+        } else {
+          process.stderr.write(`⚠ TDD: No test file found for ${path.basename(filePath)}. Consider writing tests first.\n`);
+        }
       }
     }
   }

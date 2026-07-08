@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781078243336",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "RoleData",
+  "wrong_assumption": "First version of RoleData.gd was immediately revised",
+  "correct_behavior": "Review RoleData.gd before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-10T07:57:23.336Z",
+  "status": "pending"
+}

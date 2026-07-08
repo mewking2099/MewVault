@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779341096949",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "middleware",
+  "wrong_assumption": "First version of middleware.ts was immediately revised",
+  "correct_behavior": "Review middleware.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-21T05:24:56.949Z",
+  "status": "pending"
+}

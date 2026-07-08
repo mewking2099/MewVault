@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781193969542",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "extractor",
+  "wrong_assumption": "First version of extractor.ts was immediately revised",
+  "correct_behavior": "Review extractor.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-11T16:06:09.542Z",
+  "status": "pending"
+}

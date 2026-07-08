@@ -94,7 +94,10 @@ def _install(args) -> None:
             for h in event_hooks
         )
         if not already:
-            event_hooks.append({"matcher": "", "hooks": [{"type": "command", "command": cmd, "timeout": 15000}]})
+            event_hooks.append({
+                "matcher": hook_def.get("matcher", ""),
+                "hooks": [{"type": "command", "command": cmd, "timeout": hook_def.get("timeout", 15000)}],
+            })
             print(f"  Registered: {event} -> {hook_def['script']}")
         else:
             print(f"  Already registered: {event} -> {hook_def['script']}")

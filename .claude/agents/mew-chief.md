@@ -1,7 +1,7 @@
 ---
 name: mew-chief
 description: Cross-silo orchestration, triage, and routing. Use for standup, wrap, wiki sync, status, inbox processing, and promote operations.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Bash, Read, Write, Edit, Glob, Grep, Agent
 ---
 

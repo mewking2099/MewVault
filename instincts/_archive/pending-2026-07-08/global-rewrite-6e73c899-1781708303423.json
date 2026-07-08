@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781708303423",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "styles",
+  "wrong_assumption": "First version of styles.css was immediately revised",
+  "correct_behavior": "Review styles.css before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-17T14:58:23.423Z",
+  "status": "pending"
+}

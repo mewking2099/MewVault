@@ -1,7 +1,7 @@
 ---
 name: mew-researcher
 description: Feasibility analysis, market research, competitive intelligence for idea-hub. Use for: feasibility, is this viable, market research, competitors, how big is the market, validate idea.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Bash, Read, Write, Edit, WebSearch, WebFetch
 ---
 

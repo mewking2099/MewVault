@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779254113041",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "Button",
+  "wrong_assumption": "First version of Button.tsx was immediately revised",
+  "correct_behavior": "Review Button.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-20T05:15:13.041Z",
+  "status": "pending"
+}

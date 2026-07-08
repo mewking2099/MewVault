@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1780489406551",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "Tooltip",
+  "wrong_assumption": "First version of Tooltip.tsx was immediately revised",
+  "correct_behavior": "Review Tooltip.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-03T12:23:26.551Z",
+  "status": "pending"
+}

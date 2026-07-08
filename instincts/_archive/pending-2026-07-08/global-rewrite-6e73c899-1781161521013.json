@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781161521013",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "PRD_SaaS_Pivot_v1",
+  "wrong_assumption": "First version of PRD_SaaS_Pivot_v1.md was immediately revised",
+  "correct_behavior": "Review PRD_SaaS_Pivot_v1.md before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-11T07:05:21.013Z",
+  "status": "pending"
+}

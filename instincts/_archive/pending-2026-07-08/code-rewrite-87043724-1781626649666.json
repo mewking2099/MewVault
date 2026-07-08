@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781626649666",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Tabs",
+  "wrong_assumption": "First version of Tabs.tsx was immediately revised",
+  "correct_behavior": "Review Tabs.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T16:17:29.666Z",
+  "status": "pending"
+}

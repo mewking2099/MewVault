@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1780800707621",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "cli",
+  "wrong_assumption": "First version of cli.py was immediately revised",
+  "correct_behavior": "Review cli.py before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-07T02:51:47.621Z",
+  "status": "pending"
+}

@@ -1,7 +1,7 @@
 ---
 name: mew-gamedev
 description: GDScript implementation, game mechanics, Godot patterns, AI-led game development in game-lab. Use for: game, godot, gdscript, mechanic, scene, sprite, level design, prototype, game loop, godot error.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 

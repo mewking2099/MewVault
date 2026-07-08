@@ -45,12 +45,64 @@ def run_agent(args) -> None:
         "invoke":       _invoke_agent,
         "sync":         _sync,
         "fetch-skills": _fetch_skills,
+        "status":       _agent_status,
     }
     fn = dispatch.get(action)
     if fn:
         fn(args)
     else:
         _list_agents(args)
+
+
+# ── status ────────────────────────────────────────────────────────────────────
+
+def _agent_status(args=None) -> None:
+    """Show recent agent dispatches from the ledger written by agent-track.js."""
+    import json
+    from datetime import datetime, timedelta
+    from mew.workspace import find_workspace_root
+
+    root = find_workspace_root()
+    ledger = Path(root) / ".claude" / "agent-dispatches.jsonl"
+    limit = getattr(args, "limit", None) or 20
+
+    print("\nMewVault Agent Activity\n")
+    if not ledger.exists():
+        print("  No dispatch ledger yet (.claude/agent-dispatches.jsonl).")
+        print("  It is written by the agent-track.js hook on every Agent/Task dispatch.")
+        print("  If agents have run since the hook was installed, something is wrong —")
+        print("  check `mew harness status` and restart your Claude session.\n")
+        return
+
+    entries = []
+    for line in ledger.read_text(encoding="utf-8").splitlines():
+        try:
+            entries.append(json.loads(line))
+        except json.JSONDecodeError:
+            continue
+
+    dispatches = [e for e in entries if e.get("event") == "dispatch"]
+    blocked    = [e for e in entries if e.get("event") == "blocked"]
+    stops      = [e for e in entries if e.get("event") == "stop"]
+
+    week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+    recent = [e for e in dispatches if e.get("ts", "") >= week_ago]
+
+    print(f"  Ledger: {len(dispatches)} dispatches, {len(stops)} completions, "
+          f"{len(blocked)} blocked (missing model) · last 7 days: {len(recent)}\n")
+
+    if blocked:
+        last_block = blocked[-1]
+        print(f"  ! Last blocked dispatch: {last_block.get('agent')} at {last_block.get('ts', '?')[:16]}")
+        print("    (blocked = Claude tried to launch a mew agent without a model param)\n")
+
+    print(f"  {'When':<17} {'Agent':<18} {'Model':<22} Task")
+    print("  " + "-" * 78)
+    for e in dispatches[-limit:]:
+        ts = (e.get("ts") or "")[:16].replace("T", " ")
+        model = e.get("model") or "(session default)"
+        print(f"  {ts:<17} {e.get('agent', '?'):<18} {model:<22} {e.get('description', '')[:34]}")
+    print()
 
 
 # ── list ──────────────────────────────────────────────────────────────────────

@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1782710616537",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "ExportShell",
+  "wrong_assumption": "First version of ExportShell.tsx was immediately revised",
+  "correct_behavior": "Review ExportShell.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-29T05:23:36.537Z",
+  "status": "pending"
+}

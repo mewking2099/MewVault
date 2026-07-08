@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781504955994",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "token-groups",
+  "wrong_assumption": "First version of token-groups.ts was immediately revised",
+  "correct_behavior": "Review token-groups.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-15T06:29:15.994Z",
+  "status": "pending"
+}

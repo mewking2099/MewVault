@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1783233992254",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "zip",
+  "wrong_assumption": "First version of zip.ts was immediately revised",
+  "correct_behavior": "Review zip.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-07-05T06:46:32.254Z",
+  "status": "pending"
+}

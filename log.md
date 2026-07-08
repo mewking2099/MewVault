@@ -2,6 +2,140 @@
 
 ## Entries
 
+- **2026-07-08 12:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 12:49** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-08** — Session wrap-up docs: wiki/whats-new-2026-07-08.md (full changelog, loaded via CLAUDE.md pointer + vault-rules trigger index so every session knows the new capabilities), 8 natural-language command triggers added (doctor, dashboard, agent status, token report, install ci, token drift, prepare handoff, sync wiki — all verified routing), README.md fully rewritten around the enforcement-first architecture.
+
+- **2026-07-08** — Design silo features 1-7 implemented: audit-score gate (open_p0 blocks handoff phase, pre-tool-use), audit fields in design whitelist + dashboard P0 column, `mew design tokens --diff` (Figma variable drift vs DESIGN.md, two-step MCP snapshot), Figma comments in standup, decision provenance in dump, `mew package --design` (PRODUCT/DESIGN/audit/decisions/assets handoff), scripts/snapshot.mjs (Playwright visual regression, wired into wrap-up), `critique <target>` trigger.
+
+- **2026-07-08** — Software silo overhaul (R1-R7): TDD gate upgraded warn->BLOCK for stalk/mewking (opt-out `tdd: off`), `spec <feature>` trigger + templates/spec.md.tmpl (spec-driven pipeline with approval gate), Definition-of-Done step added to wrap-up (typecheck/lint/test/build or [incomplete]), `mew ci install` + CI workflow installed into dsaas, mew-knowledge-hub, mewvault-site, yaana-design-system, CI baked into code-project scaffold, doctor checks ci_presence + wip_limit (currently flags 7 active / 4 stale). See proposals/active/2026-07-08-software-silo-audit.md
+
+- **2026-07-08 12:06** — auto-wrap: modified test.css, x.tsx, ux-ui-audit-2026-07.html [auto-wrap]
+
+- **2026-07-08** — Design silo overhaul: Impeccable guard in post-tool-use.js (UI-write ban detector + once-per-session flow anchor via additionalContext, all silos), design-rules updated to Impeccable v3 four-phase loop, frontend section added to code rules, `design session` trigger, doctor impeccable check, disabled colliding frontend-design skill (skills/_disabled/).
+
+- **2026-07-08 11:38** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:37** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:36** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:35** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:34** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:34** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:33** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 11:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08** — Roadmap implemented: agent dispatch ledger + model gate (agent-track.js, PreToolUse:Task + SubagentStop) with `mew agent status`; mewwiki retrieval loop (auto-ingest on `mew wiki sync`, doobidoo consult instruction in session-start); `mew dashboard` (projects/health/agent HTML); `mew usage --report` + doctor cache_burn check; `weekly review` trigger. Restart Claude session to activate hooks. See proposals/active/2026-07-08-roadmap-*.md
+
+- **2026-07-08 07:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 07:50** — auto-wrap: modified log.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-08 07:48** — auto-wrap: modified PRODUCT.md, home.js, tokens.css [auto-wrap]
+
+- **2026-07-08 07:25** — auto-wrap: modified tokens.css [auto-wrap]
+
+- **2026-07-08 07:24** — auto-wrap: modified mew-planner.md, fable.md, mew-chief.md +6 more [auto-wrap]
+
+- **2026-07-08 07:22** — auto-wrap: modified mew-chief.md, mew-coder.md, mew-designer.md +4 more [auto-wrap]
+
+- **2026-07-08 07:20** — auto-wrap: modified index.html, mew-planner.md, fable.md +7 more [auto-wrap]
+
+- **2026-07-08 07:15** — auto-wrap: modified biometric.js [auto-wrap]
+
+- **2026-07-08 07:13** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 07:12** — auto-wrap: modified home.js [auto-wrap]
+
+- **2026-07-08 07:03** — auto-wrap: modified tokens.css, components.css, login.js [auto-wrap]
+
+- **2026-07-08 05:42** — auto-wrap: modified PRODUCT.md, tokens.css, login.js +1 more [auto-wrap]
+
+- **2026-07-08 05:15** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 05:13** — auto-wrap: modified index.html, tokens.css, base.css +8 more [auto-wrap]
+
+- **2026-07-07 06:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:44** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:42** — auto-wrap: modified session-start.js, vault-rules.md, design-rules.md +1 more [auto-wrap]
+
+- **2026-07-07 06:39** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:36** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:33** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:32** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-07 06:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:30** — auto-wrap: modified styles.css, index.html, app.js [auto-wrap]
+
+- **2026-07-07 06:14** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 06:10** — auto-wrap: modified index.html, Project_Status.md [auto-wrap]
+
+- **2026-07-07 06:02** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:55** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:51** — auto-wrap: modified styles.css, index.html, Project_Status.md [auto-wrap]
+
+- **2026-07-07 05:45** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:36** — auto-wrap: modified app.js [auto-wrap]
+
+- **2026-07-07 05:35** — auto-wrap: modified settings.json [auto-wrap]
+
+- **2026-07-07 05:32** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:29** — auto-wrap: modified styles.css, index.html [auto-wrap]
+
+- **2026-07-07 05:12** — auto-wrap: modified PRODUCT.md, DESIGN.md, config.json [auto-wrap]
+
+- **2026-07-07 05:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 05:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 04:57** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-07 04:44** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 13:24** — auto-wrap: modified golddiamond-design-brief.html [auto-wrap]
+
+- **2026-07-06 13:06** — auto-wrap: modified golddiamond-design-brief.html [auto-wrap]
+
+- **2026-07-06 13:04** — auto-wrap: modified golddiamond-design-brief.html [auto-wrap]
+
+- **2026-07-06 12:57** — auto-wrap: modified golddiamond-design-brief.html [auto-wrap]
+
+- **2026-07-06 12:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:46** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:33** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:32** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:22** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:19** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 12:18** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-06 09:55** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-06 09:54** — auto-wrap: modified project_golddiamond_state.md, log.md, last-session-message.txt [auto-wrap]
 
 - **2026-07-06 07:15** — GoldDiamond: custom div dropdown replaces native select; dark mode text visibility fixed; font synced to search box [auto-wrap]

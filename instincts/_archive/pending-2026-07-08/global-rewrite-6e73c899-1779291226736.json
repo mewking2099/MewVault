@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779291226736",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "project_yaana_ds_state",
+  "wrong_assumption": "First version of project_yaana_ds_state.md was immediately revised",
+  "correct_behavior": "Review project_yaana_ds_state.md before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-20T15:33:46.736Z",
+  "status": "pending"
+}

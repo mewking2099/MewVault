@@ -1,18 +1,22 @@
 {
-  "description": "Headroom — context compression proxy with CCR (Compress-Cache-Retrieve). Exposes headroom_compress, headroom_retrieve, headroom_stats tools. Proxy at localhost:8787 intercepts Claude API calls and compresses context before it reaches the model.",
-  "silo_scope": ["global"],
-  "mcpServers": {
-    "headroom": {
-      "command": "headroom",
-      "args": ["mcp", "serve"],
-      "env": {
-        "HEADROOM_PROXY_URL": "http://localhost:8787"
+  "description": "DISABLED 2026-07-08 (token audit). Headroom's system/user message compression rewrites the prompt prefix on every request, which breaks Anthropic prompt caching — cache reads cost ~0.1x input, so compression was a large NET LOSS on subscription plans. The CCR compress/retrieve tools also duplicate content in Claude Code's append-only context window. Do not re-enable for Claude Code. See wiki/headroom-postmortem.md.",
+  "silo_scope": [],
+  "disabled": true,
+  "mcpServers": {},
+  "_archived_config": {
+    "mcpServers": {
+      "headroom": {
+        "command": "headroom",
+        "args": ["mcp", "serve"],
+        "env": {
+          "HEADROOM_PROXY_URL": "http://localhost:8787"
+        }
       }
-    }
-  },
-  "http_endpoint": "http://localhost:8787",
-  "health_path": "/health",
-  "install": "pip install 'headroom-ai[proxy,mcp]'",
-  "start_proxy": "bash proxy/start-headroom.sh",
-  "usage": "Launch Claude Code with: ANTHROPIC_BASE_URL=http://localhost:8787 claude"
+    },
+    "http_endpoint": "http://localhost:8787",
+    "health_path": "/health",
+    "install": "pip install 'headroom-ai[proxy,mcp]'",
+    "start_proxy": "bash proxy/start-headroom.sh",
+    "usage": "Launch Claude Code with: ANTHROPIC_BASE_URL=http://localhost:8787 claude"
+  }
 }

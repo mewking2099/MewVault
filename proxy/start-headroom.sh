@@ -37,8 +37,20 @@ echo "  Then launch Claude Code with:"
 echo "  ANTHROPIC_BASE_URL=http://localhost:8787 claude"
 echo ""
 
-HEADROOM_COMPRESS_USER_MESSAGES=true \
-HEADROOM_COMPRESS_SYSTEM_MESSAGES=true \
+# ── DISABLED 2026-07-08 (token audit) ────────────────────────────────────────
+# Compressing system/user messages rewrites the prompt prefix every request,
+# which invalidates Anthropic prompt caching (cache reads ≈ 0.1x input cost).
+# On a Claude subscription this proxy was a large NET INCREASE in usage-limit
+# burn despite "compressing". See wiki/headroom-postmortem.md.
+# To run anyway (NOT recommended for Claude Code), set MEW_HEADROOM_FORCE=1.
+if [ "${MEW_HEADROOM_FORCE:-0}" != "1" ]; then
+  echo "Headroom proxy is disabled for Claude Code (breaks prompt caching)." >&2
+  echo "See wiki/headroom-postmortem.md. Set MEW_HEADROOM_FORCE=1 to override." >&2
+  exit 1
+fi
+
+HEADROOM_COMPRESS_USER_MESSAGES=false \
+HEADROOM_COMPRESS_SYSTEM_MESSAGES=false \
 exec headroom proxy \
   --port 8787 \
   --protect-tool-results "Bash,Read,Edit,Write,MultiEdit" \

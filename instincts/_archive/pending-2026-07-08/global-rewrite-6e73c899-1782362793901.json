@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1782362793901",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "Stepper",
+  "wrong_assumption": "First version of Stepper.tsx was immediately revised",
+  "correct_behavior": "Review Stepper.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-25T04:46:33.901Z",
+  "status": "pending"
+}

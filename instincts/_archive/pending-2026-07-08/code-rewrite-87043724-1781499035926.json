@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781499035926",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "semantic-resolver",
+  "wrong_assumption": "First version of semantic-resolver.ts was immediately revised",
+  "correct_behavior": "Review semantic-resolver.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-15T04:50:35.926Z",
+  "status": "pending"
+}

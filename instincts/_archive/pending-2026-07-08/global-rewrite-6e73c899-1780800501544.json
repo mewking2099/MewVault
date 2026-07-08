@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1780800501544",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "post-tool-use",
+  "wrong_assumption": "First version of post-tool-use.js was immediately revised",
+  "correct_behavior": "Review post-tool-use.js before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-07T02:48:21.544Z",
+  "status": "pending"
+}

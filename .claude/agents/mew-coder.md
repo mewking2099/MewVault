@@ -1,7 +1,7 @@
 ---
 name: mew-coder
 description: Code implementation, bug fixes, refactoring, and test generation in software-projects/. Use for: implement, build, fix, feature, component, endpoint, API, migration, test.
-model: sonnet
+model: claude-sonnet-4-6
 tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 

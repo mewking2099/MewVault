@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779520994015",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "OverviewClient",
+  "wrong_assumption": "First version of OverviewClient.tsx was immediately revised",
+  "correct_behavior": "Review OverviewClient.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-23T07:23:14.016Z",
+  "status": "pending"
+}

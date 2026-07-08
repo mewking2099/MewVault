@@ -1,0 +1,13 @@
+{
+  "id": "design-rewrite-63ceba1b-1781759766942",
+  "silo": "design",
+  "project_hash": "63ceba1b",
+  "topic": "index",
+  "wrong_assumption": "First version of index.html was immediately revised",
+  "correct_behavior": "Review index.html before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-18T05:16:06.942Z",
+  "status": "pending"
+}

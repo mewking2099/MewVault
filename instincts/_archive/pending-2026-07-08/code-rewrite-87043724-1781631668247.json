@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781631668247",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Breadcrumb",
+  "wrong_assumption": "First version of Breadcrumb.tsx was immediately revised",
+  "correct_behavior": "Review Breadcrumb.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T17:41:08.247Z",
+  "status": "pending"
+}

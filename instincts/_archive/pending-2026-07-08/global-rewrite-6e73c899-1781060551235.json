@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781060551235",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "CorporateNode",
+  "wrong_assumption": "First version of CorporateNode.gd was immediately revised",
+  "correct_behavior": "Review CorporateNode.gd before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-10T03:02:31.235Z",
+  "status": "pending"
+}

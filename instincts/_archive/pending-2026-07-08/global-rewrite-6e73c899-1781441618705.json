@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781441618705",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "SemanticCustomizer",
+  "wrong_assumption": "First version of SemanticCustomizer.tsx was immediately revised",
+  "correct_behavior": "Review SemanticCustomizer.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-14T12:53:38.705Z",
+  "status": "pending"
+}

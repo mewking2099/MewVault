@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1779297827881",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "layout",
+  "wrong_assumption": "First version of layout.tsx was immediately revised",
+  "correct_behavior": "Review layout.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-05-20T17:23:47.881Z",
+  "status": "pending"
+}

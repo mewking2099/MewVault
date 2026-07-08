@@ -1,0 +1,13 @@
+{
+  "id": "code-rewrite-87043724-1781629113016",
+  "silo": "code",
+  "project_hash": "87043724",
+  "topic": "Alert",
+  "wrong_assumption": "First version of Alert.tsx was immediately revised",
+  "correct_behavior": "Review Alert.tsx before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-16T16:58:33.016Z",
+  "status": "pending"
+}

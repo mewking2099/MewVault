@@ -1,0 +1,13 @@
+{
+  "id": "global-rewrite-6e73c899-1781543217526",
+  "silo": "global",
+  "project_hash": "6e73c899",
+  "topic": "generate-theme-css",
+  "wrong_assumption": "First version of generate-theme-css.ts was immediately revised",
+  "correct_behavior": "Review generate-theme-css.ts before writing — verify before first commit",
+  "source": "rapid-rewrite-signal",
+  "confidence": 0.6,
+  "confirmed_sessions": 1,
+  "created": "2026-06-15T17:06:57.526Z",
+  "status": "pending"
+}
