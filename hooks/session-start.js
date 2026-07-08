@@ -519,6 +519,13 @@ Determine the design project (from cwd, or ask). Run \`python3 mewvault/mew.py d
 Run \`python3 mewvault/mew.py package ${project || '<project>'} --design\` via Bash. Report what was assembled and what's missing (e.g. no PRODUCT.md, no audit scores — suggest running the design-session gauntlet first). Never push to Drive without explicit confirmation.`,
   },
   {
+    pattern: /^(update (the )?(vault|mewvault)|mewvault update|upgrade (the )?vault)\b/i,
+    name: 'vault-update',
+    instructions: `## Command: mew update
+
+Run \`python3 mewvault/mew.py update\` via Bash from the workspace root. It stashes personal files, pulls --ff-only, reinstalls the package, re-registers hooks, and runs doctor. Report the outcome; if doctor flags issues, explain and offer fixes. If the stash pop conflicted, resolve it (personal files like log.md: keep BOTH — local entries on top of upstream changes).`,
+  },
+  {
     pattern: /^(sync (the )?wiki|wiki sync)\b/i,
     name: 'wiki-sync',
     instructions: `## Command: mew wiki sync

@@ -207,8 +207,10 @@ Then open Claude Code in the workspace and say **standup**.
 ### Upgrading
 
 ```bash
-cd ~/Jan/mewvault && git pull && pip3 install -e . && mew harness install
+mew update      # or say "update the vault" in Claude Code
 ```
+
+One command: stashes your personal files (log.md, statuses), pulls fast-forward-only, reinstalls the CLI, re-registers hooks, restores your files, and verifies with doctor. Your projects and mewwiki live in separate repos — an engine update can never touch them.
 
 ---
 
