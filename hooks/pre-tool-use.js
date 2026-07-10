@@ -202,6 +202,44 @@ function main() {
     }
   }
 
+  // Sub-logic D3: Confidentiality gate (career-studio, later content-studio).
+  // A case study cannot become `publishable` until `confidentiality: cleared`
+  // (owner-approved named-entities checklist). Enforcement, not advice.
+  if (filePath && ['Write', 'Edit'].includes(toolName) &&
+      /\/(career-studio|content-studio)\//.test(normPath(filePath)) &&
+      path.extname(filePath) === '.md') {
+    const newContent = toolInput.content || toolInput.new_string || '';
+    if (/status\s*:\s*publishable/i.test(newContent)) {
+      let cleared = /confidentiality\s*:\s*cleared/i.test(newContent);
+      if (!cleared && fs.existsSync(filePath)) {
+        cleared = /confidentiality\s*:\s*cleared/i.test(fs.readFileSync(filePath, 'utf8'));
+      }
+      if (!cleared) {
+        block(
+          `⛔ Confidentiality gate: cannot set status: publishable while confidentiality is not 'cleared'.\n` +
+          `Extract every client/employer name, metric, and internal detail from the draft, present the ` +
+          `keep/anonymize/remove checklist, get the owner's approval on each item, set ` +
+          `'confidentiality: cleared' — then mark publishable.`
+        );
+      }
+    }
+  }
+
+  // Sub-logic D4: Trading journal + backtest immutability (learn-lab).
+  // Append-only files: Edit is always blocked; Write is blocked once the file
+  // exists (appends happen via bash `>>`). Corrections are new entries.
+  if (filePath &&
+      /\/learn-lab\/trading\/(journal|backtests)\//.test(normPath(filePath)) &&
+      ['Write', 'Edit', 'MultiEdit'].includes(toolName)) {
+    if (toolName !== 'Write' || fs.existsSync(filePath)) {
+      block(
+        `⛔ Journal immutability: ${path.basename(filePath)} is append-only.\n` +
+        `Append entries via bash: echo '<json>' >> <file>. Corrections are NEW entries ` +
+        `referencing the original — history is never rewritten.`
+      );
+    }
+  }
+
   // Sub-logic E: TDD gate.
   // HARD BLOCK for stalk/mewking projects (audit 2026-07-08: the old stderr
   // warning had 0% compliance — PreToolUse stderr never reaches Claude on exit 0).

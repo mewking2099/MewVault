@@ -268,6 +268,46 @@ def check_wip_limit(root: Path):
     return _result("wip_limit", OK, f"{len(projects)} active project(s), none stale")
 
 
+def check_learning_velocity(root: Path):
+    """The growth push: warn when no new skill evidence anywhere in 30+ days.
+    Signals: matrix 'Last evidence' dates, learn-lab session files, career interview logs.
+    Grace period: 14 days after career-studio creation (setup phase)."""
+    import re
+    from datetime import datetime
+    career = root / "career-studio"
+    if not career.exists():
+        return _result("learning_velocity", OK, "career-studio not built — skipped")
+    newest = None
+    matrix = career / "skills" / "matrix.md"
+    if matrix.exists():
+        for m in re.finditer(r"\|\s*(\d{4}-\d{2}-\d{2})\s*\|?\s*$",
+                             matrix.read_text(encoding="utf-8"), re.M):
+            try:
+                dt = datetime.strptime(m.group(1), "%Y-%m-%d")
+                newest = dt if newest is None or dt > newest else newest
+            except ValueError:
+                pass
+    # File-activity signals: learn-lab sessions, interview logs
+    for d in (root / "learn-lab", career / "interviews"):
+        if d.exists():
+            for f in d.rglob("*.md"):
+                dt = datetime.fromtimestamp(f.stat().st_mtime)
+                newest = dt if newest is None or dt > newest else newest
+    if newest is None:
+        status_f = career / "Project_Status.md"
+        m = re.search(r"^created:\s*(\d{4}-\d{2}-\d{2})", status_f.read_text(encoding="utf-8"), re.M) \
+            if status_f.exists() else None
+        if m and (datetime.now() - datetime.strptime(m.group(1), "%Y-%m-%d")).days <= 14:
+            return _result("learning_velocity", OK, "setup grace period — baseline with `skill review`")
+        return _result("learning_velocity", WARN, "no growth evidence anywhere — run `skill review` to baseline")
+    days = (datetime.now() - newest).days
+    if days > 30:
+        return _result("learning_velocity", WARN,
+                       f"no new skill evidence in {days} days — the compass is stalling; "
+                       f"feed one pillar (spec a feature, validate an idea, teach me <topic>, practice a track)")
+    return _result("learning_velocity", OK, f"latest growth evidence {days}d ago")
+
+
 CHECKS = [
     check_cache_safety,
     check_cache_burn,
@@ -275,6 +315,7 @@ CHECKS = [
     check_impeccable,
     check_ci_presence,
     check_wip_limit,
+    check_learning_velocity,
     check_hook_matchers,
     check_injection_size,
     check_instinct_queue,

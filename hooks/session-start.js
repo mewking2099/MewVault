@@ -30,6 +30,8 @@ function detectSilo(cwd, workspaceRoot) {
   if (rel.startsWith('software-projects')) return 'code';
   if (rel.startsWith('game-lab')) return 'game';
   if (rel.startsWith('idea-hub')) return 'idea';
+  if (rel.startsWith('career-studio')) return 'career';
+  if (rel.startsWith('learn-lab')) return 'learn';
   if (rel.startsWith('mewvault') || rel === '') return 'mewvault';
   return null;
 }
@@ -64,7 +66,8 @@ function getAgent(silo) {
 const WHITELIST = {
   code:   ['current_phase', 'stack', 'open_threads', 'tier', 'plan_approved'],
   design: ['current_phase', 'figma_file_key', 'greenlit', 'tier', 'last_audit', 'audit_scores', 'open_p0'],
-  game:   ['current_phase', 'concepts_count', 'mechanics_count', 'tier'],
+  game:   ['current_phase', 'concepts_count', 'mechanics_count', 'tier', 'engine', 'dimension', 'plan_approved'],
+  career: ['current_phase', 'case_studies_count', 'last_skill_review', 'last_mock_interview', 'voice_profile'],
   wiki:   ['inbox_count', 'orphan_concepts'],
   idea:   ['active_ideas', 'seed_count', 'exploring_count', 'validated_count', 'tier'],
 };
@@ -526,11 +529,256 @@ Run \`python3 mewvault/mew.py package ${project || '<project>'} --design\` via B
 Run \`python3 mewvault/mew.py update\` via Bash from the workspace root. It stashes personal files, pulls --ff-only, reinstalls the package, re-registers hooks, and runs doctor. Report the outcome; if doctor flags issues, explain and offer fixes. If the stash pop conflicted, resolve it (personal files like log.md: keep BOTH — local entries on top of upstream changes).`,
   },
   {
+    pattern: /^brief\s+(.+)/i,
+    name: 'brief',
+    args: (p) => p.replace(/^brief\s+/i, '').trim(),
+    instructions: (topic) => `## Workflow: Brief — ${topic || '<topic>'}
+
+Total context on a topic. Two layers, then synthesize:
+
+**1. Lexical** — run \`python3 mewvault/mew.py brief "${topic || '<topic>'}"\` via Bash (prints the ranked pack and saves an artifact to mewwiki/Knowledge/briefs/).
+
+**2. Semantic** — call \`mcp__doobidoo__retrieve_memory\` with 2-3 keyword variants of the topic.
+
+**3. Synthesize** — merge both into one answer: established facts, decisions (dated, cited), open threads, and what's NOT known. Flag contradictions between sources explicitly.`,
+  },
+  {
+    pattern: /^validate\s+(.+)/i,
+    name: 'validate-idea',
+    args: (p) => p.replace(/^validate\s+/i, '').trim(),
+    instructions: (idea) => `## Workflow: Validate Idea — ${idea || '<idea>'}
+
+idea-hub feasibility pass. Quick scan by default (~4-6 web searches); if the user said "deep", run a fan-out research pass instead.
+
+**1. Load** — read \`idea-hub/ideas/<slug>/idea.md\` (or ask which idea if ambiguous). Confirm problem statement + target user exist (required before exploring).
+
+**2. Research** — web search: existing solutions, closest 3-5 competitors (positioning, pricing, obvious gap), market-size signal, tech complexity read. Every claim gets an inline citation \`(source: URL)\` — silo rule.
+
+**3. Write** — \`idea-hub/ideas/<slug>/feasibility.md\` from the template: competitor table, differentiation, effort estimate (S/M/L/XL), risks.
+
+**4. Recommend and STOP** — end with pursue / park / kill + reasoning. Do NOT change status.md — flipping \`status: validated\` is the owner's call, always.`,
+  },
+  {
     pattern: /^(sync (the )?wiki|wiki sync)\b/i,
     name: 'wiki-sync',
     instructions: `## Command: mew wiki sync
 
 Run \`python3 mewvault/mew.py wiki sync\` via Bash from the workspace root. Report projects synced, inbox count, and whether the semantic re-index kicked off.`,
+  },
+  {
+    pattern: /^practice japanese\b/i,
+    name: 'practice-japanese',
+    instructions: `## Workflow: Practice Japanese (~20 min)
+
+Deck: learn-lab/japanese/srs/deck.jsonl · Scheduler: mewvault/scripts/srs.py (it decides scheduling, you grade).
+
+**1. Drill** — run \`python3 mewvault/scripts/srs.py due learn-lab/japanese/srs/deck.jsonl --limit 20\` via Bash. Quiz ONE card at a time (front→back for recognition; for known cards also back→front production). After the learner answers, grade honestly and run \`srs.py grade <deck> <id> <again|hard|good|easy>\`. Note kana/kanji confusions in the card's context.
+
+**2. One new thing** — teach one grammar point at current phase (Track_Status.md); Phase 0 = kana only, skip grammar. Write/extend the shard in concepts/, 3 example sentences using ONLY known words + the new item. Verify any new vocab against reference/ before adding cards.
+
+**3. Micro-conversation** — 3-5 exchanges at level (Phase 0: kana reading practice instead).
+
+**4. Wrap** — update Track_Status.md (streak +1 if practiced yesterday or today-first, else reset to 1; last_practice; next_grammar). Append a 5-line session note to sessions/<date>.md. Report: reps done, accuracy, streak, tomorrow's due count (\`srs.py stats\`).`,
+  },
+  {
+    pattern: /^immersion\s*[—–-]\s*(.+)/i,
+    name: 'immersion',
+    args: (p) => p.replace(/^immersion\s*[—–-]\s*/i, '').trim(),
+    instructions: (notes) => `## Workflow: Immersion Log
+
+Notes: "${notes || '(see message)'}"
+
+Log to learn-lab/japanese/sessions/<date>-immersion.md. Extract new vocabulary candidates; VERIFY each against reference/ (JMdict) — readings and meanings from the file, never from memory. Present verified candidates; on confirmation add via \`srs.py add\`. If reference data isn't downloaded yet, list candidates but add nothing (point to reference/README.md).`,
+  },
+  {
+    pattern: /^japanese review\b/i,
+    name: 'japanese-review',
+    instructions: `## Workflow: Japanese Review (weekly)
+
+Run \`srs.py stats\` on the deck. Report: progress vs current phase target (Track_Status), streak health, leech cards (4+ lapses — drill those first next session), mature-card growth. Assign ONE immersion task for the week at level. Offer Anki export (\`srs.py export\`) if the learner wants mobile reps. Update skill-matrix evidence if a phase milestone was hit (Japanese progress = learning evidence).`,
+  },
+  {
+    pattern: /^market prep\b/i,
+    name: 'market-prep',
+    instructions: `## Workflow: Market Prep (pre-session)
+
+Trading track. Check Track_Status stage first — this workflow applies from demo stage onward (backtest stage: point to \`backtest —\` instead).
+
+Show: 1) the current rulebook checklist verbatim (rulebook.md), 2) today's kill-zone windows in the user's timezone, 3) the ONE focus from the last trading review. Remind of daily loss limit and max trades. NO market opinions, NO setups, NO predictions — prep is about the rules, not the market.`,
+  },
+  {
+    pattern: /^trade\s*[—–-]\s*(.+)/i,
+    name: 'trade-journal',
+    args: (p) => p.replace(/^trade\s*[—–-]\s*/i, '').trim(),
+    instructions: (details) => `## Workflow: Trade Journal Entry
+
+Details: "${details || '(see message)'}"
+
+Build the entry (ask for missing required fields): ts, instrument, direction, entry, exit, size, r_multiple, setup tag, emotion_pre, emotion_post, plan (was there one BEFORE entry?), followed_rules (bool), grade (A/B/C vs rulebook), stage (from Track_Status), notes. Append via bash: \`echo '<json>' >> learn-lab/trading/journal/<YYYY-MM>.jsonl\` — journal files are append-only (hook-enforced); corrections are new entries. After logging: ONE sentence of adherence feedback (grade-focused, never P&L-focused). If grade is C and profitable, say explicitly that this is the most dangerous kind of entry.`,
+  },
+  {
+    pattern: /^backtest\s*[—–-]\s*(.+)/i,
+    name: 'backtest-log',
+    args: (p) => p.replace(/^backtest\s*[—–-]\s*/i, '').trim(),
+    instructions: (notes) => `## Workflow: Backtest Log
+
+Notes: "${notes || '(see message)'}"
+
+Stage 1 practice. Build the setup record: date-of-data, instrument, concept (which ICT concept is being drilled), identified-correctly (bool — did the setup play out as read), entry/stop/target, outcome_r, notes. Append via bash to learn-lab/trading/backtests/<concept-slug>.jsonl. Then report gate progress: \`<n>/50 setups · ID accuracy <x>%\` (count from the file; accuracy = identified-correctly rate; gate = 50 + ≥60%). When a concept passes its gate, update curriculum.md and congratulate — briefly.`,
+  },
+  {
+    pattern: /^trading review\b/i,
+    name: 'trading-review',
+    instructions: `## Workflow: Trading Review
+
+Read the current month's journal (+previous if <10 entries). Compute and report: trades, win rate, avg R, **adherence rate (A-grades %)**, breakdown by setup tag and by hour, emotion patterns around C-grades. Name the single worst behavioral pattern, set ONE focus for next week, write reviews/<date>.md. Adherence is the headline number, not P&L. If at demo stage: report progress against graduation_criteria in Track_Status. Never suggest trades or market views.`,
+  },
+  {
+    pattern: /^voice setup\b/i,
+    name: 'voice-setup',
+    instructions: `## Workflow: Voice Setup
+
+Build brand/voice.md from real writing. Silo: career-studio.
+
+**1. Samples** — list files in career-studio/raw/. Need 3-5 pieces of the owner's real writing (emails, posts, docs). If fewer, ask them to drop more before proceeding.
+
+**2. Extract** — read the samples and derive: tone register, sentence length/rhythm habits, characteristic phrases, words they never use, I-vs-we, how they open and close, how direct they are with disagreement.
+
+**3. Interview** — 5-8 short questions to fill gaps the samples can't show (audiences they write for, writing they admire, writing they hate, formality range).
+
+**4. Write** — brand/voice.md with concrete examples from their own samples (quote them). Set \`voice_profile: built\` in Project_Status.md.
+
+Every future voice-pass edit refines this file — note the pattern each edit reveals.`,
+  },
+  {
+    pattern: /^case study\s+(.+)/i,
+    name: 'case-study',
+    args: (p) => p.replace(/^case study\s+/i, '').trim(),
+    instructions: (name) => `## Workflow: Case Study — ${name || '<project>'}
+
+Silo: career-studio. Read brand/voice.md first (if not built, suggest \`voice setup\` — drafting without it produces generic text).
+
+**1. Intake mode** — if "${name || '<project>'}" matches a vault project (check silos for the slug): AUTO mode — assemble from receipts: Project_Status history, decisions in mewwiki, audit scores, log.md entries, handoff packages. Otherwise: RETRO mode — interview the owner (context, problem, what they did, decisions and why, outcome, regrets), and ask them to drop any artifacts (decks, briefs, finals) into career-studio/raw/.
+
+**2. Draft** — from case-studies/_template.md. Frontmatter: status: assembled, confidentiality: unreviewed. Decisions section is the heart: options considered, choice, WHY, cost. Anonymize client/employer names in the draft by default ("a fintech client").
+
+**3. Voice pass gate** — present the draft; the owner edits. Apply their edits, set voice_pass: true and status: drafted. Update brand/voice.md with any pattern the edits reveal.
+
+**4. Confidentiality checklist** — extract EVERY client/employer name, metric, and internal detail used; present as a keep/anonymize/remove checklist. Only after the owner approves each item: set confidentiality: cleared. The publishable status is hook-blocked until then.
+
+**5. Close** — increment case_studies_count in Project_Status.md. Retro studies define the template shape — note structural improvements back into _template.md.`,
+  },
+  {
+    pattern: /^refresh cv\b/i,
+    name: 'refresh-cv',
+    instructions: `## Workflow: Refresh CV
+
+Silo: career-studio. Read brand/voice.md + cv/master.md.
+
+**1. Mine** — scan vault logs (all silos, since last_refresh), case studies, and skill matrix changes for new accomplishments: shipped work, measurable outcomes, new skills with evidence.
+
+**2. Propose** — additions/edits to cv/master.md as a diff-style list (add/update/remove). Accomplishments in the owner's voice, outcome-first, no filler adjectives.
+
+**3. Apply on approval** — update master, set last_refresh. If a role-targeted variant exists in cv/, offer to propagate. Voice pass before any external use — remind, don't assume.`,
+  },
+  {
+    pattern: /^skill review\b/i,
+    name: 'skill-review',
+    instructions: `## Workflow: Skill Review (quarterly)
+
+Silo: career-studio. Open skills/matrix.md.
+
+**1. Challenge** — every skill at level 3+ without an evidence link: ask for evidence or propose the honest lower level. Never let unevidenced levels stand.
+
+**2. Propose upgrades** — scan vault activity since last_review (case studies, shipped projects, learn-lab progress, interview logs, kudos in mewwiki) and propose level changes WITH the evidence link attached. The owner accepts/rejects each.
+
+**3. Gaps** — compare levels vs targets; name the 2-3 biggest gaps and suggest one concrete vault activity per gap (a project, a learn-lab track, a mock interview focus).
+
+**4. Close** — update matrix rows + last_review + next_review_due (+3 months) + last_skill_review in Project_Status.md.`,
+  },
+  {
+    pattern: /^mock interview\s*(\w*)/i,
+    name: 'mock-interview',
+    args: (p) => p.replace(/^mock interview\s*/i, '').trim(),
+    instructions: (type) => `## Workflow: Mock Interview — ${type || 'portfolio'}
+
+Silo: career-studio. Types: portfolio (present a case study, you interrogate it), challenge (timed design exercise), behavioral (STAR), leadership.
+
+**1. Ground in reality** — questions MUST come from the owner's real history: read case studies, project logs, and decisions. Behavioral questions reference actual situations ("walk me through the decision to X in <project>"); portfolio grillings cite real trade-offs. No generic question-bank questions.
+
+**2. Run it** — one question at a time, realistic follow-ups, push back where a hiring panel would. 25-40 minutes of exchanges. Stay in interviewer character until the owner ends it.
+
+**3. Debrief** — score against: structure, specificity (numbers/names of methods), ownership language, honesty about failure, storytelling. What worked, the single biggest improvement, one exemplar rewrite of their weakest answer.
+
+**4. Log** — interviews/<date>-${type || 'portfolio'}.md with questions, summary, scores, focus for next time. Update last_mock_interview in Project_Status.md; add notable observations to the skill matrix evidence column.`,
+  },
+  {
+    pattern: /^mechanic\s+(.+)/i,
+    name: 'mechanic',
+    args: (p) => p.replace(/^mechanic\s+/i, '').trim(),
+    instructions: (name) => `## Workflow: Mechanic — ${name || '<name>'}
+
+The design→code pipeline for one game mechanic. Read design/vision.md and design/mechanics/_index.md first — nothing else from design/ unless directly needed.
+
+**1. Design shard** — create/update \`design/mechanics/${(name || 'mechanic').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md\` (≤150 lines): frontmatter \`status: designed\` + \`module: <architecture.md entry>\`; then rules of the mechanic, tunable parameters (as a table — these become ScriptableObject fields), edge cases, and which pillar it serves. If it serves no pillar, challenge it.
+
+**2. Acceptance criteria** — 3-6 testable AC-n lines ("Given the player holds jump, when they release early, then jump height is proportionally lower"). STOP for user approval.
+
+**3. Build** — engine rules take over: one step at a time, tests for pure logic first, manual editor steps with Why-explainers, placeholder art from primitives (log real art as \`needed\` in assets/manifest.md).
+
+**4. Close the loop** — set \`status: built\`, update _index.md, mechanics-built.md, \`mechanics_count\`, and architecture.md if a new module/event channel appeared. Suggest a playtest focus question for this mechanic.`,
+  },
+  {
+    pattern: /^playtest\s*[—–-]\s*(.+)/i,
+    name: 'playtest',
+    args: (p) => p.replace(/^playtest\s*[—–-]\s*/i, '').trim(),
+    instructions: (notes) => `## Workflow: Playtest Capture
+
+Raw notes: "${notes || '(see message)'}"
+
+**1. Record verbatim** — write \`production/playtests/<YYYY-MM-DD>.md\` with the notes as given (add date, build/phase, who played). This file is immutable once written.
+
+**2. Extract** — propose a categorized list: bugs, friction points, tuning observations, ideas. For each, propose a backlog destination (Now only if it blocks the current milestone; otherwise Next/Later).
+
+**3. Confirm before writing** — user approves the extraction, then update production/backlog.md. Tuning observations also get a line in the relevant mechanic shard's tuning notes.`,
+  },
+  {
+    pattern: /^(backlog|game status)\b/i,
+    name: 'game-backlog',
+    instructions: `## Workflow: Game Status
+
+Read (only): Project_Status.md, production/backlog.md, production/milestones.md, design/mechanics/_index.md. Output one compact view: current milestone + its definition of done, Now items (flag if >3 — grooming needed), mechanics table (status counts), asset manifest gaps (count of \`needed\`), and concepts/mechanics learned counts. End with a suggested next session focus. No prose padding.`,
+  },
+  {
+    pattern: /^story session\b/i,
+    name: 'story-session',
+    instructions: `## Workflow: Story Session
+
+Narrative work with shard discipline. Read design/story/synopsis.md first; open other shards only as the work requires (max 3 without asking).
+
+- New characters/locations → new shards (characters/<name>.md, world.md), each ≤150 lines, linked from synopsis.
+- Keep synopsis.md a synopsis — details live in shards.
+- Story decisions that affect gameplay get cross-linked into the relevant mechanic shard, and vice versa.
+- Act/beat work happens in beats.md; each beat notes which mechanics/levels it depends on.
+- End of session: dump any story *decisions* to mewwiki (provenance: this project) so they're retrievable.`,
+  },
+  {
+    pattern: /^teach me\s+(.+)/i,
+    name: 'teach-me',
+    args: (p) => p.replace(/^teach me\s+/i, '').trim(),
+    instructions: (topic) => `## Workflow: Teach Me — ${topic || '<topic>'}
+
+The user is learning game development (and engineering generally) by building. Calibration: they're a product design lead — expert in design, tinkered with Unity, little coding background. Skip absolute basics, explain everything architectural, connect abstract ideas to design concepts they already know.
+
+**1. Explain** — the concept in plain language: what it is, the problem it exists to solve, and a concrete analogy. Then how it applies in THIS project (find a real usage in the codebase if one exists — cite the file).
+
+**2. Show** — a minimal annotated example (code or editor steps), line-by-line commentary. If a diagram would help (flows, hierarchies, lifecycles), draw ASCII or offer a Mermaid file.
+
+**3. Contrast** — one alternative approach with when-to-use-which and trade-offs. Learning what something is NOT cements what it is.
+
+**4. Check** — one small "try it yourself" task the user can do to prove understanding. Wait for their result.
+
+**5. Archive** — offer to write the concept page to the current project's \`wiki/<topic-slug>.md\` (what/why/where-used-here). If accepted, increment \`concepts_count\` in Project_Status.md and add a line to concepts-learned.md.`,
   },
   {
     pattern: /^spec\s+(.+)/i,
@@ -540,7 +788,7 @@ Run \`python3 mewvault/mew.py wiki sync\` via Bash from the workspace root. Repo
 
 Spec-driven development. No implementation happens in this workflow — only the spec.
 
-**1. Source** — find the brief: check \`raw/\` for a matching document; if none, interview the user (problem, who it's for, what "working" looks like).
+**1. Source** — first run \`python3 mewvault/mew.py brief "${feature || '<feature>'}"\` via Bash (prior decisions/specs on this topic ground the spec). Then find the brief: check \`raw/\` for a matching document; if none, interview the user (problem, who it's for, what "working" looks like).
 
 **2. Draft** — write \`specs/${(feature || 'feature').toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md\` from \`mewvault/templates/spec.md.tmpl\`. The acceptance criteria are the contract: numbered AC-n, Given/When/Then, each one independently testable. Include edge cases (empty, long input, errors, offline) and an explicit out-of-scope list.
 
@@ -578,7 +826,7 @@ Structured design critique from pixels. Works on Figma frames, local builds, and
 
 Act as mew-designer. Set up the Impeccable loop before touching any file.
 
-**1. Context** — run \`node mewvault/.agents/skills/impeccable/scripts/context.mjs\` (once per session).
+**1. Context** — run \`node mewvault/.agents/skills/impeccable/scripts/context.mjs\` (once per session). Also run \`python3 mewvault/mew.py brief "<project>"\` via Bash — past design decisions and critiques ground the session.
 
 **2. Product context** — check the project root for PRODUCT.md and DESIGN.md. Missing PRODUCT.md → run \`/impeccable init\` (short interview: audience, lane, voice, anti-references) before anything else.
 
@@ -607,6 +855,10 @@ Act as mew-archivist (dispatch with model haiku if using the Agent tool). Digest
 
 **3. Stale nudges** — list projects with no log entry in 14+ days; for each, ask: continue, archive, or abandon? Do not act without an answer.
 
+**3b. Career cadence** — check career-studio/Project_Status.md: if last_mock_interview is 30+ days ago (or null), nudge: "Mock interview due — say \`mock interview <type>\`." If next_review_due in skills/matrix.md has passed, nudge the quarterly skill review.
+
+**3c. Growth compass** — read career-studio/skills/matrix.md: find the pillar whose newest "Last evidence" date is oldest (or empty). Name it, and propose exactly ONE concrete vault activity this week to feed it — matched to the pillar: Product → \`validate <idea>\` or write a spec's acceptance criteria; Development → \`spec\` + build a small feature, or a game-lab session; Design → a \`critique\` or design-session gauntlet; AI & Tooling → improve a vault workflow; Leadership → a mock interview (leadership) or mentoring note. One suggestion, not a list. When work that week already produced evidence for a pillar, say so and update the matrix row (new evidence link + date).
+
 **4. Inbox** — count \`mewwiki/_inbox/\`; if items are older than 7 days, propose routing for each (wait for confirmation).
 
 **5. Sync** — run \`mew wiki sync\` so the weekly note reaches Obsidian, then suggest a commit message.
@@ -629,6 +881,8 @@ Morning brief. Run these steps in parallel, then format the output.
 **4. Open PRs** — run \`gh pr list --state open --json number,title,headRefName,isDraft\` for each silo that has a GitHub remote. Skip silos with no remote.
 
 **5. Google Calendar** (skip gracefully if not connected) — if a Google Calendar MCP is available, call it for today's events.
+
+**5a. Learning tracks** — for each learn-lab/*/Track_Status.md: one line per track. Japanese: run \`python3 mewvault/scripts/srs.py due learn-lab/japanese/srs/deck.jsonl --count\` and report "Japanese: N due · streak N". Trading: report current stage + next gate.
 
 **5b. Figma comments** (skip gracefully if Figma MCP unavailable) — for each active design project whose Project_Status.md has a \`figma_file_key\`, fetch unresolved comments via the Figma MCP. Report per project: \`<project>: <N> unresolved comment(s) (oldest <age>)\`. Omit projects with zero.
 
@@ -667,7 +921,9 @@ End the session cleanly.
 
 **2. Gather summary** — ask: "What happened this session? (one sentence to a few bullet points)"
 
-**2b. Definition of Done (code projects only)** — before writing the log, run the project's checks and capture pass/fail:
+**2b. Correction reflection (every wrap, all silos)** — review THIS session for moments the user corrected your approach, redirected you, or expressed a preference ("no, do it like…", tone/format requests, rejected proposals). Propose 0-3 instinct candidates, each as: wrong assumption → what the user actually wanted → reusable rule, with a proposed scope (this project / this silo / global). If the user confirms one, write it DIRECTLY to \`mewvault/instincts/promoted/<scope>-wrap-<slug>.json\` (fields: id, silo=<scope>, wrong_assumption, correct_behavior, source: "wrap-reflection", confidence: 0.9, created, status: "promoted") — active next session. Zero candidates is a fine outcome; never invent corrections.
+
+**2c. Definition of Done (code projects only)** — before writing the log, run the project's checks and capture pass/fail:
 \`npm run typecheck --if-present && npm run lint --if-present && npm test --if-present && npm run build --if-present\`
 All pass → log entry is normal. Any fail → tag the entry \`[incomplete]\`, set \`next_action\` to the first failure, and tell the user plainly: the session's work is NOT verified. Never claim "done" over a red check. If the session implemented a spec, reference its criteria: "AC-1 ✓ AC-2 ✓ AC-3 deferred".
 
@@ -776,6 +1032,8 @@ Wiki mirror: mewwiki/Projects/<slug>/
 Topic/person: "${args || '(ask)'}"
 
 Read mewwiki path from \`mewvault/.mewwiki\`.
+
+**0. Auto-brief** — run \`python3 mewvault/mew.py brief "<topic>"\` via Bash first; the pack (decisions, people notes, prior meetings) grounds everything below.
 
 **1. Identify meeting** — if Google Calendar MCP is available, search for upcoming meetings matching the topic. Surface: date, time, attendees. If Calendar unavailable, ask.
 

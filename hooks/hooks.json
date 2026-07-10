@@ -47,5 +47,12 @@
     "matcher": "",
     "timeout": 5000,
     "description": "Logs subagent completions to the dispatch ledger"
+  },
+  {
+    "event": "PreToolUse",
+    "script": "unity-guard.js",
+    "matcher": "mcp__.*[Uu]nity",
+    "timeout": 5000,
+    "description": "Hybrid Unity contract: editor read tools pass, editor mutations blocked (manual steps instead)"
   }
 ]

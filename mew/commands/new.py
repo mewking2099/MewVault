@@ -23,7 +23,7 @@ def run_new(args) -> None:
         stack = args.stack or "next"
         _create_code_project(silos["software"], name, stack)
     elif args.type == "game-project":
-        _create_game_project(silos["games"], name)
+        _create_game_project(silos["games"], name, getattr(args, "engine", None) or "godot")
     elif args.type == "game-experiment":
         _create_game_experiment(silos["games"], name)
     elif args.type == "learning-path":
@@ -108,17 +108,27 @@ def _create_code_project(software_silo: Path, name: str, stack: str) -> None:
     print()
 
 
-def _create_game_project(game_silo: Path, name: str) -> None:
+def _create_game_project(game_silo: Path, name: str, engine: str = "godot") -> None:
     dest = game_silo / name
     if dest.exists():
         print(f"Error: already exists: {dest}")
         return
 
     subs = {"name": name, "date": today_str(), "project": name}
-    _scaffold(TEMPLATES_DIR / "game-project", dest, subs)
+    template = TEMPLATES_DIR / ("game-project-unity" if engine == "unity" else "game-project")
+    _scaffold(template, dest, subs)
 
-    print(f"\nCreated game project: game-lab/{name}/")
-    print("  Open in Godot 4. Run /teach godot to enter learning mode.")
+    print(f"\nCreated game project: game-lab/{name}/  (engine: {engine})")
+    if engine == "unity":
+        # gitignore-unity is a template asset; becomes the project .gitignore
+        gi_src = dest / "gitignore-unity"
+        if gi_src.exists():
+            gi_src.rename(dest / ".gitignore")
+        print("  Next: create the Unity project INSIDE this folder via Unity Hub")
+        print("  (2D URP template, project name = folder). Then say 'design the architecture'")
+        print("  in Claude Code. Setup guide: mewvault/wiki/unity-workflow-guide.md")
+    else:
+        print("  Open in Godot 4. Run /teach godot to enter learning mode.")
     print()
 
 

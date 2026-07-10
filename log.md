@@ -2,6 +2,67 @@
 
 ## Entries
 
+- **2026-07-13** — learn-lab silo BUILT: srs.py SM-2 scheduler (due/grade/add/stats/export — lifecycle verified incl. lapse ease-drop), japanese track seeded with 92 kana cards + reference-data rules + Anki export, trading track with stage gates + append-only journal/backtests (hook verified: Edit blocked, reviews writable) + adherence-first reviews, 7 triggers all routing, learn rules loading in-silo, standup due-counts line, dashboard Learning tracks table. Owner next: `practice japanese` (kana ready now); download JMdict per reference/README before vocab phase.\n
+- **2026-07-10** — Skill matrix v2 (compass, not ladder): restructured to 5 pillars (Design anchor / Product / Development / AI & Tooling / Leadership) for deliberate cross-discipline growth; trend computed from last-evidence dates (<30d up, <90d steady, else dormant). Dashboard 'Skills — growth compass' section (level dots, trend arrows, dormant highlighting, velocity summary). Doctor learning_velocity check (warns at 30d without evidence; 14d setup grace). Weekly review 3c: names most dormant pillar + ONE concrete vault activity; evidence auto-capture rule added to career rules. All verified with fixture.
+
+- **2026-07-10** — career-studio silo BUILT: private repo scaffold (case-studies/cv/skills/brand/interviews/raw/talks), career rules (privacy absolutes, pipeline, evidence rule), confidentiality gate in pre-tool-use (verified: blocks publishable-without-cleared, passes when cleared), 5 triggers verified (voice setup, case study, refresh cv, skill review, mock interview), weekly-review career cadence nudge, silo detection + whitelist. First action for owner: drop 3-5 writing samples in career-studio/raw/ then `voice setup`.
+
+- **2026-07-10** — All three new-silo designs finalized item-by-item: career-studio (retro-first case studies as templates for auto-assembly, samples+interview voice profile, skill matrix from adapted framework w/ evidence-challenged levels, monthly mock interviews grounded in real project history), ops-hub (sensitivity split: neutral profiles stay in mewwiki, feedback/reviews/1:1s in private unindexed silo; review assembly self+reports; personal+team goals; 1:1 scope reports+stakeholders), content-studio (LinkedIn+blog, vault-learnings source, manual paste only; build gated on career-studio voice loop). Proposal updated.
+
+- **2026-07-10** — Built finalized cross-silo features: mew brief + trigger (auto-wired into meeting-prep/spec/design-session), instinct v2 wrap reflection, validate <idea> trigger, mobile drop-folder capture in wiki sync + Android setup guide. All verified (brief live-tested, triggers routed, sweep tested end-to-end). New silos (career-studio, ops-hub) await per-silo discussion before build.
+
+- **2026-07-08** — Future proposal finalized item-by-item: B1 brief (People included, 2k cap, saved artifacts, auto-wired into meeting-prep/spec/design-session), B2 instinct v2 (wrap-time reflection, live-confirm to promoted, Claude proposes scope), A1 career-studio (portfolio-site target, hook-enforced confidentiality checklist gate, living CV quarterly), B3 validate-idea (quick scan + --deep, owner flips status), B6 Android drop-folder capture, B4 wireframe experiment timeboxed, A2 ops-hub next wave (private repo), B5 ship at first ship, A3 deferred. Build order written into the proposal.
+
+- **2026-07-08** — Trading track deep analysis: staged plan (curriculum -> 50-setup bar-replay backtests per concept -> rulebook from own stats -> 3-month demo gate -> live small) with script-computed gates; one journal contract shared by mew-trade Phase-2 webhook ingest, learn-lab track, and MewLearn form. Proposal updated.
+
+- **2026-07-08** — learn-lab proposal updated (interface strategy: progress page with silo, Anki for mobile drills, MewLearn app later) + full MewLearn PRD saved (local-only Next.js over learn-lab files, single SM-2 implementation shared with the vault, 13 acceptance criteria across 3 phases, 2-min trade journal). proposals/active/2026-07-08-mewlearn-app-prd.md
+
+- **2026-07-08** — Proposal saved: future silos + features (career-studio, ops-hub, content-studio; mew brief, instinct v2, validate-idea, wireframe-to-Figma, ship, voice capture). Awaiting selection: proposals/active/2026-07-08-future-silos-and-features.md
+
+- **2026-07-08** — Game production layer: production-rules.md (sharded game bible + read discipline: entry points first, shards on demand, 150-line cap — token-aware by construction), unity template extended with design/{vision,mechanics,story,levels,ui-ux}, production/{backlog,milestones,playtests}, assets/manifest.md (placeholder-first, license-tracked). Four triggers verified: `mechanic <name>` (design->AC->build pipeline), `playtest — <notes>` (immutable capture + backlog extraction), `backlog`/`game status`, `story session`. Game whitelist +engine/dimension/plan_approved.
+
+- **2026-07-08** — Unity workflow for game silo (hybrid, learning-first): unity-rules.md (SO-driven modular architecture, hybrid contract, C# conventions, living architecture.md), unity-guard.js hook (Unity MCP read tools allowed, editor mutations blocked -> manual numbered steps with Why explainers), `teach me <topic>` trigger, `mew new game-project --engine unity` template (architecture.md, Unity gitignore, learning trackers), wiki/unity-workflow-guide.md (setup + session loop + architecture rationale). Guard verified: blocks manage/create/set, passes read/get/run_tests.
+
+- **2026-07-09 06:13** — auto-wrap: modified advising-presentation.html [auto-wrap]
+
+- **2026-07-09 06:10** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 06:06** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 06:04** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 06:02** — auto-wrap: modified advising-presentation.html [auto-wrap]
+
+- **2026-07-09 05:12** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 05:08** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 03:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 03:48** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 03:47** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-09 03:45** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:44** — auto-wrap: modified log.md, Project_Status.md, last-session-message.txt [auto-wrap]
+
+- **2026-07-08 17:35** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:31** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:28** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:27** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:26** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:25** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 17:23** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-08 13:55** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-08** — `mew update`: safe one-command engine update (autostash personal files, pull --ff-only, pip reinstall, harness re-register, doctor verify) + 'update the vault' trigger; instincts/_archive gitignored and untracked (942 junk files kept out of the repo); README upgrade section rewritten.
 
 - **2026-07-08 12:52** — auto-wrap: session ended [auto-wrap]

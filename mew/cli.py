@@ -35,6 +35,7 @@ def main() -> None:
     )
     p_new.add_argument("name", help="Project name (kebab-case recommended)")
     p_new.add_argument("--stack", choices=["next", "astro", "sveltekit"], help="Code project stack")
+    p_new.add_argument("--engine", choices=["godot", "unity"], help="Game project engine (default: godot)")
 
     # validate
     p_validate = subparsers.add_parser("validate", help="Check schema compliance")
@@ -206,6 +207,12 @@ def main() -> None:
     p_dash.add_argument("--watch", type=int, metavar="SECONDS", help="Regenerate every N seconds")
     p_dash.add_argument("--no-open", action="store_true", dest="no_open", help="Don't open in browser")
 
+    # brief
+    p_brief = subparsers.add_parser("brief", help="Total-context pack for a topic across all silos + mewwiki")
+    p_brief.add_argument("topic", nargs="+", help="Topic to brief on")
+    p_brief.add_argument("--tokens", type=int, default=2000, help="Token budget (default 2000)")
+    p_brief.add_argument("--no-save", action="store_true", dest="no_save", help="Don't save the artifact")
+
     # update
     subparsers.add_parser("update", help="Safe one-command engine update (pull + reinstall + re-register hooks + doctor)")
 
@@ -267,6 +274,7 @@ def main() -> None:
         "ci":             lambda: _run("ci", args),
         "design":         lambda: _run("design", args),
         "update":         lambda: _run("update", args),
+        "brief":          lambda: _run("brief", args),
         "dispatch":       lambda: _run("dispatch", args),
         "help":           lambda: _run("help", args),
     }
@@ -361,6 +369,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "update":
         from mew.commands.update import run_update
         run_update(args)
+    elif command == "brief":
+        from mew.commands.brief import run_brief
+        run_brief(args)
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)

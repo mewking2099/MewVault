@@ -309,11 +309,58 @@ def _wiki_sync(args) -> None:
     if inbox_count > 0:
         print(f"  Review _inbox/ in Obsidian and route notes to Knowledge/.")
 
+    # Mobile capture: sweep the drop folder into _inbox (B6, 2026-07-08)
+    if not dry_run:
+        _sweep_drop_folder(wiki_path)
+
     # Retrieval loop: re-index mewwiki into doobidoo after every real sync, so
     # decisions/gotchas resurface via the session-start semantic section.
     if not dry_run and synced > 0:
         _auto_ingest()
     print()
+
+
+def _sweep_drop_folder(wiki_path: Path) -> None:
+    """Move captured notes from the mobile drop folder into mewwiki/_inbox.
+
+    Drop folder resolution: $MEW_INBOX_DROP, else mewvault/.inbox-drop pointer
+    file, else ~/Sync/mew-inbox (Syncthing convention). Only .txt/.md files.
+    Names get a date prefix; originals are removed after a successful copy.
+    Setup guide: wiki/mobile-capture-setup.md
+    """
+    import os
+    import shutil
+    from datetime import date
+
+    drop = os.environ.get("MEW_INBOX_DROP")
+    if not drop:
+        pointer = Path(__file__).parent.parent.parent / ".inbox-drop"
+        if pointer.exists():
+            drop = pointer.read_text(encoding="utf-8").strip()
+    drop_path = Path(drop).expanduser() if drop else Path.home() / "Sync" / "mew-inbox"
+    if not drop_path.exists():
+        return
+
+    inbox = wiki_path / "_inbox"
+    inbox.mkdir(parents=True, exist_ok=True)
+    moved = 0
+    for f in sorted(drop_path.iterdir()):
+        if not f.is_file() or f.suffix.lower() not in (".txt", ".md"):
+            continue
+        stem = f.stem.replace(" ", "-")[:60] or "capture"
+        dest = inbox / f"{date.today()}-mobile-{stem}.md"
+        n = 1
+        while dest.exists():
+            dest = inbox / f"{date.today()}-mobile-{stem}-{n}.md"
+            n += 1
+        try:
+            shutil.copyfile(f, dest)
+            f.unlink()
+            moved += 1
+        except OSError:
+            continue
+    if moved:
+        print(f"  Mobile capture: {moved} note(s) swept from {drop_path} → _inbox/")
 
 
 def _auto_ingest() -> None:
