@@ -2,6 +2,50 @@
 
 ## Entries
 
+- **2026-07-12 16:44** — auto-wrap: modified speaker-notes.md [auto-wrap]
+
+- **2026-07-12 16:30** — auto-wrap: modified PRODUCT.md, ai-workflow-presentation.html [auto-wrap]
+
+- **2026-07-12 16:19** — auto-wrap: modified ai-workflow-presentation.html [auto-wrap]
+
+- **2026-07-12 15:54** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-12 15:50** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-12 15:34** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-12 15:30** — auto-wrap: modified CLAUDE.md [auto-wrap]
+
+- **2026-07-12 15:27** — auto-wrap: modified CLAUDE.md [auto-wrap]
+
+- **2026-07-12 15:20** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-12 15:11** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-11 03:45** — auto-wrap: modified 2026-07-08-future-silos-and-features.md [auto-wrap]
+
+- **2026-07-11 03:40** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 18:23** — auto-wrap: modified Track_Status.md [auto-wrap]
+
+- **2026-07-10 18:12** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 18:08** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 18:07** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 18:07** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 17:59** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 17:58** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 17:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 17:56** — auto-wrap: session ended [auto-wrap]
+
+- **2026-07-10 17:55** — auto-wrap: session ended [auto-wrap]
+
 - **2026-07-13** — learn-lab silo BUILT: srs.py SM-2 scheduler (due/grade/add/stats/export — lifecycle verified incl. lapse ease-drop), japanese track seeded with 92 kana cards + reference-data rules + Anki export, trading track with stage gates + append-only journal/backtests (hook verified: Edit blocked, reviews writable) + adherence-first reviews, 7 triggers all routing, learn rules loading in-silo, standup due-counts line, dashboard Learning tracks table. Owner next: `practice japanese` (kana ready now); download JMdict per reference/README before vocab phase.\n
 - **2026-07-10** — Skill matrix v2 (compass, not ladder): restructured to 5 pillars (Design anchor / Product / Development / AI & Tooling / Leadership) for deliberate cross-discipline growth; trend computed from last-evidence dates (<30d up, <90d steady, else dormant). Dashboard 'Skills — growth compass' section (level dots, trend arrows, dormant highlighting, velocity summary). Doctor learning_velocity check (warns at 30d without evidence; 14d setup grace). Weekly review 3c: names most dormant pillar + ONE concrete vault activity; evidence auto-capture rule added to career rules. All verified with fixture.
 

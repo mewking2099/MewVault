@@ -95,7 +95,7 @@ Locked decisions:
 - **Budget: 2,000 tokens hard cap**, drop-by-priority (session-start pattern).
 - **Auto-wired**: `meeting prep`, `spec`, and `design session` triggers run a brief first — total context is the default.
 
-### B2. Instinct v2 — learn from corrections · effort S/M · **DECISIONS LOCKED 2026-07-08**
+### B2. Instinct v2 — learn from corrections · effort S/M · **BUILT 2026-07-10**
 
 Locked design: **wrap-time reflection** (no transcript regex, no new hooks). The wrap-up trigger gains a step: Claude reviews the session in-context for corrections and proposes 0-3 instinct candidates (assumption → what the user actually wanted → reusable rule), each with a **proposed scope** (project / silo / global) the user can adjust. On live confirmation → written **straight to instincts/promoted/** (active next session; `mew instinct prune` is the undo). Unwrapped sessions learn nothing — acceptable trade for zero noise.
 
@@ -113,7 +113,7 @@ Figma MCP write direction (`generate_design`): push low-fi frames into Figma fro
 
 Version bump + changelog generated from log.md entries since last tag + GitHub release + deploy checklist (Vercel). Closes the loop CI opened.
 
-### B6. capture: mobile voice → inbox · effort S · **DECISIONS LOCKED: Android route**
+### B6. capture: mobile voice → inbox · effort S · **BUILT 2026-07-10**
 
 Android → drop-folder pattern: voice note/dictation in any note app that exports text to a synced folder (Syncthing or Google Drive folder → symlinked/synced into `mewwiki/_inbox/`), or Tasker for one-tap capture. Design around a generic watched drop-folder so any device works. Inbox discipline unchanged: nothing auto-processes; "process the inbox" routes items.
 

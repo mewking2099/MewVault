@@ -47,26 +47,28 @@ These are helpful but not required. MewVault works without them. Full setup guid
 
 When spawning any mew agent via the Agent tool, you MUST pass the `model` parameter explicitly. The `.claude/agents/` frontmatter only enforces models when the user invokes agents natively (e.g. `@mew-planner`). When you call the Agent tool programmatically, you are responsible for passing the correct model — otherwise every agent silently runs on the session default.
 
+**Important constraint:** The Agent tool only accepts short family aliases (`"sonnet"`, `"opus"`, `"haiku"`). Full model IDs like `claude-sonnet-4-6` cause an `InputValidationError`. The alias resolves to Claude Code's current default for that family (currently Sonnet 4.6, Haiku 4.5). We cannot pin a specific sub-version through this parameter — if precise version control matters, raise it with the user.
+
 **Model lookup table — never deviate from this:**
 
-| Agent | model param |
-|---|---|
-| mew-planner | `claude-sonnet-4-6` |
-| fable | `claude-sonnet-4-6` |
-| mew-chief | `claude-sonnet-4-6` |
-| mew-coder | `claude-sonnet-4-6` |
-| mew-researcher | `claude-sonnet-4-6` |
-| mew-designer | `claude-sonnet-4-6` |
-| mew-ideator | `claude-sonnet-4-6` |
-| mew-gamedev | `claude-sonnet-4-6` |
-| mew-learner | `haiku` |
-| mew-archivist | `haiku` |
+| Agent | model param | Resolves to (current) |
+|---|---|---|
+| mew-planner | `sonnet` | claude-sonnet-4-6 |
+| fable | `sonnet` | claude-sonnet-4-6 |
+| mew-chief | `sonnet` | claude-sonnet-4-6 |
+| mew-coder | `sonnet` | claude-sonnet-4-6 |
+| mew-researcher | `sonnet` | claude-sonnet-4-6 |
+| mew-designer | `sonnet` | claude-sonnet-4-6 |
+| mew-ideator | `sonnet` | claude-sonnet-4-6 |
+| mew-gamedev | `sonnet` | claude-sonnet-4-6 |
+| mew-learner | `haiku` | claude-haiku-4-5 |
+| mew-archivist | `haiku` | claude-haiku-4-5 |
 
 **Correct pattern:**
 ```
 Agent({
   description: "mew-planner: ...",
-  model: "claude-sonnet-4-6",   ← required, always — take the value from the table above
+  model: "sonnet",   ← short alias only — full IDs are rejected by the Agent tool
   prompt: "..."
 })
 ```

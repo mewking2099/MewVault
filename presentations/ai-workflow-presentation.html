@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Building for Yourself — MewVault</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0B0B0F;
+  --text: #F0EDE8;
+  --text-dim: rgba(240,237,232,0.68);
+  --accent: #E8A840;
+  --problem: #E06060;
+  --solution: #3DBFB0;
+  --test: #7B9FE8;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+.deck {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+/* ── Slides ── */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 110px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* ── Title slide ── */
+.slide.title {
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-bottom: 110px;
+  background: radial-gradient(ellipse at 70% 30%, rgba(232,168,64,0.07) 0%, transparent 60%);
+}
+
+.title-eyebrow {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 20px;
+}
+
+.title-main {
+  font-size: clamp(3.5rem, 7vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.05;
+  margin-bottom: 28px;
+}
+
+.title-sub {
+  font-size: 1.35rem;
+  color: rgba(240,237,232,0.82);
+  line-height: 1.6;
+  max-width: 540px;
+  font-weight: 400;
+}
+
+/* ── Act label ── */
+.act-label {
+  position: absolute;
+  top: 52px;
+  left: 110px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+/* ── Standard slide ── */
+.slide-title {
+  font-size: clamp(2.2rem, 4vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 18px;
+  max-width: 860px;
+  text-wrap: balance;
+}
+
+.slide-headline {
+  font-size: 1.28rem;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 44px;
+  max-width: 680px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.bullets {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 800px;
+}
+
+.bullets li {
+  font-size: 1.22rem;
+  line-height: 1.65;
+  padding-left: 24px;
+  position: relative;
+  color: rgba(240,237,232,0.92);
+}
+
+.bullets li::before {
+  content: '—';
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+/* ── Silo slides ── */
+.slide.silo {
+  justify-content: flex-start;
+  padding-top: 96px;
+}
+
+.silo-eyebrow {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+  margin-bottom: 14px;
+}
+
+.silo-title {
+  font-size: clamp(2rem, 3vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.022em;
+  line-height: 1.18;
+  margin-bottom: 48px;
+  max-width: 780px;
+  text-wrap: balance;
+}
+
+.silo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 40px;
+  width: 100%;
+}
+
+.silo-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.section-tag {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 2px;
+}
+
+.section-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.section-text {
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: rgba(240,237,232,0.85);
+}
+
+.problem .section-dot  { background: var(--problem); }
+.problem .section-label { color: var(--problem); }
+
+.solution .section-dot  { background: var(--solution); }
+.solution .section-label { color: var(--solution); }
+
+.test .section-dot  { background: var(--test); }
+.test .section-label { color: var(--test); }
+
+/* ── Section divider slide ── */
+.slide.divider {
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.divider-number {
+  font-size: 8rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: rgba(232,168,64,0.08);
+  line-height: 1;
+  margin-bottom: -20px;
+}
+
+.divider-title {
+  font-size: clamp(2.4rem, 4vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  max-width: 700px;
+  text-wrap: balance;
+}
+
+.divider-sub {
+  margin-top: 20px;
+  font-size: 1.22rem;
+  color: var(--text-dim);
+  max-width: 540px;
+  line-height: 1.6;
+}
+
+/* ── Chrome ── */
+.progress-bar {
+  position: fixed;
+  bottom: 0; left: 0;
+  height: 3px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+  z-index: 100;
+  opacity: 0.75;
+}
+
+.counter {
+  position: fixed;
+  bottom: 26px; right: 44px;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  z-index: 100;
+}
+
+.nav-hint {
+  position: fixed;
+  bottom: 26px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  letter-spacing: 0.06em;
+  z-index: 100;
+  transition: opacity 0.6s ease;
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ── TITLE ── -->
+  <div class="slide title active">
+    <div class="title-eyebrow">MewVault · 2026</div>
+    <h1 class="title-main">Building<br>for Yourself</h1>
+    <p class="title-sub">How design thinking shaped an AI-powered personal operating system — and what it means for yours.</p>
+  </div>
+
+  <!-- ── ACT I ── -->
+  <div class="slide">
+    <div class="act-label">Act I — The Problem</div>
+    <h2 class="slide-title">Ten Tools, Zero Memory</h2>
+    <p class="slide-headline">Your best work is scattered across every app you have ever opened.</p>
+    <ul class="bullets">
+      <li>Figma for design, Notion for notes, Slack for decisions, email for feedback</li>
+      <li>Each tool holds a fragment — none of them talk to each other</li>
+      <li>When a project ends, most of what you learned disappears with it</li>
+      <li>You are not disorganised. The system you inherited is.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act I — The Problem</div>
+    <h2 class="slide-title">AI Helped With Tasks.<br>Not With Me.</h2>
+    <p class="slide-headline">Every AI tool I tried was smart in a vacuum and useless in context.</p>
+    <ul class="bullets">
+      <li>"Write me a case study" — it had no idea what decisions I actually made</li>
+      <li>"Review this design" — it had no idea what standards my team cared about</li>
+      <li>I was re-explaining my world from scratch, every single session</li>
+      <li>Great at answering questions. Could not hold my workflow together.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act I — The Problem</div>
+    <h2 class="slide-title">The Context-Switching Tax</h2>
+    <p class="slide-headline">Switching modes of work costs more than we admit.</p>
+    <ul class="bullets">
+      <li>Deep design work, career admin, learning, side projects — all need different headspace</li>
+      <li>Every interruption means re-loading context into your own brain</li>
+      <li>The tax is invisible, so we never design around it</li>
+      <li>I kept feeling behind without being able to say why</li>
+    </ul>
+  </div>
+
+  <!-- ── ACT II ── -->
+  <div class="slide">
+    <div class="act-label">Act II — The Design Thinking Moment</div>
+    <h2 class="slide-title">What If Your Workflow Was a Product?</h2>
+    <p class="slide-headline">I had been designing for other people's problems. I had never designed for mine.</p>
+    <ul class="bullets">
+      <li>User research subject: me, on a bad Monday</li>
+      <li>The brief: reduce the cost of switching between modes of work</li>
+      <li>Constraint: it had to get smarter over time, not just sit there</li>
+      <li>Insight: I did not need one better tool. I needed focused tools for focused modes.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act II — The Design Thinking Moment</div>
+    <h2 class="slide-title">Empathise With Yourself</h2>
+    <p class="slide-headline">Most of us know our workflow frustrations. Very few of us have written them down.</p>
+    <ul class="bullets">
+      <li>I listed every moment in my week that felt unnecessarily hard</li>
+      <li>Patterns emerged: case studies, skill tracking, decisions with no paper trail</li>
+      <li>The pain was not the work itself — it was the invisible overhead around the work</li>
+      <li>That overhead is a design problem. It has a solution.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act II — The Design Thinking Moment</div>
+    <h2 class="slide-title">The Insight:<br>One Job Per Workspace</h2>
+    <p class="slide-headline">A general workspace is no one's workspace.</p>
+    <ul class="bullets">
+      <li>Each mode of work has its own rhythm, vocabulary, and definition of done</li>
+      <li>A silo is a focused space with rules the AI follows inside it</li>
+      <li>Different standards, different templates, different behaviour — same AI</li>
+      <li>Think of it as giving the AI a job description, not just a prompt</li>
+    </ul>
+  </div>
+
+  <!-- ── ACT III ── -->
+  <div class="slide">
+    <div class="act-label">Act III — MewVault as a Case Study</div>
+    <h2 class="slide-title">The Case Study Problem I Could Not Ignore</h2>
+    <p class="slide-headline">My best design decisions were locked in files I would never open again.</p>
+    <ul class="bullets">
+      <li>CV update time — and I was reconstructing projects from memory</li>
+      <li>The version I wrote was always shallower than the work I actually did</li>
+      <li>The decisions, the trade-offs, the Figma rationale — all of it gone</li>
+      <li>I needed a system that collected receipts while I worked, not after</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act III — MewVault as a Case Study</div>
+    <h2 class="slide-title">Receipts First,<br>Case Study Second</h2>
+    <p class="slide-headline">Now every design project automatically builds the evidence for its own story.</p>
+    <ul class="bullets">
+      <li>Design decisions are logged with provenance — which frame, what trade-off, what score</li>
+      <li>When I say "case study GoldDiamond," it drafts from what actually happened</li>
+      <li>I do a voice pass — edit it to sound like me — and it learns my writing style</li>
+      <li>The next draft sounds more like me, with less correction needed</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act III — MewVault as a Case Study</div>
+    <h2 class="slide-title">The Skill Matrix That Tells the Truth</h2>
+    <p class="slide-headline">"Where do you want to be in 5 years?" used to make me panic.</p>
+    <ul class="bullets">
+      <li>Five pillars: Design, Product, Development, AI &amp; Tooling, Leadership</li>
+      <li>Every skill needs evidence links, not self-assessment</li>
+      <li>No file linked? The level does not count — that is the rule</li>
+      <li>Mock interviews pull from real vault history: "walk me through the dropdown decision"</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act III — MewVault as a Case Study</div>
+    <h2 class="slide-title">The Idea Graveyard</h2>
+    <p class="slide-headline">I had a list of ideas that never moved. I did not know why.</p>
+    <ul class="bullets">
+      <li>Ideas lived in random notes, died from neglect, no triage system</li>
+      <li>idea-hub captures seeds fast, then has a clear gate before any time is spent</li>
+      <li>A seed cannot become a project without a problem statement and a user</li>
+      <li>Terrible ideas die quickly. Good ones have a clear path forward.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act III — MewVault as a Case Study</div>
+    <h2 class="slide-title">Before and After</h2>
+    <p class="slide-headline">The work did not change. The overhead around it did.</p>
+    <ul class="bullets">
+      <li>Before: reconstruct context every session, rebuild case studies from memory, lose decisions</li>
+      <li>After: the system holds context, collects evidence, remembers what was corrected</li>
+      <li>The AI knows which project it is in and what standards apply — I do not repeat myself</li>
+      <li>I spend more time doing the work and less time managing it</li>
+    </ul>
+  </div>
+
+  <!-- ── ACT IV ── -->
+  <div class="slide">
+    <div class="act-label">Act IV — How It Learns and Grows</div>
+    <h2 class="slide-title">A System That Gets Smarter</h2>
+    <p class="slide-headline">Most tools stay the same no matter how long you use them. This one does not.</p>
+    <ul class="bullets">
+      <li>At the end of each session, useful corrections become rules</li>
+      <li>Next session, those rules are loaded before work begins</li>
+      <li>The AI does not repeat mistakes I have already caught</li>
+      <li>It is not memory in a chatbot sense — it is designed behaviour, extracted from real use</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act IV — How It Learns and Grows</div>
+    <h2 class="slide-title">The Planning Gate:<br>Safety by Design</h2>
+    <p class="slide-headline">I needed the AI to stop me from moving too fast on the wrong things.</p>
+    <ul class="bullets">
+      <li>Small tasks: start immediately — no friction where none is needed</li>
+      <li>Medium tasks: propose the approach in conversation, wait for a nod</li>
+      <li>Big changes: written plan, reviewed and approved before anything is built</li>
+      <li>The gate is enforced automatically — the system cannot be bypassed even when you want to rush</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act IV — How It Learns and Grows</div>
+    <h2 class="slide-title">A Health Check<br>for Your Workflow</h2>
+    <p class="slide-headline">Once a week I ask: is the system actually working, or just running?</p>
+    <ul class="bullets">
+      <li>Checks active projects, learning streaks, budget, and open blockers — all at once</li>
+      <li>Surfaces dormant skills: "No evidence in 30 days in Leadership"</li>
+      <li>Tells me what to do next, not just what the state is</li>
+      <li>Designed feedback loop, not a dashboard you ignore</li>
+    </ul>
+  </div>
+
+  <!-- ── ACT V ── -->
+  <div class="slide">
+    <div class="act-label">Act V — Your Turn</div>
+    <h2 class="slide-title">You Do Not Need<br>to Build MewVault</h2>
+    <p class="slide-headline">You need to find your one friction point and design the response to it.</p>
+    <ul class="bullets">
+      <li>What is the part of your week that costs the most invisible energy?</li>
+      <li>Where do you lose work that you should have kept?</li>
+      <li>Where does AI help you with a task but not with your actual problem?</li>
+      <li>That is your design brief. You are both the designer and the user.</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act V — Your Turn</div>
+    <h2 class="slide-title">What a Silo<br>Actually Is</h2>
+    <p class="slide-headline">A silo is just a focused workspace — and you already know how to design one.</p>
+    <ul class="bullets">
+      <li>One clear job to be done</li>
+      <li>Rules for how the AI should behave inside this context</li>
+      <li>Templates for the things you do repeatedly</li>
+      <li>A definition of done, so you know when it is working</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act V — Your Turn</div>
+    <h2 class="slide-title">The Material Is New.<br>The Method Is Not.</h2>
+    <p class="slide-headline">You have been solving problems for users your whole career. This time the user is you.</p>
+    <ul class="bullets">
+      <li>AI is a material — like type, colour, or layout — with properties you can design around</li>
+      <li>Design thinking is still the method: empathise, define, prototype, test</li>
+      <li>The prototype does not have to be MewVault — it can be one rule in one workspace</li>
+      <li>Start with the smallest version of the solution. Sound familiar?</li>
+    </ul>
+  </div>
+
+  <div class="slide">
+    <div class="act-label">Act V — Your Turn</div>
+    <h2 class="slide-title">The Invitation</h2>
+    <p class="slide-headline">Pick one workflow problem. Spend 30 minutes designing the rule that would solve it.</p>
+    <ul class="bullets">
+      <li>Not a tool to buy. Not a system to build. One rule, one friction point.</li>
+      <li>Write it the way you would write a design decision: problem, solution, test</li>
+      <li>Share it here — we can critique it the same way we critique any other design work</li>
+      <li>Your workflow is a product. It deserves the same care you give everything else.</li>
+    </ul>
+  </div>
+
+  <!-- ── SILO DIVIDER ── -->
+  <div class="slide divider">
+    <div class="divider-number">06</div>
+    <h2 class="divider-title">The Silos in Practice</h2>
+    <p class="divider-sub">Six focused workspaces. Each one started with a real problem. Each one has a definition of done.</p>
+  </div>
+
+  <!-- ── SILO 1: career-studio ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · career-studio</div>
+    <h2 class="silo-title">Your Best Work Keeps Disappearing</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Every time you update your CV or write a case study, you reconstruct your own work from memory. The real decisions — the trade-offs, the rationale, the things that made the project interesting — are gone the moment the project closes.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">Every working session quietly logs a receipt: what was decided, why, and what it looked like. When you need a case study, it assembles a first draft from those receipts. You edit it to sound like yourself — and each edit teaches it your voice for next time.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">A skill matrix with five pillars tracks your actual growth. Every skill level needs an evidence link — no file, no level. Mock interviews pull from your real project history, not generic questions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SILO 2: design-studio ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · design-studio</div>
+    <h2 class="silo-title">Decisions That Actually Stay</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Every design session started from zero. Measurements read by hand from Figma. Last week's reasoning lost in a thread. No paper trail between the design choice and the outcome.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">The workspace reads Figma directly — no manual transcription. Every decision is saved with the frame that informed it, the constraint that shaped it, and the score it received. The next session loads only what is relevant to today's work.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">One sync command flows every design decision automatically into the shared knowledge vault, linked to its Figma source. Nothing is lost between sessions. Anyone can trace a decision back to where it came from.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SILO 3: software-projects ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · software-projects</div>
+    <h2 class="silo-title">Stop Building the Wrong Thing</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Features grew beyond what anyone agreed on. Rework was expensive. Progress felt high but direction kept shifting. Decisions made in conversation were forgotten by the next session.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">Three tiers of planning. Small task: start immediately. Medium: agree on the approach first, then build. Large or risky: write a formal plan with phases, risks, and a way to undo it — nothing is built until that plan is approved.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">Every large change has a traceable plan that was approved before work began. If the work drifts from it, there is a written record of where it diverged and why.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SILO 4: idea-hub ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · idea-hub</div>
+    <h2 class="silo-title">A Pipeline, Not a Graveyard</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Good ideas and bad ideas looked identical sitting in a notes app. No way to tell them apart without spending hours on research — which made it easier to just not look at them at all.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">Capture fast, filter early. An idea needs a problem statement and an identified user before any research time is spent. Validation then runs a structured workflow — market scan, competitors, effort estimate — and produces a sourced document you can make a real decision from.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">Every idea has a visible lifecycle status. It either moves forward with evidence or gets archived with a reason. Nothing just sits there rotting. The pipeline is the accountability.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SILO 5: game-lab ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · game-lab</div>
+    <h2 class="silo-title">One Step at a Time, Every Time</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Creative sessions got bloated. Too many things changed at once, too hard to isolate what broke, too easy to end a session with "I think it works" as the only measure of progress.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">One change per step, no exceptions. Every step ends with a specific thing to run and a specific thing to look for. If something breaks, everything stops until it is fixed — no building on top of a broken foundation.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">Every mechanic built and every concept learned is logged with a count. The session only closes when the log is updated and the next step is defined. "I think it works" is not how a session ends.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SILO 6: learn-lab ── -->
+  <div class="slide silo">
+    <div class="silo-eyebrow">The Silos · learn-lab</div>
+    <h2 class="silo-title">Consistency Over Intensity</h2>
+    <div class="silo-grid">
+      <div class="silo-section problem">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Problem</span>
+        </div>
+        <p class="section-text">Daily practice lives or dies on showing up. But relying on motivation alone does not work — and using AI for every single repetition is both expensive and inconsistent.</p>
+      </div>
+      <div class="silo-section solution">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Solution</span>
+        </div>
+        <p class="section-text">Split the job between two tools. A simple script handles the scheduling — the same way every time, at no cost. The AI handles the human part: conversation, explanation, examples. Each does only what it is best at.</p>
+      </div>
+      <div class="silo-section test">
+        <div class="section-tag">
+          <div class="section-dot"></div>
+          <span class="section-label">Test</span>
+        </div>
+        <p class="section-text">One command shows reps completed, accuracy rate, current streak, and what is due tomorrow — all computed locally, no AI needed. Practice either happened or it did not. The number is honest.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Chrome -->
+<div class="progress-bar" id="progress"></div>
+<div class="counter" id="counter"></div>
+<div class="nav-hint" id="hint">← → to navigate · click left or right</div>
+
+<script>
+const slides = Array.from(document.querySelectorAll('.slide'));
+const progress = document.getElementById('progress');
+const counter = document.getElementById('counter');
+const hint = document.getElementById('hint');
+let cur = 0;
+let hintTimer;
+
+function go(n) {
+  slides[cur].classList.remove('active');
+  cur = Math.max(0, Math.min(n, slides.length - 1));
+  slides[cur].classList.add('active');
+  progress.style.width = (cur / (slides.length - 1) * 100) + '%';
+  counter.textContent = (cur + 1) + ' / ' + slides.length;
+}
+
+function flashHint() {
+  hint.style.opacity = '0.45';
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(() => hint.style.opacity = '0', 3500);
+}
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); go(cur + 1); }
+  if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); go(cur - 1); }
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+  flashHint();
+});
+
+document.getElementById('deck').addEventListener('click', e => {
+  go(e.clientX > window.innerWidth / 2 ? cur + 1 : cur - 1);
+  flashHint();
+});
+
+go(0);
+setTimeout(flashHint, 800);
+</script>
+</body>
+</html>
