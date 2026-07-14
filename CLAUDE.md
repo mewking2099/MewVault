@@ -53,22 +53,22 @@ When spawning any mew agent via the Agent tool, you MUST pass the `model` parame
 
 | Agent | model param | Resolves to (current) |
 |---|---|---|
-| mew-planner | `sonnet` | claude-sonnet-4-6 |
-| fable | `sonnet` | claude-sonnet-4-6 |
+| fable | `opus` | claude-opus-4-7 |
+| mew-planner | `opus` | claude-opus-4-7 |
 | mew-chief | `sonnet` | claude-sonnet-4-6 |
 | mew-coder | `sonnet` | claude-sonnet-4-6 |
-| mew-researcher | `sonnet` | claude-sonnet-4-6 |
 | mew-designer | `sonnet` | claude-sonnet-4-6 |
-| mew-ideator | `sonnet` | claude-sonnet-4-6 |
 | mew-gamedev | `sonnet` | claude-sonnet-4-6 |
-| mew-learner | `haiku` | claude-haiku-4-5 |
+| mew-learner | `sonnet` | claude-sonnet-4-6 |
+| mew-researcher | `sonnet` | claude-sonnet-4-6 |
+| mew-ideator | `haiku` | claude-haiku-4-5 |
 | mew-archivist | `haiku` | claude-haiku-4-5 |
 
 **Correct pattern:**
 ```
 Agent({
   description: "mew-planner: ...",
-  model: "sonnet",   ← short alias only — full IDs are rejected by the Agent tool
+  model: "opus",   ← short alias only — full IDs are rejected by the Agent tool
   prompt: "..."
 })
 ```

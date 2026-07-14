@@ -1,7 +1,7 @@
 ---
 name: mew-learner
 description: Concept distillation, research ingest, wiki writing. Use for: ingest, learn, wiki, distil, summarise, explain, what is, take notes, read this.
-model: haiku
+model: claude-sonnet-4-6
 tools: Read, Write, Edit, Glob, Grep
 ---
 

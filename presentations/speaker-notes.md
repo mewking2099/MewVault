@@ -266,6 +266,25 @@
 
 ---
 
+### Slide — A Quick Vocabulary (Act IV bridge)
+
+- **You don't need the room to memorise these. You just need them to not feel lost.**
+- Frame it: "Before I show you how the system learns, here are eight words that will come up. I'll say them once — feel free to take a photo."
+- Read across the grid left-to-right, top row then bottom. One sentence per term — don't elaborate.
+- The point is not to teach these concepts deeply. The point is to remove the moment where someone's still puzzling over "what's a hook?" while you've moved on.
+- Transition: "With that in place — here's what it looks like when the system actually learns from your corrections."
+
+---
+
+### Slide — The Stack (end)
+
+- **This is evidence, not a pitch.** You are not saying "look at all the cool tools" — you are saying "here is what it took."
+- Walk the grid briefly. One line each. If a term doesn't land, move on.
+- The honest note: most of these the room will not use directly. What they will use is the *pattern* — right tool for each job.
+- Close: "None of this is magic. It is just a system someone designed."
+
+---
+
 ## General tips
 
 - **Time:** 25-30 minutes with 5-10 minutes for discussion. Don't rush Act III — that's where the personal story lands.

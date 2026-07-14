@@ -1,7 +1,7 @@
 ---
 name: mew-planner
 description: Architecture planning and MewKing plan.md generation. Use for: plan, architect, architecture, mewking, proposal, risk, phase, breaking change, redesign, how should we approach.
-model: claude-sonnet-4-6
+model: claude-opus-4-7
 tools: Read, Write, Edit, Glob, Grep
 ---
 

@@ -1,7 +1,7 @@
 ---
 name: mew-archivist
 description: Session wrap, log writes, git commit messages. Use for: wrap, session log, write the log, commit message, archive, end of session, record what happened.
-model: haiku
+model: claude-haiku-4-5-20251001
 tools: Bash, Read, Write, Edit
 ---
 

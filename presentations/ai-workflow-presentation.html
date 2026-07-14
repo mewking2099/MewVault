@@ -279,6 +279,156 @@ html, body {
   z-index: 100;
   transition: opacity 0.6s ease;
 }
+
+/* ── Tech stack slide ── */
+.slide.stack {
+  justify-content: flex-start;
+  padding-top: 96px;
+}
+
+.stack-headline {
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+  margin-bottom: 14px;
+}
+
+.stack-title {
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 52px;
+  text-wrap: balance;
+}
+
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 36px 48px;
+  width: 100%;
+}
+
+.tech-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tech-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.tech-desc {
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.concepts-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px 48px;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.concept-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.concept-term {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.concept-desc {
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-dim);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 2.6rem 1fr auto;
+  align-items: start;
+  gap: 1.1rem;
+}
+
+.step-num {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 50%;
+  background: rgba(232, 168, 64, 0.12);
+  border: 1.5px solid rgba(232, 168, 64, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--accent);
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.step-action {
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.step-detail {
+  font-size: 0.88rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.step-who {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 11px;
+  border-radius: 8px;
+  margin-top: 0.2rem;
+  white-space: nowrap;
+}
+
+.step-who.ai {
+  background: var(--accent);
+  color: #1a1200;
+}
+
+.step-who.human {
+  background: transparent;
+  border: 1.5px solid rgba(240, 237, 232, 0.3);
+  color: var(--text);
+}
 </style>
 </head>
 <body>
@@ -427,6 +577,47 @@ html, body {
     </ul>
   </div>
 
+  <!-- ── VOCABULARY ── -->
+  <div class="slide">
+    <div class="act-label">Act IV — How It Learns and Grows</div>
+    <h2 class="slide-title">A Quick Vocabulary</h2>
+    <p class="slide-headline">Eight words you will hear — in plain English.</p>
+    <div class="concepts-grid">
+      <div class="concept-item">
+        <span class="concept-term">Context Window</span>
+        <span class="concept-desc">The AI's working memory for a session. Think of it as a whiteboard — it can only hold so much before old things get erased.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Context Injection</span>
+        <span class="concept-desc">Loading the right information before work begins — project rules, past decisions, your writing style — so the AI starts informed, not blank.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Compacting</span>
+        <span class="concept-desc">Shrinking a long conversation into a shorter summary so the whiteboard doesn't fill up. The AI keeps working without losing what matters.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Prompt Caching</span>
+        <span class="concept-desc">Reusing the cost of sending the same instructions twice. If the rules haven't changed, you don't pay to re-explain them every session.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Hooks</span>
+        <span class="concept-desc">Automatic checks that run before or after the AI does something — like a spell-checker that fires every time a file is saved.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Model Routing</span>
+        <span class="concept-desc">Sending different tasks to different AI models. Simple jobs go to cheaper, faster models. Complex thinking goes to smarter ones.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">Agents</span>
+        <span class="concept-desc">Specialised AI workers with one job each. Instead of one AI doing everything, you spin up a team — a researcher, a coder, a reviewer.</span>
+      </div>
+      <div class="concept-item">
+        <span class="concept-term">MCP</span>
+        <span class="concept-desc">A standard plug socket for connecting tools to the AI — Figma, GitHub, your calendar. One protocol, any service.</span>
+      </div>
+    </div>
+  </div>
+
   <!-- ── ACT IV ── -->
   <div class="slide">
     <div class="act-label">Act IV — How It Learns and Grows</div>
@@ -549,6 +740,80 @@ html, body {
     </div>
   </div>
 
+  <!-- ── CAREER-STUDIO WALKTHROUGH 1 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">career-studio · How it works · Part 1 of 2</div>
+    <h2 class="slide-title">From Working Session to First Draft</h2>
+    <p class="slide-headline">You do not capture anything extra. The receipts collect themselves while you work.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Work normally</div>
+          <div class="step-detail">Every design or software session quietly logs a receipt: what was decided, why, what the Figma frame looked like, what the audit score was. Nothing extra required from you.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Trigger the case study</div>
+          <div class="step-detail">Say "case study GoldDiamond". Claude pulls every receipt from that project's full history — status changes, decisions, Figma provenance, handoff notes, audit scores.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Claude assembles the draft</div>
+          <div class="step-detail">Structures receipts into problem → process → decisions-with-evidence → outcome. The first draft is always assembled from real material, never written from scratch.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Voice pass</div>
+          <div class="step-detail">Read it. Rewrite anything that does not sound like you. Every edit is a lesson — voice.md learns your style from the changes. The next draft needs less correction.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CAREER-STUDIO WALKTHROUGH 2 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">career-studio · How it works · Part 2 of 2</div>
+    <h2 class="slide-title">From Draft to Career Evidence</h2>
+    <p class="slide-headline">Nothing leaves the silo without your review. Growth is tracked against real work, not feelings.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Confidentiality gate</div>
+          <div class="step-detail">Claude extracts every client name, metric, and internal detail in the draft. You approve each one: keep, anonymise, or remove. The case study cannot reach "publishable" without this step cleared.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Skill matrix auto-update</div>
+          <div class="step-detail">At session wrap, new work is mapped to the relevant skill pillar. Evidence link and date added automatically. No manual tracking. Every level above 2 requires a real file — not self-assessment.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-action">Monthly mock interview</div>
+          <div class="step-detail">Questions pulled from real vault history: "walk me through the dropdown decision." Scored feedback flows into the skill matrix. Cadence: monthly nudge, on demand any time.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── SILO 2: design-studio ── -->
   <div class="slide silo">
     <div class="silo-eyebrow">The Silos · design-studio</div>
@@ -574,6 +839,80 @@ html, body {
           <span class="section-label">Test</span>
         </div>
         <p class="section-text">One sync command flows every design decision automatically into the shared knowledge vault, linked to its Figma source. Nothing is lost between sessions. Anyone can trace a decision back to where it came from.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESIGN-STUDIO WALKTHROUGH 1 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">design-studio · How it works · Part 1 of 2</div>
+    <h2 class="slide-title">From Figma to Decision Log</h2>
+    <p class="slide-headline">No manual transcription. No losing the rationale between sessions. Design and documentation happen at the same time.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Share the Figma file</div>
+          <div class="step-detail">Drop a figma.com URL or name a known project. Claude picks up the file key from Project_Status.md and connects directly.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Claude reads Figma directly</div>
+          <div class="step-detail">Via the Figma MCP. Measurements, component names, variants, constraints — read exactly as they are. No copying numbers by hand, no risk of transcription errors.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Design in Figma</div>
+          <div class="step-detail">Move things, explore alternatives, make decisions. This is your space. Claude is available to discuss constraints or check against the brief — but Figma stays yours.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Decisions logged with provenance</div>
+          <div class="step-detail">Every accepted direction is saved in wiki/ with the Figma frame that informed it, the constraint that shaped it, and the rationale. Not notes — structured records.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DESIGN-STUDIO WALKTHROUGH 2 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">design-studio · How it works · Part 2 of 2</div>
+    <h2 class="slide-title">From Decisions to Shipped Work</h2>
+    <p class="slide-headline">Critique is structured, not conversational. What ships has been checked, not just felt right.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Critique and audit</div>
+          <div class="step-detail">Impeccable scores the design against heuristics: accessibility, contrast, spacing, responsive behaviour, anti-patterns. Issues are ranked P0 (must fix) to P3 (minor).</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Review the scores</div>
+          <div class="step-detail">P0s are fixes, not discussions — they block handoff. P1s are reviewed together. P2s are noted for the next round. You decide what ships. The AI scores; the human decides.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-action">Sync decisions to the vault</div>
+          <div class="step-detail">One command flows all decisions to mewwiki, each linked to its Figma source frame. Anyone on the team can trace a direction back to exactly where it came from.</div>
+        </div>
+        <div class="step-who human">Human</div>
       </div>
     </div>
   </div>
@@ -607,6 +946,104 @@ html, body {
     </div>
   </div>
 
+  <!-- ── SOFTWARE WALKTHROUGH 1 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">software-projects · How it works · Part 1 of 2</div>
+    <h2 class="slide-title">MewKing: Idea to Approved Plan</h2>
+    <p class="slide-headline">For large or risky work — nothing is built until a written plan is reviewed and approved.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Write the spec</div>
+          <div class="step-detail">Drop a PRD into raw/ — problem statement, scope, acceptance criteria. Immutable once in. This becomes the single source of truth.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Claude reads and assesses</div>
+          <div class="step-detail">Reads the spec and project state. Identifies the work as MewKing: too large or risky to start without a formal plan.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Claude writes the plan</div>
+          <div class="step-detail">Creates proposals/active/plan.md — phases, risks, how to undo each step. No code is written. The hook blocks any attempt to skip ahead.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Review the plan</div>
+          <div class="step-detail">Read it. Push back on anything that looks wrong. Ask questions. This is the moment to redirect before a single line of code exists.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Approve — the gate unlocks</div>
+          <div class="step-detail">Set plan_approved: true in Project_Status.md. The hook now allows code to be written. Not before.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SOFTWARE WALKTHROUGH 2 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">software-projects · How it works · Part 2 of 2</div>
+    <h2 class="slide-title">MewKing: Plan to Shipped</h2>
+    <p class="slide-headline">The build is disciplined. The human stays in the loop at every checkpoint that matters.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Tests written first</div>
+          <div class="step-detail">Claude writes tests from the spec's acceptance criteria before any production code. A hook enforces this — no test file, no implementation.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-action">Build step by step</div>
+          <div class="step-detail">Claude implements one piece at a time, running against the tests. Each step is the smallest possible change. No bundling, no skipping ahead.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-action">Hooks fire on every write</div>
+          <div class="step-detail">Automatically: secrets are scanned, UI patterns are checked, plan alignment is verified. A problem blocks the file write before it lands.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <div class="step-action">Review the diff</div>
+          <div class="step-detail">Read what changed, run the tests, check it behaves correctly in a real environment. The AI never runs the product for you — that step is yours.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <div class="step-action">Commit and ship</div>
+          <div class="step-detail">Claude suggests the commit message. The human pushes. Never auto-committed. The final send is always yours.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── SILO 4: idea-hub ── -->
   <div class="slide silo">
     <div class="silo-eyebrow">The Silos · idea-hub</div>
@@ -632,6 +1069,80 @@ html, body {
           <span class="section-label">Test</span>
         </div>
         <p class="section-text">Every idea has a visible lifecycle status. It either moves forward with evidence or gets archived with a reason. Nothing just sits there rotting. The pipeline is the accountability.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IDEA-HUB WALKTHROUGH 1 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">idea-hub · How it works · Part 1 of 2</div>
+    <h2 class="slide-title">From Raw Thought to Triage</h2>
+    <p class="slide-headline">Capture fast. Filter early. No research time is spent until the idea earns it.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Capture the thought</div>
+          <div class="step-detail">Drop it into _inbox/ — one line, a link, a voice note transcript. Speed matters here. Don't filter yet, just get it in.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Process the inbox</div>
+          <div class="step-detail">Claude reads each item and scaffolds a seed idea — a slug, an idea.md with the raw thought, and a status of "seed". Nothing is discarded silently.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Pass the triage gate</div>
+          <div class="step-detail">Before any research: confirm a clear problem statement, a real target user, and a rough effort estimate. No problem statement — the idea stays a seed.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Run the feasibility scan</div>
+          <div class="step-detail">Claude runs a structured scan: market size signal, competitor table (who, positioning, gap), tech complexity, effort estimate. Every claim cites its source. Weak ideas die here cheaply.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IDEA-HUB WALKTHROUGH 2 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">idea-hub · How it works · Part 2 of 2</div>
+    <h2 class="slide-title">From Evidence to Real Project</h2>
+    <p class="slide-headline">The AI brings the evidence. The human makes the call. Always in that order.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Review the feasibility doc</div>
+          <div class="step-detail">Every claim in feasibility.md has an inline citation — source file or URL. Read it critically. Challenge anything that looks thin. Ask Claude to dig deeper on specific claims with --deep if needed.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Make the call</div>
+          <div class="step-detail">Set the status: validated, archived, or keep exploring. The AI presents evidence and can recommend — but only the owner flips the status. That boundary is a rule, not a suggestion.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-action">Promote to a project silo</div>
+          <div class="step-detail">Run: mew promote idea-hub/ideas/&lt;slug&gt; --to &lt;silo&gt;. The idea moves with its research intact — feasibility doc, competitor notes, and all. Nothing is lost in the handoff.</div>
+        </div>
+        <div class="step-who human">Human</div>
       </div>
     </div>
   </div>
@@ -665,6 +1176,88 @@ html, body {
     </div>
   </div>
 
+  <!-- ── GAME-LAB WALKTHROUGH 1 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">game-lab · How it works · Part 1 of 2</div>
+    <h2 class="slide-title">Mechanic Design to First Script</h2>
+    <p class="slide-headline">Design leads. Code follows. Nothing is written until the design is agreed.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Name the mechanic</div>
+          <div class="step-detail">Say "mechanic jump" or "mechanic enemy patrol" — give it a name and a plain description of what it should feel like. No Godot knowledge required at this point.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Design shard written</div>
+          <div class="step-detail">Claude creates design/mechanics/jump.md — rules, parameters, tuning notes, acceptance criteria. The design document is the spec. Code will be written to match it.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Review and agree the design</div>
+          <div class="step-detail">Read it. Correct anything that does not match your intention. Once you confirm it is right, the build phase starts. Changing your mind after this costs more.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">First script — smallest unit only</div>
+          <div class="step-detail">Claude writes one GDScript file, one function, one change. Not two. Not "while I'm here." The smallest possible unit that can be tested right now.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── GAME-LAB WALKTHROUGH 2 ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">game-lab · How it works · Part 2 of 2</div>
+    <h2 class="slide-title">Test, Fix, Repeat — Until It's Logged</h2>
+    <p class="slide-headline">Errors stop everything. The next step only begins when you say so.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Test in Godot</div>
+          <div class="step-detail">Claude always ends a step with exactly what to run and exactly what to look for. Run the scene. Observe the specific behaviour — not "does it feel right", but the precise check Claude named.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Report the result</div>
+          <div class="step-detail">Working? Say so and Claude moves to the next step — but only then. Error? Paste the full message. Claude does not guess at errors; it needs the exact output.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-action">Fix mode — minimum lines only</div>
+          <div class="step-detail">If there is an error, Claude fixes the minimum lines needed. No refactoring. No extending. No "while I'm fixing this, I'll also..." The error is the only task until it is gone.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-action">Log and close the mechanic</div>
+          <div class="step-detail">Status set to "built" in the design shard. Mechanic logged in wiki/. mechanics_count incremented. Next step defined. The session does not end without this.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── SILO 6: learn-lab ── -->
   <div class="slide silo">
     <div class="silo-eyebrow">The Silos · learn-lab</div>
@@ -692,6 +1285,201 @@ html, body {
         <p class="section-text">One command shows reps completed, accuracy rate, current streak, and what is due tomorrow — all computed locally, no AI needed. Practice either happened or it did not. The number is honest.</p>
       </div>
     </div>
+  </div>
+
+  <!-- ── LEARN-LAB WALKTHROUGH ── -->
+  <div class="slide">
+    <div class="silo-eyebrow">learn-lab · How it works</div>
+    <h2 class="slide-title">A Daily Practice Session</h2>
+    <p class="slide-headline">Right tool for each job. The script handles repetition. The AI handles the human part.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Check what is due</div>
+          <div class="step-detail">srs.py runs the SM-2 scheduling algorithm locally. Only today's due cards enter the session. No AI involved — pure deterministic script. Fast and free.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Drill both directions</div>
+          <div class="step-detail">Claude presents each card: target language → native, then native → target. You answer. Claude confirms and explains nuances the card alone cannot carry.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Grade and reschedule</div>
+          <div class="step-detail">SM-2 decides the next interval based on your grade. Hard cards return sooner. Easy cards return later. Computed by the script — not guessed, not influenced by how you feel today.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">One new concept</div>
+          <div class="step-detail">One new grammar point introduced with 3 example sentences using only words you already know — the i+1 method. Never more than one new thing per session. Consistency over intensity.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Micro-conversation drill</div>
+          <div class="step-detail">A short 3–5 exchange using the new concept in natural dialogue. Not test format — conversational. Confusion patterns are noted on the card for next time.</div>
+        </div>
+        <div class="step-who human">Human</div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-action">Wrap</div>
+          <div class="step-detail">Streak incremented, accuracy logged, tomorrow's due count shown. All computed locally. Practice either happened or it did not. The number does not lie.</div>
+        </div>
+        <div class="step-who ai">AI</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TECH STACK ── -->
+  <div class="slide stack">
+    <div class="stack-headline">Under the Hood</div>
+    <h2 class="stack-title">The Stack</h2>
+    <div class="tech-grid">
+
+      <div class="tech-item">
+        <span class="tech-name">Claude Code</span>
+        <span class="tech-desc">The AI you talk to. It reads files, writes code, runs commands, and works alongside you like a co-worker who never forgets the codebase.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Impeccable</span>
+        <span class="tech-desc">A quality checker for UI work. Before any design file is saved, it catches bad patterns — like text too small to read or colours that don't contrast enough.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Graphify</span>
+        <span class="tech-desc">A map of the entire codebase. Instead of reading every file to find something, the AI consults this map first — faster and cheaper.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">LiteLLM</span>
+        <span class="tech-desc">A traffic controller for AI models. Sends simple tasks to cheaper models and complex thinking to smarter ones — automatically.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Figma MCP</span>
+        <span class="tech-desc">A direct line between the AI and your Figma files. It reads measurements, components, and decisions so you never have to copy them over manually.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Obsidian</span>
+        <span class="tech-desc">A notebook that updates itself. Every project's status, decisions, and logs flow here automatically after each session — you just browse it.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Doobidoo</span>
+        <span class="tech-desc">Long-term memory for the vault. Stores decisions, lessons, and gotchas so they surface again when they're relevant — even months later.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Ollama</span>
+        <span class="tech-desc">An AI that runs entirely on your own machine. Used for searching and indexing notes — free to run, no internet, no data leaving your laptop.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Hooks</span>
+        <span class="tech-desc">Automatic rules that run silently in the background. They catch mistakes — like saving a password or skipping a plan — before they happen.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">SM-2 / srs.py</span>
+        <span class="tech-desc">A learning scheduler. Figures out the perfect moment to review each flashcard based on how well you remembered it last time.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">Syncthing</span>
+        <span class="tech-desc">A sync tool that works without the cloud. Notes written on your phone appear on your laptop automatically, peer-to-peer.</span>
+      </div>
+
+      <div class="tech-item">
+        <span class="tech-name">mew CLI</span>
+        <span class="tech-desc">The control panel for the whole vault. One short command and it figures out which silo to work in, which AI to use, and what to do.</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CLOSING 1: TEAM BRIEF ── -->
+  <div class="slide">
+    <div class="act-label">The Challenge</div>
+    <h2 class="slide-title">Now It's Your Turn</h2>
+    <p class="slide-headline">One moment in your week that costs invisible energy. That is the starting point.</p>
+    <ul class="bullets">
+      <li><strong>Name the friction</strong> — specific, not vague. Not "I hate handoffs." Something like "writing a project summary always takes me two hours and still feels shallow."</li>
+      <li><strong>Frame it as a design brief</strong> — what is the problem, who feels it, what would done look like? You write these for other people every week.</li>
+      <li><strong>Bring it back</strong> — present it to the group in a future session. Same format as today: problem, solution, how you would test it. Five minutes is enough.</li>
+      <li><strong>Start small</strong> — one rule, one template, one silo. The smallest version that removes the friction is the right starting point.</li>
+    </ul>
+  </div>
+
+  <!-- ── CLOSING 2: SETUP ── -->
+  <div class="slide">
+    <div class="act-label">The Challenge</div>
+    <h2 class="slide-title">Try MewVault — 30 Minutes to a First Silo</h2>
+    <p class="slide-headline">Clone, strip down to what you need, write one rule, start a session.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-action">Clone the repo</div>
+          <div class="step-detail">git clone [shared repo link] — ask for access after this session. The whole vault comes with it: CLI, templates, rules, and all the silo scaffolding.</div>
+        </div>
+        <div class="step-who human">You</div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-action">Install the CLI</div>
+          <div class="step-detail">pip install -e . from the mewvault/ folder. You now have the mew command: mew status, mew doctor, mew brief — all the tools that run the vault.</div>
+        </div>
+        <div class="step-who human">You</div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-action">Strip what you don't need</div>
+          <div class="step-detail">Delete the silo folders that don't apply to you. Keep only the rules for the one thing you want to start with. Less is right.</div>
+        </div>
+        <div class="step-who human">You</div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-action">Write your first rule</div>
+          <div class="step-detail">One .md file in .claude/rules/ — one thing Claude should always know in your workspace. Your tone, your standards, your definition of done. One sentence is enough to start.</div>
+        </div>
+        <div class="step-who human">You</div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-action">Start a session</div>
+          <div class="step-detail">Open Claude Code in your silo folder and start talking. The system learns from the first correction you make. Every session leaves it slightly more like yours.</div>
+        </div>
+        <div class="step-who human">You</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CLOSING 3: FINAL ── -->
+  <div class="slide title">
+    <div class="title-eyebrow">MewVault · 2026</div>
+    <h1 class="title-main">Your workflow<br>is a product.</h1>
+    <p class="title-sub">It deserves the same care you give everything else.</p>
   </div>
 
 </div>
