@@ -28,8 +28,10 @@ workspace-root/
   mewvault/             # This repo — CLI, hooks, agents, gates
   software-projects/    # Code projects (Next.js, Astro, SvelteKit)
   design-studio/        # UX and design projects (Figma-integrated)
-  game-lab/             # Godot games and experiments
+  game-lab/             # Godot / Unity games and experiments
   idea-hub/             # Idea capture and validation
+  learn-lab/            # Skill acquisition — Japanese (SM-2 SRS) + trading (stage-gated)
+  career-studio/        # Private silo — case studies, CV, skill matrix, mock interviews
   wiki/                 # Knowledge base and learning tracks
 ```
 
@@ -58,6 +60,12 @@ Everything is a plain conversational sentence. The session hook detects the phra
 | **sync wiki** | Silos → mewwiki, then semantic re-index |
 | **ingest raw/spec.pdf** | Proposes concept pages, writes them on approval |
 | **meeting prep vodafone** | Attendee profiles + last notes + agenda |
+| **brief \<topic\>** | Total-context pack: ranked excerpts from wiki, decisions, specs, logs (2k cap) |
+| **validate \<idea\>** | Feasibility scan: competitors, market size, effort estimate, pursue/park/kill |
+| **practice japanese** | SRS drill (due cards only) → one new grammar point → micro-conversation |
+| **market prep** / **trade — \<details\>** | Trading track: journal entry, adherence review, backtest logging |
+| **case study \<name\>** | Career: retro interview or auto-assembly from vault receipts |
+| **mock interview** | Grounded questions from real vault history; scored feedback |
 
 ---
 
@@ -123,6 +131,30 @@ MewVault makes it stick: a hook anchors the flow the moment UI work starts, the 
 
 ---
 
+## Learn-lab silo
+
+Two independent skill-acquisition tracks with hard discipline rules baked in.
+
+**Japanese** — SM-2 scheduler (`scripts/srs.py`) determines which cards are due; only due cards enter context. Reference data (JMdict, KANJIDIC2) lives locally — every card is verified against it, never LLM-invented. Session shape: drill due cards → one new grammar point + 3 i+1 sentences → micro-conversation → wrap (scheduler runs, streak increments). `practice japanese` trigger.
+
+**Trading** — stage-gated: `curriculum → backtest → rulebook → demo → live`. The vault refuses to assist beyond the current stage. Journal and backtests are append-only (hook-enforced — bash `>>` only, never edited). Reviews grade adherence, not P&L. Guardrail: discipline coach and pattern analyst — never a signal generator, never financial advice. `market prep`, `trade — <details>`, `trading review` triggers.
+
+---
+
+## Career-studio silo
+
+Private, offline-only git repo. No remote ever added; excluded from wiki sync, briefs, and semantic indexing. Publishing is an explicit export step, never a side effect.
+
+**Case study pipeline:** `assembled → drafted → publishable`. `drafted` requires a voice pass (owner edited the draft; patterns written to `brand/voice.md`). `publishable` requires `confidentiality: cleared` — hook-blocked otherwise. Clearing = owner approves a named-entity checklist Claude extracts from the draft.
+
+**Skill matrix** — five pillars (Design / Product / Development / AI & Tooling / Leadership), levels above 2 require evidence links from vault work. `skill review` quarterly; weekly review nudges the most dormant pillar with one concrete activity.
+
+**Mock interviews** — questions grounded in real vault history (actual decisions, shipped work). `mock interview [portfolio|challenge|behavioral|leadership]`. Monthly cadence; weekly review nudges when overdue.
+
+**CV** — `cv/master.md` is canonical; role-targeted variants derive from it. `refresh cv` mines vault logs and case studies for new accomplishments.
+
+---
+
 ## Under the hood
 
 ### Hook runtime
@@ -145,7 +177,24 @@ The first prompt of a session gets one context block, hard-capped (default 3,000
 
 ### Agent array
 
-Specialist agents (`mew-planner`, `mew-coder`, `mew-designer`, `mew-gamedev`, `mew-learner`, `mew-archivist`, `mew-chief`, …) defined in `.claude/agents/`, selected by silo. Every dispatch is written to a ledger; dispatches without an explicit model are blocked. `mew agent status` shows what ran, when, on which model. DeepSeek generation tasks go through `mew dispatch` + the LiteLLM proxy.
+Specialist agents defined in `.claude/agents/`, selected by silo and task:
+
+| Agent | Model | Role |
+| --- | --- | --- |
+| `mew-planner` | Opus | Architecture plans, MewKing proposals |
+| `fable` | Opus | Deep codebase audits, MVP-to-production analysis |
+| `mew-chief` | Sonnet | Cross-silo orchestration, standup, wiki sync |
+| `mew-coder` | Sonnet | Code implementation, bug fixes, tests |
+| `mew-designer` | Sonnet | UX design, Figma review, component specs |
+| `mew-gamedev` | Sonnet | GDScript / Unity implementation |
+| `mew-learner` | Sonnet | Concept distillation, wiki writing |
+| `mew-researcher` | Sonnet | Feasibility analysis, market research |
+| `mew-ideator` | Haiku | Idea capture and brief generation |
+| `mew-archivist` | Haiku | Session wrap, log writes, commit messages |
+| `mew-coder-simple` | DeepSeek | Straightforward implementation via LiteLLM proxy |
+| `mew-coder-reason` | DeepSeek R1 | Complex reasoning tasks via LiteLLM proxy |
+
+Every dispatch is written to a ledger; dispatches without an explicit model param are blocked (the silent-Sonnet-fallback fix). `mew agent status` shows what ran, when, on which model. DeepSeek agents go through `mew dispatch` + the LiteLLM proxy — not the Agent tool.
 
 ### Semantic memory (doobidoo)
 
@@ -274,6 +323,9 @@ Every project carries a `tier` in `Project_Status.md`:
   log.md              # session log (flows to mewwiki)
 ```
 
+Silo-specific layouts vary (learn-lab has `decks/` and `journal/`; career-studio has `cv/`, `cases/`, `brand/`) — see each silo's `CLAUDE.md` for the full structure.
+
 ---
 
-*Changelog for the 2026-07-08 overhaul: `wiki/whats-new-2026-07-08.md`.*
+*Changelog for the 2026-07-08 overhaul: `wiki/whats-new-2026-07-08.md`.  
+learn-lab silo added 2026-07-13. career-studio silo added 2026-07-10.*
