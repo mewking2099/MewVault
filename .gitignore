@@ -16,6 +16,9 @@ secrets/
 # MewVault memory store (machine-local SQLite)
 .mew-memory.db
 
+# Project lock (machine-local — not committed)
+.active-project
+
 # MewHarness session artifacts (not committed — machine-local)
 .claude/session-activity.json
 .claude/gateguard-session.json

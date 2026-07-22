@@ -83,6 +83,28 @@ Agent({
 
 DeepSeek agents (mew-coder-simple, mew-coder-reason) cannot be dispatched via the Agent tool — use `mew dispatch` + LiteLLM proxy instead.
 
+## Planning discipline — MASTER_SPEC as single source of truth
+
+When planning any feature for a known project (especially DSaaS / `software-projects/dsaas`):
+
+1. **Never create a new `proposals/active/<feature>/plan.md`** without first reading the project's MASTER_SPEC (e.g. `proposals/MASTER_SPEC.md §8 Proposal Index`).
+2. If the feature maps to a known phase in MASTER_SPEC, add a section there (`§N`) instead of a new file.
+3. If a standalone `plan.md` already exists and overlaps with MASTER_SPEC, consolidate it: integrate the content into the relevant MASTER_SPEC section and replace the file with a one-line stub pointing to MASTER_SPEC.
+4. Standalone `plan.md` files are allowed only for truly standalone work that has no corresponding MASTER_SPEC phase — and only after confirming this with the user.
+
+## Project lock
+
+`mewvault/.active-project` is a machine-local lock file (gitignored). When it exists, the pre-tool-use hook blocks writes to any path outside the locked project directory (with exemptions for `mewvault/` tooling and `~/.claude/` memory).
+
+Commands:
+- `mew lock <project-path>` — lock to a project (e.g. `mew lock software-projects/dsaas`)
+- `mew lock --status` — show what is currently locked
+- `mew unlock` — release the lock
+
+**When to lock:** any time you're starting a focused session on one project and want to prevent accidental cross-project writes (e.g. editing yaana-design-system files while working on dsaas). Lock at session start; unlock when cross-silo work is genuinely needed.
+
+The hook message is explicit: it names the locked path and the blocked path, so there's no silent bleed.
+
 ## graphify
 
 This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.

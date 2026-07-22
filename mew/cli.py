@@ -235,6 +235,13 @@ def main() -> None:
     p_dispatch.add_argument("--system", metavar="TEXT", help="Override system prompt (default: agent-tuned code prompt)")
     p_dispatch.add_argument("--no-system", action="store_true", dest="no_system", help="Send no system prompt")
 
+    # lock / unlock — project focus guard
+    p_lock = subparsers.add_parser("lock", help="Lock Claude to a single project directory")
+    p_lock.add_argument("project", nargs="?", help="Absolute or relative path to lock to (omit to show status)")
+    p_lock.add_argument("--status", action="store_true", help="Show current lock without changing it")
+
+    subparsers.add_parser("unlock", help="Remove the active project lock")
+
     # help
     p_help = subparsers.add_parser("help", help="Show help")
     p_help.add_argument("topic", nargs="?", help="Command, 'slash', or 'triggers'")
@@ -276,6 +283,8 @@ def main() -> None:
         "update":         lambda: _run("update", args),
         "brief":          lambda: _run("brief", args),
         "dispatch":       lambda: _run("dispatch", args),
+        "lock":           lambda: _run("lock", args),
+        "unlock":         lambda: _run("unlock", args),
         "help":           lambda: _run("help", args),
     }
 
@@ -375,6 +384,12 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)
+    elif command == "lock":
+        from mew.commands.lock import run_lock
+        run_lock(args)
+    elif command == "unlock":
+        from mew.commands.lock import run_unlock
+        run_unlock(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))

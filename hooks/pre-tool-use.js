@@ -80,6 +80,34 @@ function main() {
     block('⛔ MewVault: .obsidian/ is off-limits. Use Obsidian to change settings.');
   }
 
+  // Sub-logic L: Project lock guard
+  // If mewvault/.active-project exists, writes outside that directory are blocked.
+  // Exemptions: ~/.claude/ (auto-memory), mewvault/ itself (tooling).
+  if (filePath && ['Write', 'Edit', 'MultiEdit'].includes(toolName)) {
+    const workspaceRoot = findWorkspaceRoot(cwd);
+    const lockFile = path.join(workspaceRoot, 'mewvault', '.active-project');
+    if (fs.existsSync(lockFile)) {
+      const locked = fs.readFileSync(lockFile, 'utf8').trim();
+      if (locked) {
+        const norm = (p) => path.resolve(p).replace(/\\/g, '/').replace(/\/$/, '');
+        const normLocked = norm(locked);
+        const normFile = norm(filePath);
+        const normVault = norm(path.join(workspaceRoot, 'mewvault'));
+        const homeClaude = norm(path.join(require('os').homedir(), '.claude'));
+        const inLocked = normFile.startsWith(normLocked + '/') || normFile === normLocked;
+        const inVault = normFile.startsWith(normVault + '/') || normFile === normVault;
+        const inHomeClaude = normFile.startsWith(homeClaude + '/');
+        if (!inLocked && !inVault && !inHomeClaude) {
+          block(
+            `⛔ Project lock: Claude is locked to:\n  ${locked}\n\n` +
+            `Attempted write outside locked project:\n  ${filePath}\n\n` +
+            `Run 'mew unlock' to release the lock, or 'mew lock <path>' to switch projects.`
+          );
+        }
+      }
+    }
+  }
+
   // Sub-logic F: mewwiki direct write guard
   if (filePath && ['Write', 'Edit', 'MultiEdit'].includes(toolName)) {
     const workspaceRoot = findWorkspaceRoot(cwd);
