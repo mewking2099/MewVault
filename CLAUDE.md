@@ -101,7 +101,20 @@ Commands:
 - `mew lock --status` — show what is currently locked
 - `mew unlock` — release the lock
 
-**When to lock:** any time you're starting a focused session on one project and want to prevent accidental cross-project writes (e.g. editing yaana-design-system files while working on dsaas). Lock at session start; unlock when cross-silo work is genuinely needed.
+**Auto-lock on session start (mandatory):** When the user says anything that means "let's work on X" — e.g. "let's work on dsaas", "start a dsaas session", "I want to work on yaana DS" — immediately run `mew lock <resolved-path>` before doing anything else, then confirm: "Locked to `<path>`." Do not wait to be asked.
+
+**Auto-unlock on project switch:** When the user signals a switch to a different project, run `mew unlock` then `mew lock <new-path>` automatically.
+
+**Known project name → path map:**
+- `dsaas` / `DSaaS` → `software-projects/dsaas`
+- `yaana DS` / `yaana design system` → `software-projects/yaana-design-system`
+- `mewvault` / `vault` / `mew cli` → `mewvault`
+- `game-lab` / any game project → `game-lab/<project>`
+- `design-studio` / any design project → `design-studio/<project>`
+- `career` / `career studio` → `career-studio`
+- `idea-hub` / `ideas` → `idea-hub`
+
+If the project name is ambiguous, ask before locking.
 
 The hook message is explicit: it names the locked path and the blocked path, so there's no silent bleed.
 
