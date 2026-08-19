@@ -1,0 +1,13 @@
+feature: always-on-memory
+tier: mewking
+status: approved
+created: 2026-08-19
+approved: 2026-08-19
+plan: plan.md
+summary: Auto-run graphify + doobidoo across all silos with no manual commands.
+decisions:
+  U1: embedded PersistentClient (SQLite) — drop all HTTP port 8000/8001 references as dead code
+  U2: queue-on-disk fallback — write pending-index-queue.jsonl, drain on next session-start
+  U3: career-studio in separate mewvault-career collection, never included in cross-silo queries
+  U4: .md chunked by heading (512 tokens), code chunked by top-level symbol (function/class, max 512 tokens)
+  U5: chromadb.json deleted — dead config, unified store config is in doobidoo.json

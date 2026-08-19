@@ -127,3 +127,20 @@ Rules:
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).
+
+## Context retrieval — mandatory before file reads
+
+Before any substantive read (spec, plan, code, wiki page), always do both:
+
+1. **Semantic search** — call `mcp__doobidoo__memory_search` with 2–3 keywords from the task. Fallback if MCP offline: `python3 mewvault/scripts/query_index.py --silo <silo> --q "<keywords>"`. This surfaces past decisions, rationale, and notes without reading files.
+2. **Graph query** — if the current project/silo has `graphify-out/graph.json`, run `graphify query "<task>"` for structural context (what depends on what, where things live).
+
+Skip only for pure commands (`mew doctor`, `mew status`) with no context need. Cite any result used as `(source: <path>)` or `(source: graph:<node>)`.
+
+## Automatic indexing
+
+graphify and doobidoo run automatically at session-end — no manual commands needed. After any session that touches files:
+- `graphify update .` runs in the relevant silo (background, detached).
+- `index_silo.py` indexes the modified files into ChromaDB (background, detached).
+
+Do NOT run `graphify build .` or `index_silo.py` manually mid-session. The post-session hook handles it.

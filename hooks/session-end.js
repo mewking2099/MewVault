@@ -3,6 +3,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { spawn } = require('child_process');
 
 const MEWVAULT_ROOT = process.env.MEWVAULT_ROOT || path.join(__dirname, '..');
 const ERROR_LOG = path.join(os.homedir(), '.mewvault-hook-errors.log');
@@ -72,6 +73,10 @@ function detectSilo(cwd, workspaceRoot) {
   if (rel.startsWith('design-studio')) return 'design';
   if (rel.startsWith('software-projects')) return 'code';
   if (rel.startsWith('game-lab')) return 'game';
+  if (rel.startsWith('idea-hub')) return 'idea';
+  if (rel.startsWith('career-studio')) return 'career';
+  if (rel.startsWith('learn-lab')) return 'learn';
+  if (rel.startsWith('mewvault') || rel === '') return 'mewvault';
   return null;
 }
 
@@ -126,24 +131,6 @@ function writePendingVectorIndex(workspaceRoot, silo, summary, filesModified) {
   } catch {}
 }
 
-function indexToChromaDb(collection, docId, text) {
-  const http = require('http');
-  const body = JSON.stringify({
-    ids: [docId],
-    documents: [text],
-    metadatas: [{ source: 'session-end', timestamp: new Date().toISOString() }],
-  });
-  const req = http.request({
-    hostname: 'localhost', port: 8000,
-    path: `/api/v1/collections/${collection}/upsert`,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-  }, () => {});
-  req.on('error', () => {});
-  req.setTimeout(3000, () => req.destroy());
-  req.write(body);
-  req.end();
-}
 
 function getProjectName(projectDir) {
   return path.basename(projectDir);
@@ -219,20 +206,38 @@ function main() {
       if (wikiPath) writeMemorySummary(wikiPath, path.basename(projectDir), summary, filesModified.length);
     } catch {}
 
-    // Phase 4: vector store indexing (fire-and-forget, never throws)
+    // Phase 4: graphify + semantic indexing (fire-and-forget, never blocks session end)
     try {
       const silo = detectSilo(cwd, workspaceRoot);
-      const mcps = loadActiveMcps(workspaceRoot);
       const filesModified = (activity && activity.files_modified) ? activity.files_modified : [];
-      if (['code', 'game'].includes(silo) && mcps.chromadb) {
-        const collection = silo === 'code' ? 'mewvault-code' : 'mewvault-game';
-        const docId = `session-${ts().replace(/[: ]/g, '-')}`;
-        const text = [summary, ...filesModified.map(f => path.basename(f))].join(' | ');
-        indexToChromaDb(collection, docId, text);
-      } else if (silo === 'wiki' && mcps.doobidoo) {
-        // doobidoo is stdio-only — stage for next session-start to surface
-        writePendingVectorIndex(workspaceRoot, silo, summary, filesModified);
+      const activeProject = findActiveProject(cwd, workspaceRoot);
+
+      // Spawn graphify update (detached, never blocks session end)
+      if (!['career', 'learn'].includes(silo)) {
+        const graphifyArgs = ['mewvault/scripts/graphify_silo.py', '--silo', silo];
+        if (activeProject) graphifyArgs.push('--project', activeProject);
+        const gproc = spawn('python3', graphifyArgs, {
+          cwd: workspaceRoot,
+          stdio: 'ignore',
+          detached: true,
+        });
+        try { gproc.unref(); } catch {}
       }
+
+      // Spawn semantic indexer (detached, never blocks session end)
+      if (filesModified.length > 0) {
+        const indexArgs = ['mewvault/scripts/index_silo.py', '--silo', silo,
+                           '--files', filesModified.join(',')];
+        const iproc = spawn('python3', indexArgs, {
+          cwd: workspaceRoot,
+          stdio: 'ignore',
+          detached: true,
+        });
+        try { iproc.unref(); } catch {}
+      }
+
+      // Write pending signal (informational — session-start reads this to confirm indexing fired)
+      writePendingVectorIndex(workspaceRoot, silo, summary, filesModified);
     } catch {}
   } catch (err) {
     logError(err.message);

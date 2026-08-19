@@ -56,6 +56,8 @@ const AGENT_MAP = {
   wiki:     { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Concept distillation, research ingest' },
   idea:     { name: 'mew-ideator',  model: 'claude-sonnet-5',   role: 'Idea capture, expansion, feasibility routing' },
   mewvault: { name: 'mew-chief',    model: 'claude-sonnet-5',   role: 'CLI engine, hooks, skills, agent array' },
+  career:   { name: 'mew-chief',    model: 'claude-sonnet-5',   role: 'Career studio — case studies, CV, voice, mock interviews' },
+  learn:    { name: 'mew-learner',  model: 'claude-sonnet-4-6', role: 'Learn-lab — SRS drills, Japanese, trading track' },
 };
 const DEFAULT_AGENT = { name: 'mew-chief', model: 'claude-sonnet-5', role: 'Cross-silo orchestration, triage, routing' };
 
@@ -85,6 +87,17 @@ function loadProjectStatus(cwd, workspaceRoot, silo) {
         return l === '---' || allowed.includes(k);
       }).join('\n');
     }
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+  return null;
+}
+
+function findActiveProject(cwd, workspaceRoot) {
+  let dir = path.resolve(cwd);
+  while (dir.length >= workspaceRoot.length) {
+    if (fs.existsSync(path.join(dir, 'Project_Status.md'))) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
@@ -177,39 +190,6 @@ function loadActiveMcps(workspaceRoot) {
     const s = JSON.parse(fs.readFileSync(settingsFile, 'utf8'));
     return s.mcpServers || {};
   } catch { return {}; }
-}
-
-function queryChromaDb(collection, queryText) {
-  const http = require('http');
-  return new Promise((resolve) => {
-    const body = JSON.stringify({ query_texts: [queryText], n_results: 5 });
-    const req = http.request({
-      hostname: 'localhost', port: 8000,
-      path: `/api/v1/collections/${collection}/query`,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
-    }, (res) => {
-      let data = '';
-      res.on('data', c => data += c);
-      res.on('end', () => {
-        try {
-          const r = JSON.parse(data);
-          const docs = (r.documents || [[]])[0] || [];
-          resolve(docs.slice(0, 5).map(d => d.substring(0, 200)).join('\n'));
-        } catch { resolve(null); }
-      });
-    });
-    req.on('error', () => resolve(null));
-    req.setTimeout(2000, () => { req.destroy(); resolve(null); });
-    req.write(body);
-    req.end();
-  });
-}
-
-function loadPendingVectorIndex(workspaceRoot) {
-  const f = path.join(workspaceRoot, '.claude', 'pending-vector-index.json');
-  if (!fs.existsSync(f)) return null;
-  try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; }
 }
 
 function getGitRemote(dir) {
@@ -308,8 +288,26 @@ function checkServiceHealth(host, port, path) {
   });
 }
 
+async function checkChromaDbStore() {
+  const chromaDir = path.join(os.homedir(), '.mewvault', 'chroma');
+  return fs.existsSync(chromaDir);
+}
+
+async function checkOllama() {
+  const http = require('http');
+  return new Promise((resolve) => {
+    const req = http.request(
+      { hostname: 'localhost', port: 11434, path: '/api/tags', method: 'GET' },
+      (res) => { resolve(res.statusCode < 500); }
+    );
+    req.on('error', () => resolve(false));
+    req.setTimeout(500, () => { req.destroy(); resolve(false); });
+    req.end();
+  });
+}
+
 async function checkServices(workspaceRoot) {
-  const checks = [
+  const portChecks = [
     {
       name: 'Headroom',
       port: 8787,
@@ -326,18 +324,32 @@ async function checkServices(workspaceRoot) {
     },
   ];
 
-  const mcps = loadActiveMcps(workspaceRoot);
-  checks.push({
-    name: 'ChromaDB',
-    port: 8001,
-    path: '/api/v2/heartbeat',
-    hint: 'bash proxy/install-chromadb-daemon.sh',
-    detail: 'Semantic context unavailable',
-  });
-
-  const results = await Promise.all(
-    checks.map(async (c) => ({ ...c, up: await checkServiceHealth('localhost', c.port, c.path) }))
+  const portResults = await Promise.all(
+    portChecks.map(async (c) => ({ ...c, up: await checkServiceHealth('localhost', c.port, c.path) }))
   );
+
+  const chromaUp = await checkChromaDbStore();
+  const ollamaUp = await checkOllama();
+
+  const results = [
+    ...portResults,
+    {
+      name: 'ChromaDB',
+      port: null,
+      path: null,
+      hint: 'python3 mewvault/scripts/reindex_all.py',
+      detail: 'Semantic context unavailable — run reindex_all.py once to initialize',
+      up: chromaUp,
+    },
+    {
+      name: 'Ollama',
+      port: 11434,
+      path: '/api/tags',
+      hint: 'ollama serve',
+      detail: 'Embeddings unavailable — semantic indexing will queue until Ollama is running',
+      up: ollamaUp,
+    },
+  ];
 
   return results;
 }
@@ -438,28 +450,41 @@ function loadMemoryRecall(silo, workspaceRoot) {
 
 async function loadSemanticContext(silo, workspaceRoot) {
   try {
-    const mcps = loadActiveMcps(workspaceRoot);
-    if (['code', 'game'].includes(silo) && mcps.chromadb) {
-      const mewvaultConfPath = path.join(MEWVAULT_ROOT, 'mcp-configs', 'chromadb.json');
-      let collection = silo === 'code' ? 'mewvault-code' : 'mewvault-game';
-      try {
-        const conf = JSON.parse(fs.readFileSync(mewvaultConfPath, 'utf8'));
-        collection = (conf.collections || {})[silo] || collection;
-      } catch {}
-      const result = await queryChromaDb(collection, `${silo} recent session context`);
-      if (result) return result;
+    const chromaDir = path.join(os.homedir(), '.mewvault', 'chroma');
+    if (!fs.existsSync(chromaDir)) return null;
+
+    const siloParam = silo || 'any';
+    return `## Semantic Memory (doobidoo)\n` +
+      `ChromaDB store is active at ~/.mewvault/chroma/. Before reading files, call \`mcp__doobidoo__memory_search\` ` +
+      `with 2–3 keywords from the task. Fallback (if MCP offline): ` +
+      `\`python3 mewvault/scripts/query_index.py --silo ${siloParam} --q "<keywords>"\`. ` +
+      `Always do this first — it surfaces past decisions and avoids re-reading what's already known.`;
+  } catch {}
+  return null;
+}
+
+function loadGraphifyContext(silo, activeProject, workspaceRoot) {
+  try {
+    const SILO_DIRS = {
+      wiki:     path.join('/Users/Mohabbat/Jan/mewwiki'),
+      mewvault: path.join(workspaceRoot, 'mewvault'),
+      idea:     path.join('/Users/Mohabbat/Jan/idea-hub'),
+    };
+
+    let graphifyBase = null;
+    if (activeProject && fs.existsSync(activeProject)) {
+      graphifyBase = activeProject;
+    } else if (silo && SILO_DIRS[silo] && fs.existsSync(SILO_DIRS[silo])) {
+      graphifyBase = SILO_DIRS[silo];
     }
-    // doobidoo is stdio-only (an MCP tool Claude calls, not queryable from this
-    // hook) — so close the retrieval loop by instructing Claude to consult it.
-    if (mcps.doobidoo) {
-      const pending = loadPendingVectorIndex(workspaceRoot);
-      const pendingNote = (pending && pending.silo === silo)
-        ? ` (index pending from last session — ${pending.timestamp})` : '';
-      return 'Semantic memory (doobidoo) is active and indexes mewwiki — past decisions, ' +
-        'gotchas, and concept pages. Before starting substantive work on a project, call ' +
-        '`mcp__doobidoo__retrieve_memory` with 2-3 keywords from the task to surface ' +
-        'relevant prior decisions. Cite anything you use as (source: mewwiki).' + pendingNote;
-    }
+
+    if (!graphifyBase) return null;
+
+    const graphJson = path.join(graphifyBase, 'graphify-out', 'graph.json');
+    if (!fs.existsSync(graphJson)) return null;
+
+    return `Graphify knowledge graph is available at ${graphifyBase}/graphify-out/. ` +
+      `Run \`graphify query "<task>"\` before reading files for structural context.`;
   } catch {}
   return null;
 }
@@ -1251,6 +1276,33 @@ async function main() {
     } catch {}
   }
 
+  // Drain pending-index-queue: if Ollama was offline last session, retry now (detached)
+  if (isFirstPrompt) {
+    try {
+      const queueFile = path.join(os.homedir(), '.mewvault', 'pending-index-queue.jsonl');
+      if (fs.existsSync(queueFile)) {
+        const lines = fs.readFileSync(queueFile, 'utf8').trim().split('\n').filter(Boolean);
+        if (lines.length > 0) {
+          // Collect unique silos from the queue
+          const siloSet = new Set();
+          for (const line of lines) {
+            try { siloSet.add(JSON.parse(line).silo); } catch {}
+          }
+          const { spawn: spawnDrain } = require('child_process');
+          for (const qSilo of siloSet) {
+            const proc = spawnDrain('python3', [
+              path.join(workspaceRoot, 'mewvault', 'scripts', 'index_silo.py'),
+              '--silo', qSilo,
+            ], { cwd: workspaceRoot, detached: true, stdio: 'ignore' });
+            try { proc.unref(); } catch {}
+          }
+          // Delete the queue file after dispatching
+          try { fs.unlinkSync(queueFile); } catch {}
+        }
+      }
+    } catch {}
+  }
+
   // On subsequent prompts, only emit conversational trigger instructions (if matched).
   // All context (rules, status, instincts, services) is already in the model's context window.
   if (!isFirstPrompt) {
@@ -1302,11 +1354,12 @@ async function main() {
 
   // 6b: Service health check
   const serviceResults = await checkServices(workspaceRoot);
-  const servicesDisplay = serviceResults.map(r =>
-    r.up
-      ? `- ${r.name} (localhost:${r.port}): ✓ running`
-      : `- ${r.name} (localhost:${r.port}): ✗ offline — ${r.detail}${r.hint ? ` · start: \`${r.hint}\`` : ''}`
-  ).join('\n');
+  const servicesDisplay = serviceResults.map(r => {
+    const loc = r.port ? `localhost:${r.port}` : (r.name === 'ChromaDB' ? '~/.mewvault/chroma/' : r.name);
+    return r.up
+      ? `- ${r.name} (${loc}): ✓ running`
+      : `- ${r.name} (${loc}): ✗ offline — ${r.detail}${r.hint ? ` · start: \`${r.hint}\`` : ''}`;
+  }).join('\n');
   sections.push('## Services\n\n' + servicesDisplay);
 
   // 6c: Vault health — cached result of the last `mew doctor` run (issues only)
@@ -1327,9 +1380,14 @@ async function main() {
     }
   } catch {}
 
-  // 7: Semantic context from vector stores (Phase 4 — graceful degradation)
+  // 7: Semantic context from vector stores (always-on-memory — graceful degradation)
   const semantic = await loadSemanticContext(silo, workspaceRoot);
-  if (semantic) { sections.push('## Relevant Context (semantic)\n\n' + semantic); droppable.push(sections.length - 1); }
+  if (semantic) { sections.push(semantic); droppable.push(sections.length - 1); }
+
+  // 7c: Graphify knowledge graph context
+  const activeProjectForGraph = findActiveProject(cwd, workspaceRoot);
+  const graphifyCtx = loadGraphifyContext(silo, activeProjectForGraph, workspaceRoot);
+  if (graphifyCtx) { sections.push('## Knowledge Graph\n\n' + graphifyCtx); droppable.push(sections.length - 1); }
 
   // 7b: MewVault memory recall (Phase 6 — SQLite FTS, graceful degradation)
   const memRecall = loadMemoryRecall(silo, workspaceRoot);
