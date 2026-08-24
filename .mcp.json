@@ -1,11 +1,3 @@
 {
-  "mcpServers": {
-    "headroom": {
-      "command": "headroom",
-      "args": ["mcp", "serve"],
-      "env": {
-        "HEADROOM_PROXY_URL": "http://localhost:8787"
-      }
-    }
-  }
+  "mcpServers": {}
 }

@@ -44,21 +44,9 @@ def check_cache_safety(root: Path):
     """A rewriting proxy between Claude Code and the API breaks prompt caching.
     Cache reads cost ~0.1x input; a broken prefix re-bills the whole conversation
     every turn. This was the root cause of the July 2026 token burn."""
-    problems = []
     base_url = os.environ.get("ANTHROPIC_BASE_URL", "")
     if base_url and "anthropic.com" not in base_url:
-        problems.append(f"ANTHROPIC_BASE_URL routes through {base_url}")
-    for var in ("HEADROOM_COMPRESS_USER_MESSAGES", "HEADROOM_COMPRESS_SYSTEM_MESSAGES"):
-        if os.environ.get(var, "").lower() == "true":
-            problems.append(f"{var}=true (prompt-cache breaking)")
-    # Headroom proxy daemon still listening?
-    try:
-        urllib.request.urlopen("http://localhost:8787/health", timeout=1)
-        problems.append("Headroom proxy still running on :8787 (launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.mewvault.headroom.plist)")
-    except Exception:
-        pass
-    if problems:
-        return _result("cache_safety", FAIL, "; ".join(problems))
+        return _result("cache_safety", FAIL, f"ANTHROPIC_BASE_URL routes through {base_url}")
     return _result("cache_safety", OK, "no cache-breaking proxy detected")
 
 

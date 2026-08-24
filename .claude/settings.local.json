@@ -45,10 +45,7 @@
       "mcp__webflow__data_element_tool",
       "mcp__webflow__data_element_builder",
       "Bash(npx tsc *)",
-      "Bash(headroom *)",
-      "mcp__headroom__headroom_compress",
-      "mcp__headroom__headroom_retrieve",
-      "mcp__headroom__headroom_stats",
+
       "WebFetch(domain:astryx.atmeta.com)",
       "mcp__webflow__data_whtml_builder",
       "mcp__webflow__data_pages_tool",
@@ -99,15 +96,27 @@
       "mcp__figma-console__figma_capture_screenshot",
       "WebFetch(domain:atlassian.design)",
       "WebFetch(domain:developer.atlassian.com)",
-      "Bash(chmod +x *)"
+      "Bash(chmod +x *)",
+      "WebFetch(domain:gdotv.com)",
+      "WebFetch(domain:carbondesignsystem.com)",
+      "WebFetch(domain:headlessui.com)",
+      "WebFetch(domain:arco.design)",
+      "WebFetch(domain:primer.style)",
+      "WebFetch(domain:opensource.adobe.com)",
+      "WebFetch(domain:designsystems.surf)",
+      "WebFetch(domain:glama.ai)",
+      "WebFetch(domain:catalyst.tailwindui.com)",
+      "WebFetch(domain:v7.mui.com)",
+      "WebFetch(domain:app.unpkg.com)",
+      "Read(//Users/Mohabbat/Library/LaunchAgents/**)",
+      "Bash(launchctl bootout *)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "memory",
     "doobidoo",
-    "webflow",
-    "headroom"
+    "webflow"
   ],
   "hooks": {
     "UserPromptSubmit": [
