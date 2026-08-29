@@ -28,7 +28,10 @@ function runGraphifyUpdate(filePath, cwd) {
   const searchBase = filePath ? path.dirname(path.resolve(filePath)) : cwd;
   const root = findGraphifyRoot(searchBase) || findGraphifyRoot(cwd);
   if (!root) return;
-  const child = spawn('graphify', ['update', '.'], {
+  // Chain mew index build after graphify update so the vector index stays in sync
+  const mewPy = JSON.stringify(path.join(MEWVAULT_ROOT, 'mew.py'));
+  const cmd = `graphify update . && python3 ${mewPy} index build`;
+  const child = spawn('/bin/sh', ['-c', cmd], {
     cwd: root,
     detached: true,
     stdio: 'ignore',

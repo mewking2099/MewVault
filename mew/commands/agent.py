@@ -46,12 +46,111 @@ def run_agent(args) -> None:
         "sync":         _sync,
         "fetch-skills": _fetch_skills,
         "status":       _agent_status,
+        "lint":         _lint_agents,
     }
     fn = dispatch.get(action)
     if fn:
         fn(args)
     else:
         _list_agents(args)
+
+
+# ── lint ─────────────────────────────────────────────────────────────────────
+
+# Dispatch-only agents — intentionally absent from .claude/agents/, routed via mew dispatch
+_DISPATCH_ONLY = {"mew-coder-simple", "mew-coder-reason", "glm-coder", "glm-code-reviewer",
+                  "glm-ideator", "glm-critic"}
+
+_VALID_CLAUDE_MODEL_IDS = {
+    "claude-opus-4-7", "claude-sonnet-4-6",
+    "claude-haiku-4-5-20251001", "claude-haiku-4-5",
+}
+
+# Expected model per agent per CLAUDE.md dispatch table
+_EXPECTED_MODELS = {
+    "fable":          "claude-opus-4-7",
+    "mew-planner":    "claude-opus-4-7",
+    "mew-chief":      "claude-sonnet-4-6",
+    "mew-coder":      "claude-sonnet-4-6",
+    "mew-designer":   "claude-sonnet-4-6",
+    "mew-gamedev":    "claude-sonnet-4-6",
+    "mew-learner":    "claude-sonnet-4-6",
+    "mew-researcher": "claude-sonnet-4-6",
+    "mew-ideator":    "claude-haiku-4-5-20251001",
+    "mew-archivist":  "claude-haiku-4-5-20251001",
+}
+
+
+def _lint_agents(args=None) -> None:
+    """Validate .claude/agents/ manifests against the CLAUDE.md dispatch table."""
+    import re
+    from mew.workspace import find_workspace_root
+
+    root = find_workspace_root()
+    if root is None:
+        print("Error: could not find workspace root.", file=sys.stderr)
+        sys.exit(1)
+
+    agents_dir = root / "mewvault" / ".claude" / "agents"
+    if not agents_dir.exists():
+        print(f"Error: agents dir not found: {agents_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    errors: list[str] = []
+    warnings: list[str] = []
+    ok: list[str] = []
+
+    for md in sorted(agents_dir.glob("*.md")):
+        name = md.stem
+        text = md.read_text(encoding="utf-8")
+
+        # Parse frontmatter model
+        m = re.search(r"^model:\s*(.+)$", text, re.MULTILINE)
+        declared = m.group(1).strip() if m else None
+
+        if not declared:
+            errors.append(f"  ✗ {name}: missing model: field in frontmatter")
+            continue
+
+        if declared not in _VALID_CLAUDE_MODEL_IDS:
+            errors.append(f"  ✗ {name}: unknown model '{declared}' — not in valid Claude model ID set")
+            continue
+
+        expected = _EXPECTED_MODELS.get(name)
+        if expected and declared != expected:
+            errors.append(f"  ✗ {name}: model '{declared}' ≠ expected '{expected}' (CLAUDE.md dispatch table)")
+            continue
+
+        if "[model=" not in text:
+            warnings.append(f"  ⚠ {name}: no self-report line ([model=...]) found in system prompt")
+        else:
+            ok.append(f"  ✓ {name}: {declared}")
+
+    # Check dispatch-only agents are NOT in .claude/agents/
+    for dispatch_agent in sorted(_DISPATCH_ONLY):
+        if (agents_dir / f"{dispatch_agent}.md").exists():
+            errors.append(f"  ✗ {dispatch_agent}: dispatch-only agent must NOT be in .claude/agents/ "
+                          f"— use `mew dispatch --agent {dispatch_agent}` instead")
+        else:
+            ok.append(f"  ✓ {dispatch_agent}: dispatch-only via mew dispatch (correct)")
+
+    print("\nMewVault Agent Lint\n")
+    for line in ok:
+        print(line)
+    for line in warnings:
+        print(line)
+    for line in errors:
+        print(line)
+
+    print()
+    total = len(ok) + len(warnings) + len(errors)
+    if errors:
+        print(f"  {len(errors)} error(s), {len(warnings)} warning(s) — {total} agents checked")
+        sys.exit(1)
+    elif warnings:
+        print(f"  0 errors, {len(warnings)} warning(s) — {total} agents checked")
+    else:
+        print(f"  All {total} agents OK")
 
 
 # ── status ────────────────────────────────────────────────────────────────────

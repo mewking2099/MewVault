@@ -38,6 +38,7 @@ Types: `feat`, `fix`, `refactor`, `docs`, `chore`, `test`
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-haiku-4-5-20251001]` on its own line.
 - Never push git commits — the user pushes manually.
 - Log entries are append-only. Never delete or edit existing log entries.
 - Commit messages go to `.claude/last-session-message.txt`, not to git directly.

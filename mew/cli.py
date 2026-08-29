@@ -133,6 +133,7 @@ def main() -> None:
     p_fetch = p_agent_sub.add_parser("fetch-skills", help="Fetch skills from online sources")
     p_fetch.add_argument("--from", dest="from_source", metavar="SOURCE", help="Named source (e.g. awesome-claude)")
     p_fetch.add_argument("--url", metavar="URL", help="Direct URL to a skill file")
+    p_agent_sub.add_parser("lint", help="Validate agent manifests against CLAUDE.md dispatch table")
 
     # instinct
     p_instinct = subparsers.add_parser("instinct", help="Manage the instinct pipeline")
@@ -224,9 +225,13 @@ def main() -> None:
 
     # dispatch
     p_dispatch = subparsers.add_parser("dispatch", help="Send pure-generation task to a proxy agent")
-    p_dispatch.add_argument("--agent", default="mew-coder-simple",
-                            choices=["mew-coder-simple", "mew-coder-reason"],
-                            help="Target agent (default: mew-coder-simple = DeepSeek V3, mew-coder-reason = DeepSeek R1)")
+    p_dispatch.add_argument("--agent", default=None,
+                            choices=["mew-coder-simple", "mew-coder-reason",
+                                     "glm-code-reviewer", "glm-coder"],
+                            help="Override agent (default: auto-detected from prompt). "
+                                 "glm-* → Z.ai, mew-* → LiteLLM proxy.")
+    p_dispatch.add_argument("--provider", choices=["proxy", "zai"], default=None,
+                            help="Force provider (default: inferred from agent name)")
     task_group = p_dispatch.add_mutually_exclusive_group(required=False)
     task_group.add_argument("--task", metavar="PROMPT", help="Inline prompt string")
     task_group.add_argument("--task-file", metavar="PATH", help="Path to file containing the prompt")
@@ -234,6 +239,85 @@ def main() -> None:
     p_dispatch.add_argument("--write", metavar="PATH", help="Write output directly to file instead of stdout")
     p_dispatch.add_argument("--system", metavar="TEXT", help="Override system prompt (default: agent-tuned code prompt)")
     p_dispatch.add_argument("--no-system", action="store_true", dest="no_system", help="Send no system prompt")
+
+    # ideate — dual-model research and ideation loop
+    p_ideate = subparsers.add_parser("ideate", help="Dual-model ideation: GLM-5.2 + Claude Opus debate loop")
+    p_ideate.add_argument("topic", help="Topic or question to explore")
+    p_ideate.add_argument("--context-file", metavar="PATH", dest="context_file",
+                          action="append",
+                          help="Prior synthesis or research file to ground the ideation (repeatable)")
+    p_ideate.add_argument("--write-dir", metavar="PATH", dest="write_dir",
+                          help="Output directory (default: mewvault/ideation/<date>-<slug>/)")
+
+    # loop — instrumented loop primitives (Phase 4)
+    p_loop = subparsers.add_parser("loop", help="Instrumented loop primitives (Phase 4)")
+    p_loop_sub = p_loop.add_subparsers(dest="loop_action")
+
+    p_lstart = p_loop_sub.add_parser("start", help="Open a new instrumented loop (writes tick 0)")
+    p_lstart.add_argument("loop_type",
+                          choices=["spec_build_verify", "plan_approve_execute",
+                                   "idea_lifecycle", "wrap_prime"],
+                          help="Loop type (fixed — Phase 4 ships only these four)")
+    p_lstart.add_argument("--task", metavar="TEXT", help="Task description for this loop instance")
+    p_lstart.add_argument("--ctx", metavar="KEY=VALUE", action="append",
+                          help="Context override (repeatable): e.g. --ctx idea_status_file=path/status.md")
+
+    p_ltick = p_loop_sub.add_parser("tick", help="Record next tick — checks predicate + livelock")
+    p_ltick.add_argument("loop_id", help="Loop ID from `mew loop start`")
+    tick_out = p_ltick.add_mutually_exclusive_group()
+    tick_out.add_argument("--output", metavar="TEXT", help="Tick output text (for content_hash)")
+    tick_out.add_argument("--output-file", metavar="PATH", dest="output_file",
+                          help="File containing tick output")
+    p_ltick.add_argument("--dispatch-ts", metavar="TS", dest="dispatch_ts",
+                         help="dispatch_ts of dispatch spawned in this tick")
+    p_ltick.add_argument("--ctx", metavar="KEY=VALUE", action="append",
+                         help="Context override for predicate evaluation")
+    p_ltick.add_argument("--defer-if-locked", action="store_true", dest="defer_if_locked",
+                         help="Print deferral hint if project lock is active")
+
+    p_lstatus = p_loop_sub.add_parser("status", help="Show tick history for a loop")
+    p_lstatus.add_argument("loop_id", nargs="?", help="Loop ID (omit to list all)")
+    p_loop_sub.add_parser("list", help="List active and recent loops")
+
+    # route — shadow-mode prediction and baseline reporting (Phase 2)
+    p_route = subparsers.add_parser("route", help="Shadow-mode routing prediction (Phase 2)")
+    p_route_sub = p_route.add_subparsers(dest="route_action")
+    p_drr = p_route_sub.add_parser("dry-run", help="Predict routing without dispatching")
+    p_drr.add_argument("task", help="Task prompt to predict routing for")
+    p_route_sub.add_parser("baseline", help="Mis-routing rate report from paired predictions")
+    p_route_sub.add_parser("status", help="Prediction coverage + per-silo confidence")
+    p_conf = p_route_sub.add_parser("confidence", help="Re-score graphify-out/ confidence")
+    p_conf.add_argument("--silo", metavar="NAME", help="Score one silo only")
+    p_drift = p_route_sub.add_parser("drift", help="predicted_radius vs actual_radius divergence")
+    p_drift.add_argument("-n", type=int, default=20, help="Rows to show (default 20)")
+    p_route_sub.add_parser("capability", help="Write capability-edges.json to all graphify-out/ silos")
+
+    # ledger — dispatch history and loop-tick inspection
+    p_ledger = subparsers.add_parser("ledger", help="Inspect the dispatch ledger (Phase 1)")
+    p_ledger_sub = p_ledger.add_subparsers(dest="ledger_action")
+    p_ledger_sub.add_parser("migrate", help="Bump schema epoch (manual migration)")
+    p_tail = p_ledger_sub.add_parser("tail", help="Show recent dispatch rows")
+    p_tail.add_argument("-n", type=int, default=20, help="Number of rows (default: 20)")
+    p_show = p_ledger_sub.add_parser("show", help="Show full details for one dispatch")
+    p_show.add_argument("dispatch_ts", help="dispatch_ts value from tail")
+    p_ledger_sub.add_parser("stats", help="Summary stats across all dispatches")
+    p_uradius = p_ledger_sub.add_parser("update-radius", help="Set actual_radius after graphify diff")
+    p_uradius.add_argument("dispatch_ts", help="dispatch_ts of the row to update")
+    p_uradius.add_argument("count", type=int, help="Actual node count from graphify diff")
+
+    # index — ChromaDB semantic index for graph nodes (Stage 2 routing)
+    p_index = subparsers.add_parser("index", help="Build and query ChromaDB semantic indexes")
+    p_index_sub = p_index.add_subparsers(dest="index_action")
+
+    p_ibuild = p_index_sub.add_parser("build", help="Build ChromaDB index from graph.json")
+    p_ibuild.add_argument("project_path", nargs="?", help="Project path (default: locked project)")
+    p_ibuild.add_argument("--all", action="store_true", help="Build for all projects with a graph.json")
+
+    p_index_sub.add_parser("status", help="Show collection stats across all indexed projects")
+
+    p_isearch = p_index_sub.add_parser("search", help="Test semantic search against active project")
+    p_isearch.add_argument("query", help="Search query")
+    p_isearch.add_argument("--limit", type=int, default=20, help="Max results (default: 20)")
 
     # lock / unlock — project focus guard
     p_lock = subparsers.add_parser("lock", help="Lock Claude to a single project directory")
@@ -283,6 +367,11 @@ def main() -> None:
         "update":         lambda: _run("update", args),
         "brief":          lambda: _run("brief", args),
         "dispatch":       lambda: _run("dispatch", args),
+        "ideate":         lambda: _run("ideate", args),
+        "ledger":         lambda: _run("ledger", args),
+        "loop":           lambda: _run("loop", args),
+        "route":          lambda: _run("route", args),
+        "index":          lambda: _run("index", args),
         "lock":           lambda: _run("lock", args),
         "unlock":         lambda: _run("unlock", args),
         "help":           lambda: _run("help", args),
@@ -384,12 +473,27 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)
+    elif command == "ideate":
+        from mew.commands.ideate import run_ideate
+        run_ideate(args)
+    elif command == "index":
+        from mew.commands.index import run_index
+        run_index(args)
     elif command == "lock":
         from mew.commands.lock import run_lock
         run_lock(args)
     elif command == "unlock":
         from mew.commands.lock import run_unlock
         run_unlock(args)
+    elif command == "ledger":
+        from mew.commands.ledger import run_ledger
+        run_ledger(args)
+    elif command == "loop":
+        from mew.commands.loop import run_loop
+        run_loop(args)
+    elif command == "route":
+        from mew.commands.route import run_route
+        run_route(args)
     elif command == "help":
         from mew.commands.help_cmd import run_help
         run_help(getattr(args, "topic", None))

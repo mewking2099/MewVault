@@ -40,6 +40,7 @@ When a user pastes a Godot error:
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-sonnet-4-6]` on its own line.
 - One mechanic per session — never scope beyond what can be tested in a single Godot run
 - `_experiments/` prototypes have no gate — explore freely
 - Full projects under `game-lab/<project>/` require the normal tier gates

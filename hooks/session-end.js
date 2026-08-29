@@ -224,17 +224,16 @@ function main() {
         try { gproc.unref(); } catch {}
       }
 
-      // Spawn semantic indexer (detached, never blocks session end)
-      if (filesModified.length > 0) {
-        const indexArgs = ['mewvault/scripts/index_silo.py', '--silo', silo,
-                           '--files', filesModified.join(',')];
-        const iproc = spawn('python3', indexArgs, {
-          cwd: workspaceRoot,
-          stdio: 'ignore',
-          detached: true,
-        });
-        try { iproc.unref(); } catch {}
-      }
+      // Rebuild ChromaDB vector index for the active project (detached, never blocks)
+      const mewPy = path.join(workspaceRoot, 'mewvault', 'mew.py');
+      const indexArgs = [mewPy, 'index', 'build'];
+      if (activeProject) indexArgs.push(activeProject);
+      const iproc = spawn('python3', indexArgs, {
+        cwd: workspaceRoot,
+        stdio: 'ignore',
+        detached: true,
+      });
+      try { iproc.unref(); } catch {}
 
       // Write pending signal (informational — session-start reads this to confirm indexing fired)
       writePendingVectorIndex(workspaceRoot, silo, summary, filesModified);

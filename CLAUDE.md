@@ -10,9 +10,25 @@ This silo contains the `mew` CLI: entry point, commands, templates, and secrets.
 - `mew/` — Python package (commands, workspace detection, utilities)
 - `mew/memory_store.py` — SQLite FTS5 adapter for cross-session memory
 - `mew/commands/memory.py` — `mew memory sync|search|recall|purge`
+- `mew/ledger/schema.sql` + `db.py` — dispatch ledger + loop-tick schema (Phase 1)
+- `mew/commands/ledger.py` — `mew ledger migrate|tail|show|stats`
+- `mew/commands/route.py` — `mew route dry-run|baseline|status|confidence` (Phase 2)
+- `mew/routing/heuristics.py` — keyword-based agent/blast-radius/complexity prediction
+- `mew/routing/confidence.py` — per-silo graphify confidence scorer
+- `mew/commands/dispatch.py` — `mew dispatch` (ZAI + proxy, ledger-instrumented, confidence fallback)
+- `mew/commands/ideate.py` — `mew ideate` (dual-model GLM + Opus debate loop)
+- `mew/commands/route.py` — `mew route dry-run|baseline|status|confidence|drift|capability` (Phase 2-3)
+- `mew/commands/loop.py` — `mew loop start|tick|status|list` (Phase 4)
+- `mew/routing/blast_radius.py` — 2-hop graph-neighborhood expansion
+- `mew/routing/complexity.py` — file-count × community-span × type-diversity scorer
+- `mew/routing/capability.py` — agent capability edge registry (→ `graphify-out/capability-edges.json`)
+- `mew/loops/predicates.py` — four fixed termination predicates
+- `mew/loops/livelock.py` — content-hash streak + graph-cycle livelock detector
+- `mew/loops/caps.py` — max_ticks / max_no_progress per loop type (from `~/.mew/loop-caps.yaml`)
 - `templates/` — scaffolding templates per project type
 - `secrets/` — gitignored, owner-only permissions
 - `.mew-memory.db` — gitignored SQLite memory store (auto-created on first sync)
+- `.mew-ledger.db` — gitignored SQLite dispatch ledger (auto-created on first dispatch)
 
 ## Development rules
 
@@ -82,6 +98,16 @@ Agent({
 ```
 
 DeepSeek agents (mew-coder-simple, mew-coder-reason) cannot be dispatched via the Agent tool — use `mew dispatch` + LiteLLM proxy instead.
+
+## Loop anti-pattern (§A-8 / Phase 4 — enforced at planning time by mew-planner)
+
+**Never dispatch an agent in a retry loop against another agent's output on the same model family.**
+
+This is the verifier-weaker-than-generator failure mode: when both verifier and generator run on the same model family (e.g. both Sonnet), the verifier cannot catch errors the generator made — it produces false `predicate_met` signals and the loop terminates with incorrect output.
+
+- `mew loop start spec_build_verify` and `plan_approve_execute` check for `verifier_family_collision` at start time.
+- If collision detected: halted unless `--override` is passed. Log the collision in the ledger.
+- No file, prompt, comment, or doc in this project uses "learn", "adaptive", "training", or "model improvement" — this is heuristic accumulation and policy audit only (§A-8).
 
 ## Planning discipline — MASTER_SPEC as single source of truth
 

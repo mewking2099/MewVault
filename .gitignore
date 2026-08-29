@@ -46,3 +46,8 @@ instincts/_archive/
 .claude/last-session-message.txt
 .claude/worktrees/
 .claude/hook-test.tmp
+
+# dispatch ledger (SQLite + WAL)
+.mew-ledger.db
+.mew-ledger.db-shm
+.mew-ledger.db-wal

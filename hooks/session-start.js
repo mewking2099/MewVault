@@ -1172,7 +1172,28 @@ type: concept
   },
 ];
 
-function buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief) {
+function checkNewProjectGraphStatus(activeProject) {
+  if (!activeProject) return null;
+  const graphJson = path.join(activeProject, 'graphify-out', 'graph.json');
+  if (fs.existsSync(graphJson)) {
+    // Graph exists — check if vector index is also built (~/.mew/chroma/)
+    const chromaDir = path.join(os.homedir(), '.mew', 'chroma');
+    if (!fs.existsSync(chromaDir)) {
+      return `graph exists but vector index missing — run: mew index build`;
+    }
+    return null;
+  }
+  const projectName = path.basename(activeProject);
+  return (
+    `NEW PROJECT: ${projectName} has no knowledge graph yet.\n` +
+    `  Run once to bootstrap smart routing + semantic search:\n` +
+    `    ! graphify update .\n` +
+    `    ! mew index build\n` +
+    `  After that, both update automatically on every file save.`
+  );
+}
+
+function buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief, graphAlert) {
   const date = new Date().toISOString().slice(0, 10);
 
   const getField = (key) => {
@@ -1193,6 +1214,9 @@ function buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibr
   );
 
   const flags = [];
+  if (graphAlert) {
+    flags.push(...graphAlert.split('\n').map(l => `  ⚠  ${l}`));
+  }
   if (unwrapped && unwrapped.length) {
     const preview = unwrapped.slice(0, 2).join(', ') + (unwrapped.length > 2 ? `… +${unwrapped.length - 2}` : '');
     flags.push(`  ⚠  ${unwrapped.length} unwrapped session(s): ${preview}`);
@@ -1424,7 +1448,8 @@ async function main() {
   if (trigger) mustKeep.push(trigger.instructions);
 
   if (isFirstPrompt) {
-    const card = buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief);
+    const graphAlert = checkNewProjectGraphStatus(activeProjectForGraph);
+    const card = buildSessionCard(silo, agent, status, serviceResults, unwrapped, wikibrief, graphAlert);
     mustKeep.push(
       '## Session Card\n\n' +
       'Display this status card verbatim as the very first thing in your response, before answering the user:\n\n' +

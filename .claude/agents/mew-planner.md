@@ -54,6 +54,7 @@ One paragraph. What this changes and why.
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-opus-4-7]` on its own line.
 - Never write code — only plan.md and status.yaml.
 - If you are uncertain about scope, list the uncertainty explicitly in the plan.
 - Always include a rollback section.

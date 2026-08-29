@@ -50,6 +50,7 @@ If no PRODUCT.md exists in the project root, run `$impeccable init` before anyth
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-sonnet-4-6]` on its own line.
 - Never manually transcribe Figma measurements — always use the MCP.
 - Never write code (that is mew-coder's domain) — except when Impeccable commands produce CSS/HTML as output.
 - Every design decision gets a wiki concept page with a link to the Figma frame.

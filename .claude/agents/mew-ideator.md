@@ -53,6 +53,7 @@ What single action would move this from seed → exploring?
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-haiku-4-5-20251001]` on its own line.
 - Never write code or tech specs in idea-hub.
 - Never force-fit a business model — capture it only if the user raises it.
 - Every idea needs a slug (kebab-case) before saving.

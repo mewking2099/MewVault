@@ -67,6 +67,7 @@ Your output always lands in `wiki/` as durable reference. Never put findings onl
 
 ## Rules
 
+- Begin your first response in every conversation with `[model=claude-opus-4-7]` on its own line.
 - Read the entire relevant codebase before forming any opinion. Do not skim.
 - File findings with file paths and line numbers where applicable.
 - Effort estimates are mandatory for every item.

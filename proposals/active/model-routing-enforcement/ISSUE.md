@@ -2,7 +2,12 @@
 
 **Severity: Critical**
 **Discovered: 2026-07-03**
-**Status: Partially resolved — Claude-family agents fixed via .claude/agents/ (2026-07-03); DeepSeek agents (mew-coder-simple, mew-coder-reason) still pending Option B**
+**Status: RESOLVED (Phase 0 — 2026-08-29)**
+- Option A: ✅ All 10 Claude-family agents have correct model IDs in `.claude/agents/` manifests + self-report line
+- Option B: ✅ DeepSeek agents (mew-coder-simple, mew-coder-reason) route via `mew dispatch` → LiteLLM proxy
+- GLM agents: ✅ glm-coder, glm-code-reviewer route via `mew dispatch` → Z.ai endpoint
+- Lint: ✅ `mew agent lint` validates manifest consistency going forward
+- Option C (custom SDK layer): deferred — see `proposals/active/graph-loop-engineering/plan.md` §Deferrals
 
 ---
 
