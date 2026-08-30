@@ -45,7 +45,6 @@
       "mcp__webflow__data_element_tool",
       "mcp__webflow__data_element_builder",
       "Bash(npx tsc *)",
-
       "WebFetch(domain:astryx.atmeta.com)",
       "mcp__webflow__data_whtml_builder",
       "mcp__webflow__data_pages_tool",
@@ -109,7 +108,12 @@
       "WebFetch(domain:v7.mui.com)",
       "WebFetch(domain:app.unpkg.com)",
       "Read(//Users/Mohabbat/Library/LaunchAgents/**)",
-      "Bash(launchctl bootout *)"
+      "Bash(launchctl bootout *)",
+      "Bash(claude --print --model opus)",
+      "Bash(graphify update *)",
+      "WebFetch(domain:news.ycombinator.com)",
+      "WebFetch(domain:acornglobus.com)",
+      "WebFetch(domain:www.linkedin.com)"
     ]
   },
   "enableAllProjectMcpServers": true,
