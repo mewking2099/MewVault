@@ -45,9 +45,11 @@ workspace-root/
 | **Hook runtime** | Node.js (CommonJS) — 7 lifecycle hooks registered with Claude Code |
 | **Linting** | Ruff (pycodestyle, pyflakes, isort, naming, pyupgrade) |
 | **Memory — full-text** | SQLite FTS5 (built-in, zero external deps) |
-| **Memory — semantic** | SQLite-vec + Ollama (`nomic-embed-text`) + doobidoo MCP server |
-| **AI models** | Claude Sonnet (implementation, design, coordination), Claude Opus (planning, audits), Claude Haiku (capture, archiving) |
-| **Alternative models** | DeepSeek V3 / R1 via LiteLLM proxy (optional, for cost-sensitive tasks) |
+| **Memory — session** | SQLite-vec + Ollama (`nomic-embed-text`) + doobidoo MCP server |
+| **Memory — project index** | ChromaDB (persistent, `~/.mew/chroma/`) + sentence-transformers (`all-MiniLM-L6-v2`) — auto-built at session end |
+| **Graph engine** | graphify (AST-based knowledge graph, `graphify-out/graph.json` per project) |
+| **AI models** | Claude Sonnet (implementation, design, coordination), Claude Opus (planning, audits, ideation), Claude Haiku (capture, archiving) |
+| **Alternative models** | DeepSeek V3 / R1 via LiteLLM proxy (optional, for cost-sensitive tasks); GLM-5.2 via Z.ai (ideation cross-critique) |
 | **SRS scheduler** | Python SM-2 algorithm (`scripts/srs.py`) |
 | **Design system** | Impeccable v3 (`impeccable.style`) |
 | **Figma integration** | Figma MCP (`get_design_context`, `get_screenshot`, `use_figma`) |
@@ -149,9 +151,9 @@ entries_fts (virtual FTS5 table — title + body, auto-synced via triggers)
 - `mew brief <topic>` — searches memory + wiki, assembles a 2,000-token context pack of ranked, relevant excerpts
 - Claude Code consults memory at session start for cross-session continuity
 
-### Layer 2 — Semantic / vector memory (SQLite-vec + Ollama)
+### Layer 2a — Session memory (SQLite-vec + Ollama + doobidoo)
 
-Optional but significantly more powerful for fuzzy recall. Requires Ollama running locally with `nomic-embed-text` pulled.
+Semantic recall at the cross-session level. Requires Ollama running locally with `nomic-embed-text` pulled.
 
 **Stack:**
 - `sqlite-vec` extension — vector storage and cosine similarity search inside SQLite
@@ -164,13 +166,146 @@ Optional but significantly more powerful for fuzzy recall. Requires Ollama runni
 - `memory_harvest` ingests new wiki content in bulk
 
 **How it's used:**
-- Claude Code accesses the doobidoo MCP server (listed in `.mcp.json`) and calls `memory_search` at session start
+- Claude Code calls `memory_search` at session start via the doobidoo MCP server
 - Past decisions, architectural choices, and corrections resurface automatically when semantically relevant
 - `memory_conflicts` and `memory_quality` tools let Claude self-audit the memory store for contradictions
+
+### Layer 2b — Project knowledge graph index (ChromaDB)
+
+Semantic index of every file in the active project. Runs automatically — no Ollama required.
+
+**Stack:**
+- `ChromaDB` — persistent vector store at `~/.mew/chroma/` (one collection per project)
+- `sentence-transformers` (`all-MiniLM-L6-v2`) — local CPU-friendly embeddings, no external API
+
+**How it gets populated:**
+- `session-end.js` chains `graphify update . && mew index build <active-project>` as a detached background shell after every session that touches files
+- `post-tool-use.js` triggers the same chain after significant file writes
+- `mew index build [--all]` rebuilds manually if needed
+- New projects with no index are flagged with a ⚠ alert in the session card
+
+**How it's used:**
+- `mew index search "<query>"` returns ranked file excerpts by semantic similarity
+- `mew route blast-radius <node>` uses ChromaDB for Stage 2 semantic expansion (beyond the BFS hop graph)
+- `mew brief <topic>` merges ChromaDB hits with FTS5 results for a richer context pack
+- `mew dispatch` consults the index for routing confidence before choosing an agent
+
+```bash
+mew index build               # build for locked project
+mew index build --all         # rebuild all silo projects
+mew index status              # show per-project index freshness
+mew index search "token budget"  # semantic search
+```
 
 ### Auto-save memory file
 
 In addition to the database, Claude Code maintains a file-based auto-memory at `.claude/projects/<path>/memory/` — markdown files per memory type (user, feedback, project, reference), indexed in `MEMORY.md`. This layer is always active, even without Ollama.
+
+---
+
+## Graph-aware routing
+
+Every `mew dispatch` call passes through a three-stage routing pipeline before choosing an agent or model.
+
+### Stage 1 — Blast radius (what does this task touch?)
+
+**BFS hop graph** (`mew/routing/blast_radius.py`) walks the project's `graphify-out/graph.json` up to 2 hops from the anchor node, collecting every file in the neighbourhood. This is the structural impact estimate — what could break.
+
+**Semantic expansion** (`vector_index.search()`) extends that neighbourhood using ChromaDB: files whose content is semantically similar to the task description are added to the blast radius even if they're not adjacent in the graph. Together, BFS + semantic gives a more honest picture than graph topology alone.
+
+```bash
+mew route blast-radius "mew/commands/dispatch.py"  # show 2-hop + semantic neighbourhood
+```
+
+### Stage 2 — Complexity scorer
+
+`mew/routing/complexity.py` scores the blast radius: `file_count × community_span × type_diversity`. High scores route to Opus; low scores stay on Sonnet or Haiku. Community span penalises tasks that cross module boundaries — those are the risky ones.
+
+### Stage 3 — Capability registry
+
+`mew/routing/capability.py` matches the task against a registry of agent capability edges (`graphify-out/capability-edges.json`) — "which agent has successfully handled tasks touching these file types before?" Confidence is computed from the registry, and low-confidence routes are flagged before dispatch.
+
+### Project-based graph resolution
+
+All routing commands resolve the graph path with `_project_graph_path()`:
+1. `<locked-project>/graphify-out/graph.json` — project-specific graph (most accurate)
+2. `<silo>/graphify-out/graph.json` — silo-level fallback
+3. `/dev/null` — routing still works, just without graph data
+
+```bash
+mew route dry-run "add pagination to the sessions list"  # predict agent + model without dispatching
+mew route baseline                                        # record current routing decisions
+mew route status                                          # shadow-mode delta vs baseline
+mew route confidence                                      # per-silo confidence scores
+```
+
+---
+
+## Dual-model ideation (`mew ideate`)
+
+`mew ideate` runs a structured two-model debate loop: GLM-5.2 (via Z.ai) and Claude Opus critique each other's analysis, then Opus synthesises. This isn't conversational brainstorming — it's adversarial, cross-model pressure-testing.
+
+**Loop shape:**
+
+```
+Round 0:  GLM analysis   ↘
+                          → Round 1 cross-critique (each model reviews the other)
+Round 0:  Opus analysis  ↗
+                          → Opus synthesis (weighs both, resolves conflicts)
+                          → saved to --write-dir if provided
+```
+
+**When to use it:** positioning decisions, PRD risk analysis, feature expansion, README evaluation, architecture tradeoffs — anything where a single-model answer might be overconfident.
+
+```bash
+mew ideate "should we use pg_cron or Vercel Cron for background jobs?" \
+  --write-dir proposals/active/cron-decision/
+```
+
+Synthesis files land in `--write-dir` as `synthesis.md`. Z.ai SSL timeouts are intermittent — if round 1 fails twice, deliver analysis directly from the available context rather than retrying indefinitely.
+
+---
+
+## Loop primitives (`mew loop`)
+
+Four loop types for autonomous multi-step work, with built-in safeguards against runaway agents.
+
+| Loop type | Shape | Use for |
+|---|---|---|
+| `spec_build_verify` | spec → build → verify → iterate | TDD cycles on known specs |
+| `plan_approve_execute` | plan → approval gate → execute | MewKing features needing human sign-off |
+| `research_synthesise` | search → draft → critique → revise | Feasibility analysis, wiki writing |
+| `design_critique_refine` | design → Impeccable audit → refine | UI work with P0 gate |
+
+**Termination predicates** (`mew/loops/predicates.py`): each loop type has a fixed set of conditions that signal completion — tests green, P0s clear, synthesis stable, plan approved. Loops stop when predicates are met, not when they run out of tokens.
+
+**Livelock detection** (`mew/loops/livelock.py`): content-hash streaks (same output 3× in a row) and graph cycle detection halt loops that are spinning without progress.
+
+**Caps** (`~/.mew/loop-caps.yaml`): per-loop-type `max_ticks` and `max_no_progress` limits. Exceeding either stops the loop and writes a summary to the ledger.
+
+**Verifier-generator collision rule (§A-8):** Never dispatch a verifier on the same model family as the generator. A Sonnet verifier cannot catch errors a Sonnet generator made — it produces false `predicate_met` signals. `mew loop start` checks for family collision at start time and halts unless `--override` is passed.
+
+```bash
+mew loop start spec_build_verify --anchor "user-auth"
+mew loop tick <loop-id>       # manual tick (usually called by agents)
+mew loop status <loop-id>     # current predicate state + tick count
+mew loop list                 # all active loops
+```
+
+---
+
+## Dispatch ledger (`mew ledger`)
+
+Every agent dispatch is recorded — model used, task hash, blast radius, confidence score, tick count, outcome. The ledger is the audit trail for routing decisions.
+
+```bash
+mew ledger migrate   # initialise / migrate schema
+mew ledger tail      # live-tail recent dispatches
+mew ledger show <id> # full record for one dispatch
+mew ledger stats     # per-agent, per-model, per-silo summaries
+```
+
+The ledger database lives at `.mew-ledger.db` (gitignored). `mew agent status` is the human-facing summary; `mew ledger` is the raw record.
 
 ---
 
@@ -274,12 +409,12 @@ Seven lifecycle hooks, registered once with `mew harness install` and written to
 
 | Hook | Event | Role |
 | --- | --- | --- |
-| `session-start.js` | `UserPromptSubmit` | Context injection (first prompt only), trigger routing, doctor spawn |
-| `session-end.js` | `Stop` | Auto-wrap log, wiki sync, memory indexing |
+| `session-start.js` | `UserPromptSubmit` | Context injection (first prompt only), trigger routing, doctor spawn, new-project graph alert |
+| `session-end.js` | `Stop` | Auto-wrap log, wiki sync, memory indexing; chains `graphify update . && mew index build <project>` (detached) |
 | `pre-tool-use.js` | `PreToolUse` (Bash/Write/Edit) | MewKing, TDD, audit, secrets, immutability gates |
 | `agent-track.js` | `PreToolUse` (Task) | Dispatch ledger + model gate |
 | `agent-track.js` | `SubagentStop` | Completion logging |
-| `post-tool-use.js` | `PostToolUse` (Write/Edit) | Activity tracking, correction signals, Impeccable ban detector |
+| `post-tool-use.js` | `PostToolUse` (Write/Edit) | Activity tracking, correction signals, Impeccable ban detector; triggers `graphify update . && mew index build` (detached) |
 | `pre-compact.js` | `PreCompact` | Semantic snapshot before compaction |
 | `unity-guard.js` | `PreToolUse` | Blocks Unity editor writes (MCP) in Unity game projects |
 
@@ -499,6 +634,36 @@ One command: stashes your personal files (log.md, statuses), pulls fast-forward-
 | `mew harness install / status / disable` | Hook management |
 | `mew agent list / invoke / sync` | Agent array management |
 
+### Graph-aware routing
+
+| Command | Description |
+| --- | --- |
+| `mew route dry-run "<task>"` | Predict agent + model without dispatching |
+| `mew route baseline` | Record current routing decisions as baseline |
+| `mew route status` | Shadow-mode delta vs baseline |
+| `mew route confidence` | Per-silo routing confidence from graph + ChromaDB |
+| `mew route blast-radius "<node>"` | 2-hop BFS + semantic neighbourhood for a file |
+
+### Project knowledge index
+
+| Command | Description |
+| --- | --- |
+| `mew index build [--all]` | Build / rebuild ChromaDB index for locked project (or all) |
+| `mew index status` | Per-project index freshness and size |
+| `mew index search "<query>"` | Semantic search across project files |
+
+### Ideation & loops
+
+| Command | Description |
+| --- | --- |
+| `mew ideate "<question>" [--write-dir PATH]` | Dual-model GLM + Opus debate loop with synthesis |
+| `mew loop start <type> [--anchor NODE]` | Start a supervised agent loop |
+| `mew loop tick <id>` | Manual tick (usually called by agents) |
+| `mew loop status <id>` | Predicate state, tick count, livelock risk |
+| `mew loop list` | All active loops |
+| `mew ledger migrate / tail / show / stats` | Dispatch ledger management |
+
 ---
 
-*Changelog for the 2026-07-08 overhaul: `wiki/whats-new-2026-07-08.md`*
+*2026-07-08 overhaul changelog: `wiki/whats-new-2026-07-08.md`*  
+*Graph-loop-engineering additions (2026-08-29): mew ideate, mew loop, mew ledger, mew route, mew index, ChromaDB project index, two-stage blast radius, project-based graph resolution, automated graphify + index hooks.*
