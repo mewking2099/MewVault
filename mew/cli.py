@@ -240,6 +240,20 @@ def main() -> None:
     p_dispatch.add_argument("--system", metavar="TEXT", help="Override system prompt (default: agent-tuned code prompt)")
     p_dispatch.add_argument("--no-system", action="store_true", dest="no_system", help="Send no system prompt")
 
+    # scrape — full-site crawler
+    p_scrape = subparsers.add_parser("scrape", help="Crawl a website: content, screenshots, sitemap")
+    p_scrape.add_argument("url", help="Root URL to crawl (e.g. https://example.com)")
+    p_scrape.add_argument("--out", metavar="DIR", default=None,
+                          help="Output parent directory (default: current working directory)")
+    p_scrape.add_argument("--delay", type=float, default=0.8,
+                          help="Seconds between requests (default 0.8)")
+    p_scrape.add_argument("--max-pages", type=int, default=200, dest="max_pages",
+                          help="Hard cap on pages crawled (default 200)")
+    p_scrape.add_argument("--no-screenshots", action="store_true", dest="no_screenshots",
+                          help="Skip Playwright screenshots (content only)")
+    p_scrape.add_argument("--skip-wp-noise", action="store_true", dest="skip_wp_noise",
+                          help="Skip WordPress tag/category/author/pagination pages")
+
     # ideate — dual-model research and ideation loop
     p_ideate = subparsers.add_parser("ideate", help="Dual-model ideation: GLM-5.2 + Claude Opus debate loop")
     p_ideate.add_argument("topic", help="Topic or question to explore")
@@ -367,6 +381,7 @@ def main() -> None:
         "update":         lambda: _run("update", args),
         "brief":          lambda: _run("brief", args),
         "dispatch":       lambda: _run("dispatch", args),
+        "scrape":         lambda: _run("scrape", args),
         "ideate":         lambda: _run("ideate", args),
         "ledger":         lambda: _run("ledger", args),
         "loop":           lambda: _run("loop", args),
@@ -473,6 +488,9 @@ def _run(command: str, args: argparse.Namespace) -> None:
     elif command == "dispatch":
         from mew.commands.dispatch import run_dispatch
         run_dispatch(args)
+    elif command == "scrape":
+        from mew.commands.scrape import run_scrape
+        run_scrape(args)
     elif command == "ideate":
         from mew.commands.ideate import run_ideate
         run_ideate(args)

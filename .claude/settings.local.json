@@ -113,7 +113,43 @@
       "Bash(graphify update *)",
       "WebFetch(domain:news.ycombinator.com)",
       "WebFetch(domain:acornglobus.com)",
-      "WebFetch(domain:www.linkedin.com)"
+      "WebFetch(domain:www.linkedin.com)",
+      "WebFetch(domain:www.s0animation.com)",
+      "WebFetch(domain:heco.partners)",
+      "WebFetch(domain:justus-john.com)",
+      "WebFetch(domain:lannino.com)",
+      "WebFetch(domain:remote-rituals.framer.website)",
+      "WebFetch(domain:www.ojiholdings.co.jp)",
+      "WebFetch(domain:doi.org)",
+      "WebFetch(domain:news.vt.edu)",
+      "WebFetch(domain:www.mdpi.com)",
+      "WebFetch(domain:www.wvi.org)",
+      "WebFetch(domain:annalsofglobalhealth.org)",
+      "WebFetch(domain:pmc.ncbi.nlm.nih.gov)",
+      "WebFetch(domain:figr.design)",
+      "WebFetch(domain:www.tbsnews.net)",
+      "Bash(npx impeccable *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4321/)",
+      "Bash(curl -s http://localhost:4321/)",
+      "Bash(curl -s http://localhost:4321/products/neustring)",
+      "Bash(curl -sv http://localhost:4321/products/neustring)",
+      "Bash(curl -s http://localhost:4321/services/netdiscovery)",
+      "Bash(curl -s http://localhost:4321/services/records)",
+      "Bash(curl -s http://localhost:4321/services/dmca-managed)",
+      "Bash(curl -s http://localhost:4321/markets/service-providers)",
+      "Bash(grep -n \"\\\\.pb {$\\\\|\\\\.pb__img-wrap\\\\|padding.*pb\\\\|pb.*padding\\\\|space-24\\\\|space-20\\\\|space-16\" /Users/Mohabbat/Jan/design-studio/yaanatech-website/site/src/pages/products/\\\\[slug\\\\].astro)",
+      "Bash(npx astro *)",
+      "mcp__figma-console__figma_get_variables",
+      "WebFetch(domain:www.was-event.com)",
+      "mcp__claude_ai_Canva__create-design-from-candidate",
+      "mcp__claude_ai_Canva__search-designs",
+      "mcp__claude_ai_Canva__generate-design",
+      "Bash(curl -s -o /dev/null -w \" %{http_code}\" http://localhost:4321/robots.txt)",
+      "Bash(awk '{print $5, $9}')",
+      "Bash(npm run *)",
+      "Bash(vercel --version)",
+      "Bash(vercel project *)",
+      "Bash(gh repo *)"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -143,6 +179,16 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\" ] || node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Design deep pass"
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -167,6 +213,17 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\" ] || node \"${CLAUDE_PROJECT_DIR}/.claude/skills/impeccable/scripts/hook.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
       }
     ],
     "PreCompact": [
@@ -180,5 +237,6 @@
         ]
       }
     ]
-  }
+  },
+  "description": "Impeccable design detector: immediate-tier checks after Edit/Write on UI files, full-rule deep pass on Stop."
 }

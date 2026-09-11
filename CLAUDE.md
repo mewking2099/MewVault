@@ -139,6 +139,7 @@ Commands:
 - `design-studio` / any design project → `design-studio/<project>`
 - `career` / `career studio` → `career-studio`
 - `idea-hub` / `ideas` → `idea-hub`
+- `tendersense` / `TenderSense` / `tender-sense` → `software-projects/tendersense` (collaborative: itsmeshawon)
 
 If the project name is ambiguous, ask before locking.
 
