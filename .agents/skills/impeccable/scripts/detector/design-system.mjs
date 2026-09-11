@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { finding } from './findings.mjs';
@@ -7,8 +8,24 @@ import { parseAnyColor, resolveLengthPx } from './rules/checks.mjs';
 
 const DESIGN_NAMES = ['DESIGN.md', 'Design.md', 'design.md'];
 const FALLBACK_DIRS = ['.agents/context', 'docs'];
+// Files/dirs whose presence marks a directory as a project root. Mirrors the
+// walk-up semantics of skill/scripts/context.mjs (`resolveProject`), which the
+// CLI can't import (separate tree). `.git` and `package.json` are the common
+// boundaries; `.impeccable` is our own project marker.
+const PROJECT_ROOT_MARKERS = ['.git', 'package.json', '.impeccable'];
+// Monorepo-root recognition, mirroring context.mjs's isMonorepoRoot: declared
+// workspace globs (package.json `workspaces`, pnpm-workspace.yaml `packages:`)
+// or a marker file beside apps/ or packages/ children.
+const MONOREPO_MARKER_FILES = ['pnpm-workspace.yaml', 'turbo.json', 'nx.json', 'lerna.json'];
+const MONOREPO_FALLBACK_PROJECT_DIRS = ['apps', 'packages'];
 const COLOR_CHANNEL_TOLERANCE = 6;
+// Shadow blacks at different alphas are different tokens (0.28 vs 0.55 is the
+// difference between a documented shadow and drift), so shadow matching cannot
+// reuse the r/g/b-only channel tolerance.
+const SHADOW_ALPHA_TOLERANCE = 0.02;
 const RADIUS_TOLERANCE_PX = 0.5;
+const FONT_SIZE_TOLERANCE_PX = 0.5;
+const FONT_SIZE_LITERAL_RE = /^-?[\d.]+(?:px|rem)$/;
 
 const CSS_COLOR_RE = /#[0-9a-f]{3,8}\b|rgba?\([^)]+\)|oklch\([^)]+\)|hsla?\([^)]+\)/gi;
 const FONT_DECL_RE = /font-family\s*:\s*([^;}\n]+)/gi;
@@ -16,6 +33,9 @@ const FONT_JS_RE = /fontFamily\s*[:=]\s*["'`]([^"'`]+)["'`]/g;
 const GOOGLE_FONT_RE = /fonts\.googleapis\.com\/css2?\?[^"'\s)<>]*/gi;
 const BORDER_RADIUS_RE = /border-radius\s*:\s*([^;}\n]+)/gi;
 const BORDER_RADIUS_JS_RE = /borderRadius\s*[:=]\s*["'`]([^"'`]+)["'`]/g;
+const FONT_SIZE_DECL_RE = /font-size\s*:\s*([^;}\n]+)/gi;
+const FONT_SIZE_JS_RE = /fontSize\s*[:=]\s*["'`]([^"'`]+)["'`]/g;
+const TAILWIND_FONT_SIZE_RE = /\btext-\[(-?[\d.]+(?:px|rem))\]/g;
 const STATIC_DESIGN_SKIP_TAGS = new Set(['head', 'title', 'meta', 'link', 'style', 'script', 'noscript', 'template', 'source']);
 
 function firstExisting(dir, names) {
@@ -131,10 +151,73 @@ function stripInlineYamlComment(s) {
   return s;
 }
 
+// YAML double-quoted scalars process backslash escapes. Stripping the outer
+// quotes without unescaping leaves them in place, so a nested font family like
+//   fontFamily: "\"IBM Plex Sans\", system-ui, sans-serif"
+// reaches allowedFonts as '\"ibm plex sans' and never matches the same family
+// declared in CSS. Scanner instead of a regex: the escape set is small and the
+// backslash handling stays readable.
+// The full YAML 1.2 double-quote escape set (spec section 5.7).
+const YAML_SIMPLE_ESCAPES = {
+  '0': '\0',
+  a: '\x07',
+  b: '\b',
+  t: '\t',
+  n: '\n',
+  v: '\v',
+  f: '\f',
+  r: '\r',
+  e: '\x1b',
+  ' ': ' ',
+  '"': '"',
+  '/': '/',
+  '\\': '\\',
+  N: '\u0085',
+  _: '\u00a0',
+  L: '\u2028',
+  P: '\u2029',
+};
+const YAML_HEX_ESCAPE_LENGTHS = { x: 2, u: 4, U: 8 };
+
+function unescapeYamlDoubleQuoted(body) {
+  let out = '';
+  for (let i = 0; i < body.length; i++) {
+    const ch = body[i];
+    if (ch !== '\\' || i === body.length - 1) {
+      out += ch;
+      continue;
+    }
+    const next = body[i + 1];
+    if (Object.prototype.hasOwnProperty.call(YAML_SIMPLE_ESCAPES, next)) {
+      out += YAML_SIMPLE_ESCAPES[next];
+      i++;
+      continue;
+    }
+    // \xNN, \uNNNN, \UNNNNNNNN. Malformed or out-of-range sequences stay
+    // literal rather than corrupting the rest of the scalar.
+    const hexLen = YAML_HEX_ESCAPE_LENGTHS[next];
+    if (hexLen) {
+      const hex = body.slice(i + 2, i + 2 + hexLen);
+      const codePoint = hex.length === hexLen && /^[0-9a-fA-F]+$/.test(hex) ? parseInt(hex, 16) : -1;
+      if (codePoint >= 0 && codePoint <= 0x10ffff) {
+        out += String.fromCodePoint(codePoint);
+        i += 1 + hexLen;
+        continue;
+      }
+    }
+    out += ch;
+  }
+  return out;
+}
+
 function parseScalar(raw) {
   const s = raw.trim();
-  if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-    return s.slice(1, -1);
+  if (s.length >= 2 && s.startsWith('"') && s.endsWith('"')) {
+    return unescapeYamlDoubleQuoted(s.slice(1, -1));
+  }
+  // Single-quoted YAML escapes only the quote itself, by doubling it.
+  if (s.length >= 2 && s.startsWith("'") && s.endsWith("'")) {
+    return s.slice(1, -1).split("''").join("'");
   }
   if (s === 'true') return true;
   if (s === 'false') return false;
@@ -283,6 +366,77 @@ function addTypographyFonts(out, typography) {
   }
 }
 
+function addFontSizeStep(out, raw, { fluid = false } = {}) {
+  const text = String(raw ?? '').trim().toLowerCase();
+  if (!FONT_SIZE_LITERAL_RE.test(text)) return;
+  const px = resolveLengthPx(text, 16);
+  if (px == null || !Number.isFinite(px) || px <= 0) return;
+  out.allowedFontSizes.push({ value: text, px, fluid });
+}
+
+// Split a fluid value into its three terms, or null when it is not a
+// well-formed clamp(). Used both to read DESIGN.md's fluid roles and to
+// validate fluid values in source, so the two stay symmetric.
+function parseClampArgs(raw) {
+  const match = /^clamp\(\s*([\s\S]+)\s*\)$/i.exec(String(raw ?? '').trim());
+  if (!match) return null;
+  const args = splitTopLevelArgs(match[1]);
+  return args.length === 3 ? args : null;
+}
+
+// A fluid role declares its two fixed endpoints and interpolates between them
+// with a viewport unit. Both endpoints are documented sizes, so they belong in
+// the allowlist; the middle term is viewport-relative and never a fixed step.
+// Endpoints are marked `fluid` because they do not *enumerate* a ramp: see
+// `hasFontSizes` below for why that distinction has to survive.
+function addClampEndpoints(out, raw) {
+  const args = parseClampArgs(raw);
+  if (!args) return false;
+  addFontSizeStep(out, args[0], { fluid: true });
+  addFontSizeStep(out, args[2], { fluid: true });
+  return true;
+}
+
+function splitTopLevelArgs(s) {
+  const args = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of String(s)) {
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    if (ch === ',' && depth === 0) {
+      args.push(current.trim());
+      current = '';
+      continue;
+    }
+    current += ch;
+  }
+  if (current.trim()) args.push(current.trim());
+  return args;
+}
+
+function addTypographySizes(out, typography) {
+  if (!typography || typeof typography !== 'object') return;
+
+  // `scale` is the enumerated ramp: a name -> size map, since the frontmatter
+  // parser has no list support. It sits alongside the named roles.
+  const scale = typography.scale;
+  if (scale && typeof scale === 'object') {
+    for (const value of Object.values(scale)) {
+      if (typeof value !== 'string' && typeof value !== 'number') continue;
+      addFontSizeStep(out, value);
+    }
+  }
+
+  for (const [name, role] of Object.entries(typography)) {
+    if (name === 'scale') continue;
+    if (!role || typeof role !== 'object') continue;
+    const raw = String(role.fontSize ?? '').trim().toLowerCase();
+    if (addClampEndpoints(out, raw)) continue;
+    addFontSizeStep(out, raw);
+  }
+}
+
 function addRoundedScale(out, rounded) {
   if (!rounded || typeof rounded !== 'object') return;
   for (const [rawName, value] of Object.entries(rounded)) {
@@ -329,6 +483,25 @@ function addSidecarRadii(out, sidecar) {
   }
 }
 
+// Sidecar `extensions.shadows` entries ({ name, value, purpose }) carry the
+// documented shadow vocabulary that Stitch's frontmatter schema can't hold.
+// Their colors go into a separate allowlist — NOT allowedColorKeys — because a
+// shadow black is only documented *as a shadow*: feeding it into the general
+// color allowlist would legalize #000 as a page ground (alpha is dropped from
+// colorKey), which is the hole issue #547 warns against.
+function addSidecarShadows(out, sidecar) {
+  const shadows = sidecar?.extensions?.shadows;
+  if (!Array.isArray(shadows)) return;
+
+  for (const entry of shadows) {
+    if (typeof entry?.value !== 'string') continue;
+    for (const match of entry.value.matchAll(CSS_COLOR_RE)) {
+      const parsed = parseDesignColor(match[0]);
+      if (parsed) out.allowedShadowColors.push({ color: parsed });
+    }
+  }
+}
+
 function normalizeDesignSystem(input = {}) {
   const frontmatter = input.frontmatter || {};
   const sidecar = input.sidecar || null;
@@ -340,18 +513,26 @@ function normalizeDesignSystem(input = {}) {
     allowedFonts: new Set(),
     allowedColorKeys: new Map(),
     allowedRadii: [],
+    allowedFontSizes: [],
+    allowedShadowColors: [],
     hasPillRadius: false,
   };
 
   addTypographyFonts(out, frontmatter.typography);
+  addTypographySizes(out, frontmatter.typography);
   addColorObject(out, frontmatter.colors);
   addSidecarColors(out, sidecar);
   addRoundedScale(out, frontmatter.rounded);
   addSidecarRadii(out, sidecar);
+  addSidecarShadows(out, sidecar);
 
   out.hasFonts = out.allowedFonts.size > 0;
   out.hasColors = out.allowedColorKeys.size > 0;
   out.hasRadii = out.allowedRadii.length > 0;
+  // Gate on *enumerated* steps only. A fully fluid system declares clamp
+  // endpoints but no discrete ramp, so treating those endpoints as the whole
+  // allowlist would flag every intermediate size. Abstain instead.
+  out.hasFontSizes = out.allowedFontSizes.some(entry => !entry.fluid);
   return out;
 }
 
@@ -387,6 +568,245 @@ function loadDesignSystemForCwd(cwd = process.cwd()) {
   });
 }
 
+// Directory to begin the project-root walk from, given a scan target that may
+// be a file or a directory (and may not exist yet).
+function designSystemStartDir(targetPath, cwd = process.cwd()) {
+  const abs = path.isAbsolute(targetPath) ? targetPath : path.resolve(cwd, targetPath);
+  try {
+    return fs.statSync(abs).isDirectory() ? abs : path.dirname(abs);
+  } catch {
+    // Nonexistent path: treat an extension-bearing leaf as a file.
+    return path.extname(abs) ? path.dirname(abs) : abs;
+  }
+}
+
+// Same two groups as context.mjs's readProjectPatternGroups: Impeccable
+// projectRoots govern any path they match (positive or negated); package-manager
+// globs only apply to paths the Impeccable group does not match.
+function readWorkspacePatternGroups(dir) {
+  const impeccable = [];
+  for (const name of ['config.json', 'config.local.json']) {
+    const roots = safeReadJson(path.join(dir, '.impeccable', name))?.projectRoots;
+    if (Array.isArray(roots)) {
+      impeccable.push(...roots.filter(entry => typeof entry === 'string' && entry.trim()).map(entry => entry.trim()));
+    }
+  }
+  const pkg = [];
+  const workspaces = safeReadJson(path.join(dir, 'package.json'))?.workspaces;
+  if (Array.isArray(workspaces)) pkg.push(...workspaces);
+  else if (Array.isArray(workspaces?.packages)) pkg.push(...workspaces.packages);
+  const lernaPackages = safeReadJson(path.join(dir, 'lerna.json'))?.packages;
+  if (Array.isArray(lernaPackages)) pkg.push(...lernaPackages);
+  try {
+    let inPackages = false;
+    for (const line of fs.readFileSync(path.join(dir, 'pnpm-workspace.yaml'), 'utf-8').split(/\r?\n/)) {
+      const trimmed = stripInlineYamlComment(line).trim();
+      if (!trimmed || trimmed.startsWith('#')) continue;
+      const flow = trimmed.match(/^packages:\s*\[(.*)\]\s*$/);
+      if (flow) {
+        pkg.push(...flow[1].split(',').map(entry => entry.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean));
+        break;
+      }
+      if (/^packages:\s*$/.test(trimmed)) { inPackages = true; continue; }
+      if (!inPackages) continue;
+      const item = trimmed.match(/^-\s*(.+)$/);
+      if (item) pkg.push(item[1].trim().replace(/^['"]|['"]$/g, ''));
+      else if (/^[A-Za-z0-9_-]+:\s*/.test(trimmed)) break;
+    }
+  } catch { /* no pnpm-workspace.yaml */ }
+  return [impeccable, pkg];
+}
+
+function readWorkspacePatterns(dir) {
+  return readWorkspacePatternGroups(dir).flat();
+}
+
+function isMonorepoRoot(dir) {
+  if (readWorkspacePatterns(dir).some(pattern => !String(pattern).trim().startsWith('!'))) return true;
+  if (!MONOREPO_MARKER_FILES.some(file => fs.existsSync(path.join(dir, file)))) return false;
+  return MONOREPO_FALLBACK_PROJECT_DIRS.some(name => {
+    try {
+      return fs.readdirSync(path.join(dir, name), { withFileTypes: true }).some(entry => entry.isDirectory());
+    } catch {
+      return false;
+    }
+  });
+}
+
+function monorepoOwnsPath(root, boundaryDir) {
+  const rel = path.relative(root, boundaryDir);
+  if (!rel || rel.startsWith('..') || path.isAbsolute(rel)) return false;
+  const relSegments = rel.split(path.sep).filter(Boolean);
+
+  function normalizeWorkspacePattern(pattern) {
+    return String(pattern || '')
+      .trim()
+      .replace(/^['"]|['"]$/g, '')
+      .replace(/^\.\//, '')
+      .replace(/\/+$/, '');
+  }
+
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function segmentMatches(patternSegment, relSegment) {
+    if (patternSegment === '*') return true;
+    if (!patternSegment.includes('*')) return patternSegment === relSegment;
+    const re = new RegExp(`^${escapeRegExp(patternSegment).replace(/\\\*/g, '[^/]*')}$`);
+    return re.test(relSegment);
+  }
+
+  function matchGlobSegments(patternSegments, relSegments) {
+    function rec(pi, ri) {
+      if (pi === patternSegments.length) return ri === relSegments.length;
+      if (patternSegments[pi] === '**') {
+        if (pi === patternSegments.length - 1) return true;
+        for (let k = ri; k <= relSegments.length; k++) {
+          if (rec(pi + 1, k)) return true;
+        }
+        return false;
+      }
+      if (ri >= relSegments.length) return false;
+      if (!segmentMatches(patternSegments[pi], relSegments[ri])) return false;
+      return rec(pi + 1, ri + 1);
+    }
+    return rec(0, 0);
+  }
+
+  // Negations like !packages/excluded must also cover nested dirs under that path.
+  function matchesNegation(pattern) {
+    const patternSegments = normalizeWorkspacePattern(pattern).split('/').filter(Boolean);
+    if (!patternSegments.length) return false;
+    if (patternSegments.includes('**')) return matchGlobSegments(patternSegments, relSegments);
+    if (relSegments.length < patternSegments.length) return false;
+    for (let i = 0; i < patternSegments.length; i++) {
+      if (!segmentMatches(patternSegments[i], relSegments[i])) return false;
+    }
+    return true;
+  }
+
+  // Positive globs identify workspace packages at exact depth (`*` is a direct
+  // child). A nested package.json under that package is still owned: the
+  // ancestor directory of glob length must itself be a package.
+  function positiveOwns(pattern) {
+    const patternSegments = normalizeWorkspacePattern(pattern).split('/').filter(Boolean);
+    if (!patternSegments.length) return false;
+    if (patternSegments.includes('**')) return matchGlobSegments(patternSegments, relSegments);
+    if (relSegments.length < patternSegments.length) return false;
+    for (let i = 0; i < patternSegments.length; i++) {
+      if (!segmentMatches(patternSegments[i], relSegments[i])) return false;
+    }
+    if (relSegments.length === patternSegments.length) return true;
+    const ancestorDir = path.join(root, ...relSegments.slice(0, patternSegments.length));
+    return fs.existsSync(path.join(ancestorDir, 'package.json'));
+  }
+
+  function groupOwns(rawPatterns) {
+    const patterns = rawPatterns.map(normalizeWorkspacePattern).filter(Boolean);
+    if (!patterns.length) return null;
+    const excluded = patterns.some((pattern) => (
+      pattern.startsWith('!') && matchesNegation(pattern.slice(1))
+    ));
+    const included = patterns.filter((pattern) => !pattern.startsWith('!')).some(positiveOwns);
+    if (!excluded && !included) return null;
+    if (excluded) return false;
+    return true;
+  }
+
+  const [impeccable, pkg] = readWorkspacePatternGroups(root);
+  const fromImpeccable = groupOwns(impeccable);
+  if (fromImpeccable !== null) return fromImpeccable;
+  const fromPkg = groupOwns(pkg);
+  if (fromPkg !== null) return fromPkg;
+  if ([...impeccable, ...pkg].some((pattern) => !normalizeWorkspacePattern(pattern).startsWith('!'))) {
+    return false;
+  }
+  return relSegments.length >= 2 && MONOREPO_FALLBACK_PROJECT_DIRS.includes(relSegments[0]);
+}
+
+// Both forms of the home directory. The walk compares path strings, and a
+// symlinked home (e.g. /home -> /var/home) never string-matches the physical
+// paths a cwd-resolved target produces, which would let the post-boundary walk
+// sail through $HOME and inherit from it.
+function homeDirForms() {
+  const homeDir = path.resolve(os.homedir());
+  const forms = new Set([homeDir]);
+  try {
+    forms.add(fs.realpathSync(homeDir));
+  } catch { /* keep the logical form only */ }
+  return forms;
+}
+
+// Walk up from `startDir` to the directory that governs the target's design
+// system, mirroring skill/scripts/context.mjs's project-boundary semantics:
+//
+//   - A directory carrying a DESIGN.md (directly or in a fallback dir) IS the
+//     design root — that's where the rules live.
+//   - A directory carrying a project marker (.git / package.json / .impeccable)
+//     but no DESIGN.md is a project BOUNDARY. A nested package.json inherits
+//     the ancestor DESIGN.md only when that ancestor's workspace declarations
+//     include the path (negations win; a nested package under a matched
+//     workspace still inherits). Marker-only roots (turbo/nx/lerna/pnpm
+//     with no globs) still own apps/<name> and packages/<name>. A stray nested
+//     package that matches no glob does not inherit. This is detect's
+//     contamination contract, not skill-context's repoRoot fallback for
+//     excluded paths. A nested separate repository (.git with no workspace
+//     declaration) still inherits nothing (issue #570).
+//   - Reaching the home directory / filesystem root with neither means no
+//     design system at all — never process.cwd()'s.
+//
+// Returns { dir, hasDesign } for the stopping directory, or null when the walk
+// runs out. This is the fix for cross-project contamination.
+export function findDesignRoot(startDir) {
+  let dir = path.resolve(startDir);
+  const homeDirs = homeDirForms();
+  let boundary = null;
+  while (true) {
+    if (!boundary && resolveDesignMdPath(dir)) return { dir, hasDesign: true };
+    if (boundary) {
+      // Past the boundary the walk only looks for the monorepo root that owns
+      // the workspace path (workspace globs including negations, or marker-only
+      // apps/packages fallback). Monorepo-root before .git, same order as
+      // context.mjs: a workspace root carrying its own .git is still recognized,
+      // while a .git that declares no workspaces is a separate repository and
+      // stops the walk with nothing inherited. The home directory is never an
+      // owning root, same as context.mjs's findMonorepoRoot, which stops at
+      // homeDir before its monorepo check.
+      if (!homeDirs.has(dir) && isMonorepoRoot(dir)) {
+        if (monorepoOwnsPath(dir, boundary.dir)) return { dir, hasDesign: !!resolveDesignMdPath(dir) };
+        return boundary;
+      }
+      if (fs.existsSync(path.join(dir, '.git'))) return boundary;
+    } else if (PROJECT_ROOT_MARKERS.some((marker) => fs.existsSync(path.join(dir, marker)))) {
+      boundary = { dir, hasDesign: false };
+      // A boundary that is itself a monorepo root, or a separate repository
+      // with its own .git, inherits nothing from above.
+      if (isMonorepoRoot(dir) || fs.existsSync(path.join(dir, '.git'))) return boundary;
+    }
+    if (homeDirs.has(dir)) return boundary;
+    const parent = path.dirname(dir);
+    if (parent === dir) return boundary;
+    dir = parent;
+  }
+}
+
+// Resolve the design system that governs a specific scan target, by walking up
+// from the target's own location — never process.cwd(). Scanning project B's
+// files from inside project A applies B's DESIGN.md (or none), not A's.
+//
+// Pass a `cache` Map to memoize by resolved design root across a multi-file
+// scan; a target with no design root above it resolves to null.
+export function loadDesignSystemForTarget(targetPath, { cache, cwd = process.cwd() } = {}) {
+  const startDir = designSystemStartDir(targetPath, cwd);
+  const found = findDesignRoot(startDir);
+  const key = found ? `root:${found.dir}` : '\0none';
+  if (cache && cache.has(key)) return cache.get(key);
+  const loaded = found?.hasDesign ? loadDesignSystemForCwd(found.dir) : null;
+  if (cache) cache.set(key, loaded);
+  return loaded;
+}
+
 function isAllowedFont(font, designSystem) {
   if (!font || GENERIC_FONTS.has(font)) return true;
   if (!designSystem?.hasFonts) return true;
@@ -407,6 +827,20 @@ function isAllowedColorRaw(raw, designSystem) {
   return false;
 }
 
+// A color is a documented shadow color only when both the r/g/b channels AND
+// the alpha match a sidecar shadow token's color. Alpha has to be compared
+// here because colorKey()/colorsClose() drop it, and a match on r/g/b alone
+// would let every black at every alpha through.
+function isAllowedShadowColorRaw(raw, designSystem) {
+  if (!designSystem?.allowedShadowColors?.length) return false;
+  const parsed = parseDesignColor(String(raw || '').trim().toLowerCase());
+  if (!parsed) return false;
+  return designSystem.allowedShadowColors.some(entry =>
+    colorsClose(parsed, entry.color) &&
+    Math.abs((parsed.a ?? 1) - (entry.color.a ?? 1)) <= SHADOW_ALPHA_TOLERANCE,
+  );
+}
+
 function isAllowedRadiusRaw(raw, designSystem) {
   if (!designSystem?.hasRadii) return true;
   const text = String(raw || '').trim().toLowerCase();
@@ -416,6 +850,43 @@ function isAllowedRadiusRaw(raw, designSystem) {
   if (px == null || !Number.isFinite(px) || px <= RADIUS_TOLERANCE_PX) return true;
   if (designSystem.hasPillRadius && px >= 99) return true;
   return designSystem.allowedRadii.some(entry => Math.abs(entry.px - px) <= RADIUS_TOLERANCE_PX);
+}
+
+// One term of a font-size value. `unjudgeable` covers var(), calc(), percentages
+// and units the ramp cannot resolve (em is parent-relative, not root-relative);
+// those abstain rather than guess.
+function fontSizeStepStatus(raw, designSystem) {
+  const text = String(raw || '').trim().toLowerCase();
+  if (!FONT_SIZE_LITERAL_RE.test(text)) return 'unjudgeable';
+  const px = resolveLengthPx(text, 16);
+  if (px == null || !Number.isFinite(px) || px <= 0) return 'unjudgeable';
+  return designSystem.allowedFontSizes.some(
+    entry => Math.abs(entry.px - px) <= FONT_SIZE_TOLERANCE_PX,
+  ) ? 'on-ramp' : 'off-ramp';
+}
+
+// The off-ramp endpoints of a fluid value, or null when `raw` is not a fluid
+// value at all. Only the min and max are judged: the viewport term interpolates
+// between them and is never a fixed step.
+//
+// Reading clamp endpoints as documented steps without also checking them in
+// usage would let `clamp(99rem, 1vw, 200rem)` through, which is how a fluid
+// declaration stayed invisible until someone measured computed styles.
+export function offRampClampEndpoints(raw, designSystem) {
+  if (!designSystem?.hasFontSizes) return null;
+  const args = parseClampArgs(String(raw || '').trim().replace(/\s*!important\s*$/i, ''));
+  if (!args) return null;
+  return [args[0], args[2]].filter(
+    endpoint => fontSizeStepStatus(endpoint, designSystem) === 'off-ramp',
+  );
+}
+
+function isAllowedFontSizeRaw(raw, designSystem) {
+  if (!designSystem?.hasFontSizes) return true;
+  const text = String(raw || '').trim().toLowerCase().replace(/\s*!important\s*$/, '');
+  const offRampEndpoints = offRampClampEndpoints(text, designSystem);
+  if (offRampEndpoints) return offRampEndpoints.length === 0;
+  return fontSizeStepStatus(text, designSystem) !== 'off-ramp';
 }
 
 function lineLooksCommented(line) {
@@ -445,6 +916,40 @@ function isProbablyColorLiteral(line, match) {
   const jsColorKeyContext = /(?:^|[,{]\s*)(?:color|background|backgroundColor|borderColor|outlineColor|fill|stroke|boxShadow|textShadow)\s*[:=]\s*["'`]?[^"'`,}]*/i.test(before);
 
   return styleContext || cssFunctionContext || jsColorKeyContext;
+}
+
+// One complete `${...}` template interpolation. Its content may carry paired
+// quoted strings (function arguments, ternary branches) and one level of
+// braces (an object-literal argument, itself allowing paired quotes). Deeper
+// nesting would need a parser, so the regex deliberately fails safe there:
+// the context check misses and the finding fires — a false positive a waiver
+// can silence, never a leak.
+const QUOTED_STRING_SRC = `"[^"]*"|'[^']*'`;
+const INTERPOLATION_SRC =
+  `\\$\\{(?:${QUOTED_STRING_SRC}|\\{(?:${QUOTED_STRING_SRC}|[^{}"'\`])*\\}|[^{}"'\`])*\\}`;
+// The two shadow-context tails. Unlike jsColorKeyContext, the JS tail admits
+// commas: a multi-layer shadow string is comma-separated, and a later
+// property on the same line is still blocked because it sits past the
+// string's closing quote. Both tails admit complete interpolations; a bare
+// `}`, quote, or `;` still ends the context.
+const SHADOW_CSS_CONTEXT_RE = new RegExp(
+  `(?:^|[{\\s;"'\`(,])(?:box-shadow|text-shadow)\\s*:\\s*(?:${INTERPOLATION_SRC}|[^;{}"'\`])*$`, 'i',
+);
+const SHADOW_JS_CONTEXT_RE = new RegExp(
+  `(?:^|[,{]\\s*)(?:boxShadow|textShadow)\\s*[:=]\\s*["'\`]?(?:${INTERPOLATION_SRC}|[^"'\`}])*$`, 'i',
+);
+
+// True when the color literal sits inside a box-shadow / text-shadow value —
+// the only contexts where a documented shadow color is legal. Anchored to the
+// end of `before` (no ; } { or quote in between) so a shadow property earlier
+// on the line can't leak the allowance into a later declaration. Kept separate
+// from isProbablyColorLiteral(), which stays a boolean for its existing call
+// sites and deliberately discards which property matched.
+function isShadowPropertyContext(line, match) {
+  const index = match.index ?? -1;
+  if (index < 0) return false;
+  const before = line.slice(0, index);
+  return SHADOW_CSS_CONTEXT_RE.test(before) || SHADOW_JS_CONTEXT_RE.test(before);
 }
 
 function isInsideCssAttributeSelector(line, index) {
@@ -490,7 +995,9 @@ function extractRadiusTokens(value) {
   return String(value || '')
     .replace(/\s*\/\s*/g, ' ')
     .split(/\s+/)
-    .map(token => token.trim())
+    // var() fallbacks leave the closing parenthesis on the final token. Strip
+    // it before length resolution so `8px)` is not treated as unitless 8rem.
+    .map(token => token.trim().replace(/\)+$/, ''))
     .filter(Boolean);
 }
 
@@ -507,6 +1014,37 @@ function checkRadiusValue(value, filePath, line, designSystem, context) {
     ));
   }
   return findings;
+}
+
+function checkFontSizeValue(value, filePath, line, designSystem, context) {
+  const token = String(value || '').trim();
+  if (isAllowedFontSizeRaw(token, designSystem)) return [];
+
+  // Name the offending endpoint on a fluid value; the whole clamp() string is
+  // not actionable on its own, and it makes a poor ignore-value.
+  const offRampEndpoints = offRampClampEndpoints(token, designSystem) || [];
+  if (offRampEndpoints.length > 0) {
+    const plural = offRampEndpoints.length > 1 ? 's' : '';
+    return [makeDesignFinding(
+      'design-system-font-size',
+      filePath,
+      `${context}: ${token} has fluid endpoint${plural} ${offRampEndpoints.join(' and ')} off the DESIGN.md type ramp`,
+      line,
+      { ignoreValue: offRampEndpoints[0] },
+    )];
+  }
+
+  // The snippet shows the declaration as authored, but the ignoreValue has to
+  // be what a `hooks ignore-value` waiver can match, so the priority marker is
+  // stripped. Otherwise the same size needs two different waivers depending on
+  // whether it carries !important. font-family already behaves this way.
+  return [makeDesignFinding(
+    'design-system-font-size',
+    filePath,
+    `${context}: ${token} is off the DESIGN.md type ramp`,
+    line,
+    { ignoreValue: token.replace(/\s*!important\s*$/i, '').trim() },
+  )];
 }
 
 function checkSourceDesignSystem(content, filePath, options = {}) {
@@ -549,6 +1087,7 @@ function checkSourceDesignSystem(content, filePath, options = {}) {
         if (!isProbablyColorLiteral(line, match)) continue;
         const raw = cssColorLabel(match[0]);
         if (isAllowedColorRaw(raw, designSystem)) continue;
+        if (isShadowPropertyContext(line, match) && isAllowedShadowColorRaw(raw, designSystem)) continue;
         findings.push(makeDesignFinding(
           'design-system-color',
           filePath,
@@ -567,6 +1106,18 @@ function checkSourceDesignSystem(content, filePath, options = {}) {
         findings.push(...checkRadiusValue(match[1], filePath, lineNum, designSystem, 'borderRadius'));
       }
     }
+
+    if (designSystem.hasFontSizes) {
+      for (const match of line.matchAll(FONT_SIZE_DECL_RE)) {
+        findings.push(...checkFontSizeValue(match[1], filePath, lineNum, designSystem, 'font-size'));
+      }
+      for (const match of line.matchAll(FONT_SIZE_JS_RE)) {
+        findings.push(...checkFontSizeValue(match[1], filePath, lineNum, designSystem, 'fontSize'));
+      }
+      for (const match of line.matchAll(TAILWIND_FONT_SIZE_RE)) {
+        findings.push(...checkFontSizeValue(match[1], filePath, lineNum, designSystem, 'text-[…] class'));
+      }
+    }
   }
 
   return dedupeDesignFindings(findings);
@@ -581,6 +1132,8 @@ function sampleText(el) {
   return text ? ` "${text.slice(0, 40)}"` : '';
 }
 
+// Font-size design-system checks are source-scan-only (see checkSourceDesignSystem).
+// Computed font-size cascades and clamp() ramps resolve to off-ramp px in the browser.
 function collectStaticDesignSystemFindings(document, window, filePath, designSystem) {
   if (!designSystem?.present) return [];
   const findings = [];
@@ -698,6 +1251,12 @@ function canonicalDesignFindingKey(item) {
     const label = String(value || '').trim().toLowerCase();
     return label ? `${item.antipattern}:radius:${label}` : null;
   }
+  if (item.antipattern === 'design-system-font-size') {
+    const px = resolveLengthPx(String(value || '').trim(), 16);
+    if (px != null && Number.isFinite(px)) return `${item.antipattern}:font-size:${Math.round(px * 100) / 100}`;
+    const label = String(value || '').trim().toLowerCase();
+    return label ? `${item.antipattern}:font-size:${label}` : null;
+  }
   return null;
 }
 
@@ -743,7 +1302,9 @@ export {
   loadDesignSystemForCwd,
   isAllowedFont,
   isAllowedColorRaw,
+  isAllowedShadowColorRaw,
   isAllowedRadiusRaw,
+  isAllowedFontSizeRaw,
   checkSourceDesignSystem,
   collectStaticDesignSystemFindings,
   mergeDesignSystemFindings,

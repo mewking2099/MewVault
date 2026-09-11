@@ -56,17 +56,40 @@ function isBrandFontOnOwnDomain(font) {
   return allowed.some(suffix => host === suffix || host.endsWith('.' + suffix));
 }
 
-const GENERIC_FONTS = new Set([
+// Overused-font primary selection skips only CSS generics so a system stack
+// keeps the system face as primary; GENERIC_FONTS still includes platform
+// faces for design-system/serif resolution.
+const CSS_GENERIC_FONTS = new Set([
   'serif', 'sans-serif', 'monospace', 'cursive', 'fantasy',
-  'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
-  '-apple-system', 'blinkmacsystemfont', 'segoe ui',
   'inherit', 'initial', 'unset', 'revert',
 ]);
+
+const GENERIC_FONTS = new Set([
+  ...CSS_GENERIC_FONTS,
+  'system-ui', 'ui-serif', 'ui-sans-serif', 'ui-monospace', 'ui-rounded',
+  '-apple-system', 'blinkmacsystemfont', 'segoe ui',
+]);
+
+function primaryFontFace(fontFamily, skip = CSS_GENERIC_FONTS) {
+  return String(fontFamily || '')
+    .split(',')
+    .map(f => f.trim().replace(/^['"]|['"]$/g, '').toLowerCase())
+    .find(f => f && !skip.has(f)) || null;
+}
 
 // WCAG large text thresholds are defined in points: 18pt normal text and
 // 14pt bold text. Browsers expose font-size in CSS pixels at 96px per inch.
 const WCAG_LARGE_TEXT_PX = 18 * (96 / 72);
 const WCAG_LARGE_BOLD_TEXT_PX = 14 * (96 / 72);
+
+// Em-dash overuse (advisory) thresholds, shared by the regex/static-HTML
+// analyzer and the browser DOM check so both fire on the same saturation
+// pattern. Two gates must hold: an absolute floor of EM_DASH_FLOOR dashes, and
+// a density of at least one dash per EM_DASH_CHARS_PER_DASH characters of body
+// text. A long article that uses a few em-dashes is left alone; a short,
+// dash-per-clause page is not.
+const EM_DASH_FLOOR = 8;
+const EM_DASH_CHARS_PER_DASH = 500;
 
 // Serif faces that show up in italic-display heroes. The rule also fires when
 // the primary face is unknown but the stack ends in the generic `serif` token,
@@ -95,7 +118,10 @@ export {
   BRAND_FONT_DOMAINS,
   isBrandFontOnOwnDomain,
   GENERIC_FONTS,
+  primaryFontFace,
   WCAG_LARGE_TEXT_PX,
   WCAG_LARGE_BOLD_TEXT_PX,
+  EM_DASH_FLOOR,
+  EM_DASH_CHARS_PER_DASH,
   KNOWN_SERIF_FONTS,
 };
